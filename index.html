@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Case Viaggi</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🧳 Business Case Viaggi</h1>
+                <div class="header-actions">
+                    <button id="importBtn" class="btn btn-secondary" title="Importa dati">
+                        📥 Importa
+                    </button>
+                    <button id="exportMenuBtn" class="btn btn-secondary" title="Esporta dati">
+                        📤 Esporta
+                    </button>
+                </div>
+            </div>
+            <nav class="app-nav">
+                <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
+                <button class="nav-btn" data-view="scenarios">📋 Scenari</button>
+                <button class="nav-btn" data-view="compare">🔄 Confronta</button>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view active">
+                <div class="view-header">
+                    <h2>Dashboard</h2>
+                    <button id="newScenarioBtn" class="btn btn-primary">+ Nuovo Scenario</button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card stat-card-clickable" id="totalScenariosCard" role="button" tabindex="0" aria-label="Apri la lista degli scenari">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Scenari Totali</div>
+                            <div class="stat-value" id="totalScenarios">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Spesa Media</div>
+                            <div class="stat-value" id="avgCost">€0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Partecipanti Totali</div>
+                            <div class="stat-value" id="totalParticipants">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📍</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Destinazioni</div>
+                            <div class="stat-value" id="totalDestinations">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenarios-grid" id="scenariosGrid">
+                    <div class="empty-state">
+                        <div class="empty-icon">🧳</div>
+                        <h3>Nessuno scenario creato</h3>
+                        <p>Inizia creando il tuo primo business case per un viaggio</p>
+                        <button class="btn btn-primary" onclick="document.getElementById('newScenarioBtn').click()">
+                            + Crea Primo Scenario
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scenarios View -->
+            <div id="scenariosView" class="view">
+                <div class="view-header">
+                    <h2>Gestione Scenari</h2>
+                    <button class="btn btn-primary" onclick="document.getElementById('newScenarioBtn').click()">
+                        + Nuovo Scenario
+                    </button>
+                </div>
+                <div class="scenarios-grid" id="scenariosList"></div>
+            </div>
+
+            <!-- Compare View -->
+            <div id="compareView" class="view">
+                <div class="view-header">
+                    <h2>Confronta Scenari</h2>
+                </div>
+                <div class="compare-container">
+                    <div class="compare-selector">
+                        <h3>Seleziona scenari da confrontare</h3>
+                        <div id="compareCheckboxes" class="checkbox-group"></div>
+                        <button id="compareBtn" class="btn btn-primary">Confronta Selezionati</button>
+                    </div>
+                    <div id="compareResults" class="compare-results"></div>
+                </div>
+            </div>
+
+            <!-- Scenario Detail View -->
+            <div id="scenarioDetailView" class="view">
+                <div class="view-header">
+                    <button id="backBtn" class="btn btn-secondary">← Indietro</button>
+                    <h2 id="scenarioTitle">Dettaglio Scenario</h2>
+                    <div class="header-actions">
+                        <button id="duplicateScenarioBtn" class="btn btn-secondary">📋 Duplica</button>
+                        <button id="deleteScenarioBtn" class="btn btn-danger">🗑️ Elimina</button>
+                    </div>
+                </div>
+
+                <form id="scenarioForm" class="scenario-form">
+                    <div class="form-section">
+                        <h3>📍 Informazioni Generali</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="scenarioName">Nome Scenario *</label>
+                                <input type="text" id="scenarioName" required placeholder="es: Viaggio Roma 2026">
+                            </div>
+                            <div class="form-group">
+                                <label for="destination">Destinazione *</label>
+                                <input type="text" id="destination" required placeholder="es: Roma, Italia">
+                            </div>
+                            <div class="form-group">
+                                <label for="startDate">Data Inizio</label>
+                                <input type="date" id="startDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="endDate">Data Fine</label>
+                                <input type="date" id="endDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>👥 Partecipanti</h3>
+                        <div class="participants-container">
+                            <div id="participantsList" class="participants-list"></div>
+                            <div class="add-participant">
+                                <input type="text" id="newParticipant" placeholder="Nome partecipante">
+                                <button type="button" id="addParticipantBtn" class="btn btn-secondary">+ Aggiungi</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>💰 Spese</h3>
+                        <div class="expenses-grid">
+                            <div class="form-group flight-expense-group">
+                                <label for="transport">✈️ Volo</label>
+                                <div class="flight-details-inputs">
+                                    <input type="text" id="flightDeparture" placeholder="Città partenza (es: Milano)">
+                                    <span class="flight-arrow">→</span>
+                                    <input type="text" id="flightArrival" placeholder="Città arrivo (es: Roma)">
+                                </div>
+                                <div class="input-with-currency">
+                                    <span class="currency">€</span>
+                                    <input type="number" id="transport" min="0" step="0.01" value="0" placeholder="Costo volo">
+                                </div>
+                                <button type="button" id="flightSearchBtn" class="btn-link">
+                                    🔍 Cerca prezzi voli
+                                </button>
+                            </div>
+                            
+                            <!-- Accommodation Options Section -->
+                            <div class="form-group accommodation-section">
+                                <label>🏨 Alloggio</label>
+                                <div class="accommodation-search-links">
+                                    <button type="button" id="airbnbSearchBtn" class="btn-link">
+                                        🔍 Cerca su Airbnb
+                                    </button>
+                                    <button type="button" id="bookingSearchBtn" class="btn-link">
+                                        🔍 Cerca su Booking
+                                    </button>
+                                </div>
+                                <div class="options-container" id="accommodationOptions">
+                                    <div class="option-item">
+                                        <input type="radio" name="accommodation" id="accommodation1" value="0" data-index="0" checked>
+                                        <label for="accommodation1">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 1" data-index="0">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="0">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="0">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="radio" name="accommodation" id="accommodation2" value="1" data-index="1">
+                                        <label for="accommodation2">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 2" data-index="1">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="1">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="1">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="radio" name="accommodation" id="accommodation3" value="2" data-index="2">
+                                        <label for="accommodation3">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 3" data-index="2">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="2">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="2">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="radio" name="accommodation" id="accommodation4" value="3" data-index="3">
+                                        <label for="accommodation4">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 4" data-index="3">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="3">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="3">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="radio" name="accommodation" id="accommodation5" value="4" data-index="4">
+                                        <label for="accommodation5">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 5" data-index="4">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="4">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="4">
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="food">🍽️ Vitto</label>
+                                <div class="input-with-currency">
+                                    <span class="currency">€</span>
+                                    <input type="number" id="food" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+                            
+                            <!-- Car Rental Options Section -->
+                            <div class="form-group car-section">
+                                <label>🚙 Auto/Noleggio</label>
+                                <div class="car-search-links">
+                                    <button type="button" id="rentalcarsSearchBtn" class="btn-link">
+                                        🔍 Cerca su RentalCars
+                                    </button>
+                                    <button type="button" id="hertzSearchBtn" class="btn-link">
+                                        🔍 Cerca su Hertz
+                                    </button>
+                                </div>
+                                <div class="options-container" id="carOptions">
+                                    <div class="option-item">
+                                        <input type="checkbox" name="car" id="car1" value="0" data-index="0">
+                                        <label for="car1">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 1" data-index="0">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="0">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="0">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="checkbox" name="car" id="car2" value="1" data-index="1">
+                                        <label for="car2">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 2" data-index="1">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="1">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="1">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="checkbox" name="car" id="car3" value="2" data-index="2">
+                                        <label for="car3">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 3" data-index="2">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="2">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="2">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="checkbox" name="car" id="car4" value="3" data-index="3">
+                                        <label for="car4">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 4" data-index="3">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="3">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="3">
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item">
+                                        <input type="checkbox" name="car" id="car5" value="4" data-index="4">
+                                        <label for="car5">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Nome opzione 5" data-index="4">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="4">
+                                                </div>
+                                                <input type="url" class="option-link" placeholder="🔗 Link (opzionale)" data-index="4">
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="activities">🎭 Attività</label>
+                                <div class="input-with-currency">
+                                    <span class="currency">€</span>
+                                    <input type="number" id="activities" min="0" step="0.01" value="0">
+                                </div>
+                            </div>
+                            <!-- Other Expenses Section -->
+                            <div class="form-group other-section">
+                                <label>📦 Altro</label>
+                                <div class="options-container" id="otherOptions">
+                                    <div class="option-item other-item">
+                                        <input type="checkbox" name="other" id="other1" value="0" data-index="0">
+                                        <label for="other1">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Descrizione spesa 1" data-index="0">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="0">
+                                                </div>
+                                                <textarea class="option-note" placeholder="Note (opzionale)" data-index="0" rows="2"></textarea>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item other-item">
+                                        <input type="checkbox" name="other" id="other2" value="1" data-index="1">
+                                        <label for="other2">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Descrizione spesa 2" data-index="1">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="1">
+                                                </div>
+                                                <textarea class="option-note" placeholder="Note (opzionale)" data-index="1" rows="2"></textarea>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item other-item">
+                                        <input type="checkbox" name="other" id="other3" value="2" data-index="2">
+                                        <label for="other3">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Descrizione spesa 3" data-index="2">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="2">
+                                                </div>
+                                                <textarea class="option-note" placeholder="Note (opzionale)" data-index="2" rows="2"></textarea>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item other-item">
+                                        <input type="checkbox" name="other" id="other4" value="3" data-index="3">
+                                        <label for="other4">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Descrizione spesa 4" data-index="3">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="3">
+                                                </div>
+                                                <textarea class="option-note" placeholder="Note (opzionale)" data-index="3" rows="2"></textarea>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="option-item other-item">
+                                        <input type="checkbox" name="other" id="other5" value="4" data-index="4">
+                                        <label for="other5">
+                                            <div class="option-fields">
+                                                <input type="text" class="option-name" placeholder="Descrizione spesa 5" data-index="4">
+                                                <div class="input-with-currency">
+                                                    <span class="currency">€</span>
+                                                    <input type="number" class="option-price" min="0" step="0.01" value="0" data-index="4">
+                                                </div>
+                                                <textarea class="option-note" placeholder="Note (opzionale)" data-index="4" rows="2"></textarea>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📝 Note</h3>
+                        <div class="form-group">
+                            <textarea id="notes" rows="4" placeholder="Aggiungi note o dettagli aggiuntivi..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="totals-section">
+                        <div class="total-item">
+                            <span class="total-label">Totale Spese:</span>
+                            <span class="total-value" id="totalCost">€0.00</span>
+                        </div>
+                        <div class="total-item highlight">
+                            <span class="total-label">Costo per Partecipante:</span>
+                            <span class="total-value" id="costPerPerson">€0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Salva Scenario</button>
+                        <button type="button" id="cancelBtn" class="btn btn-secondary">Annulla</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <!-- Flight Search Modal -->
+        <div id="flightSearchModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>✈️ Cerca Voli</h3>
+                    <button class="modal-close" id="closeFlightModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="flight-search-form">
+                        <div class="flight-route-display">
+                            <h4>Rotta: <span id="routeDisplay">-</span></h4>
+                        </div>
+                        <div class="form-group">
+                            <label for="departureCity">Città di Partenza *</label>
+                            <input type="text" id="departureCity" placeholder="es: Milano" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="arrivalCity">Città di Arrivo *</label>
+                            <input type="text" id="arrivalCity" placeholder="es: Roma" required>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="departureDate">Data Partenza</label>
+                                <input type="date" id="departureDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="returnDate">Data Ritorno (opzionale)</label>
+                                <input type="date" id="returnDate">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="passengers">Numero Passeggeri</label>
+                            <input type="number" id="passengers" min="1" value="1">
+                        </div>
+                    </div>
+                    
+                    <div class="flight-search-results">
+                        <h4>Cerca su questi siti:</h4>
+                        <div class="search-links">
+                            <a href="#" id="skyscannerLink" target="_blank" class="search-link">
+                                <span class="link-icon">🔍</span>
+                                <div class="link-info">
+                                    <strong>Skyscanner</strong>
+                                    <small>Confronta centinaia di compagnie</small>
+                                </div>
+                            </a>
+                            <a href="#" id="googleFlightsLink" target="_blank" class="search-link">
+                                <span class="link-icon">🌐</span>
+                                <div class="link-info">
+                                    <strong>Google Flights</strong>
+                                    <small>Ricerca veloce e intuitiva</small>
+                                </div>
+                            </a>
+                            <a href="#" id="kayakLink" target="_blank" class="search-link">
+                                <span class="link-icon">🛫</span>
+                                <div class="link-info">
+                                    <strong>Kayak</strong>
+                                    <small>Trova le migliori offerte</small>
+                                </div>
+                            </a>
+                            <a href="#" id="momondoLink" target="_blank" class="search-link">
+                                <span class="link-icon">💰</span>
+                                <div class="link-info">
+                                    <strong>Momondo</strong>
+                                    <small>Prezzi trasparenti</small>
+                                </div>
+                            </a>
+                            <a href="#" id="edreamsLink" target="_blank" class="search-link">
+                                <span class="link-icon">✈️</span>
+                                <div class="link-info">
+                                    <strong>eDreams</strong>
+                                    <small>Voli low cost</small>
+                                </div>
+                            </a>
+                        </div>
+                        <p class="search-note">
+                            💡 <strong>Suggerimento:</strong> Apri più siti in nuove schede per confrontare i prezzi.
+                            Una volta trovato il volo migliore, inserisci il costo nel campo "Trasporto".
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Menu Modal -->
+        <div id="exportModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Esporta Dati</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <button class="export-option" data-format="json">
+                        <span class="export-icon">📄</span>
+                        <div class="export-info">
+                            <strong>JSON</strong>
+                            <small>Backup completo dei dati</small>
+                        </div>
+                    </button>
+                    <button class="export-option" data-format="csv">
+                        <span class="export-icon">📊</span>
+                        <div class="export-info">
+                            <strong>Excel/CSV</strong>
+                            <small>Tabella comparativa</small>
+                        </div>
+                    </button>
+                    <button class="export-option" data-format="pdf">
+                        <span class="export-icon">📑</span>
+                        <div class="export-info">
+                            <strong>PDF</strong>
+                            <small>Report professionale</small>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import File Input -->
+        <input type="file" id="importFile" accept=".json" style="display: none;">
+
+        <!-- Toast Notifications -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/scenarios.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/flights.js"></script>
+    <script src="js/accommodation-car.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
