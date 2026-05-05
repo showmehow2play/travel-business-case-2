@@ -116,7 +116,33 @@ location.reload();
 
 ## Personalizzare i Dati di Esempio
 
-### Modificare gli Scenari
+### Metodo 1: Esporta i Tuoi Dati Locali (CONSIGLIATO) 🎯
+
+Il modo più semplice per usare i tuoi dati reali come dati di esempio:
+
+1. **Apri il tool di esportazione**
+   - Apri il file `export-to-sample-data.html` nel browser
+   - Vedrai le statistiche dei tuoi dati (scenari, consuntivi, partecipanti)
+
+2. **Genera il codice**
+   - Clicca su "📤 Genera Codice per sample-data.js"
+   - Il tool leggerà i tuoi dati dal localStorage
+
+3. **Copia il codice**
+   - Clicca su "📋 Copia negli Appunti"
+   - Il codice JavaScript verrà copiato automaticamente
+
+4. **Sostituisci il file**
+   - Apri `js/sample-data.js` nel tuo editor
+   - Cancella tutto il contenuto
+   - Incolla il codice copiato
+   - Salva il file
+
+5. **Pubblica**
+   - I tuoi dati saranno ora inclusi nell'app pubblicata! 🚀
+
+### Metodo 2: Modifica Manuale
+
 Apri `js/sample-data.js` e modifica l'array `scenarios`:
 
 ```javascript
@@ -133,7 +159,7 @@ const SampleData = {
 };
 ```
 
-### Aggiungere Nuovi Scenari
+### Metodo 3: Aggiungi Nuovi Scenari Manualmente
 1. Crea uno scenario nell'app locale
 2. Esporta i dati (📤 Esporta → JSON)
 3. Copia lo scenario dal file JSON
