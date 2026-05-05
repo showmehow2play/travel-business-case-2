@@ -9,6 +9,9 @@ const ActualsManager = {
     categories: [
         { value: 'generali', label: 'Generali', icon: '📦' },
         { value: 'viaggio', label: 'Viaggio', icon: '✈️' },
+        { value: 'hotel', label: 'Hotel', icon: '🏨' },
+        { value: 'casa', label: 'Casa', icon: '🏠' },
+        { value: 'ristorante', label: 'Ristorante', icon: '🍽️' },
         { value: 'auto', label: 'Auto', icon: '🚗' },
         { value: 'attivita', label: 'Attività', icon: '🎭' },
         { value: 'spesa', label: 'Spesa', icon: '🛒' },
@@ -38,6 +41,7 @@ const ActualsManager = {
             category: 'generali',
             description: '',
             amount: 0,
+            currency: 'EUR', // Valuta di default
             date: new Date().toISOString().split('T')[0], // Data odierna in formato YYYY-MM-DD
             paidBy: '',
             sharedBy: [], // Array di partecipanti che dividono la spesa

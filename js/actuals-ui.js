@@ -306,7 +306,7 @@ const ActualsUI = {
         ExportManager.showSuccess(`Dati caricati dal preventivo "${scenario.name}"`);
     },
 
-    // Converti spese preventivo in spese consuntivo
+    // Converti spese preventivo in spese consuntivo (mantenendo le spese separate)
     convertScenarioExpensesToActual(scenario) {
         const expenses = [];
         
@@ -323,17 +323,27 @@ const ActualsUI = {
             });
         }
 
-        // Alloggio
-        if (scenario.expenses.accommodation > 0) {
-            const accommodationName = scenario.accommodationOptions &&
-                                     scenario.selectedAccommodationIndex !== undefined &&
-                                     scenario.accommodationOptions[scenario.selectedAccommodationIndex] ?
-                                     scenario.accommodationOptions[scenario.selectedAccommodationIndex].name : 'Alloggio';
-            
+        // Alloggio - Crea spese separate per ogni opzione selezionata
+        if (scenario.accommodationOptions && scenario.accommodationOptions.length > 0) {
+            scenario.accommodationOptions.forEach((option, index) => {
+                // Aggiungi solo l'opzione selezionata o tutte se non c'è selezione
+                if (option.price > 0 && (scenario.selectedAccommodationIndex === index || scenario.selectedAccommodationIndex === undefined)) {
+                    expenses.push({
+                        id: ActualsManager.generateExpenseId(),
+                        category: 'hotel',
+                        description: option.name || `Alloggio ${index + 1}`,
+                        amount: option.price,
+                        paidBy: '',
+                        notes: option.link ? `Link: ${option.link}` : ''
+                    });
+                }
+            });
+        } else if (scenario.expenses.accommodation > 0) {
+            // Fallback se non ci sono opzioni dettagliate
             expenses.push({
                 id: ActualsManager.generateExpenseId(),
-                category: 'generali',
-                description: accommodationName || 'Alloggio',
+                category: 'hotel',
+                description: 'Alloggio',
                 amount: scenario.expenses.accommodation,
                 paidBy: '',
                 notes: ''
@@ -344,7 +354,7 @@ const ActualsUI = {
         if (scenario.expenses.food > 0) {
             expenses.push({
                 id: ActualsManager.generateExpenseId(),
-                category: 'generali',
+                category: 'ristorante',
                 description: 'Vitto',
                 amount: scenario.expenses.food,
                 paidBy: '',
@@ -352,8 +362,22 @@ const ActualsUI = {
             });
         }
 
-        // Auto
-        if (scenario.expenses.car > 0) {
+        // Auto - Crea spese separate per ogni auto selezionata
+        if (scenario.carOptions && scenario.carOptions.length > 0) {
+            scenario.carOptions.forEach((option, index) => {
+                if (option.selected && option.price > 0) {
+                    expenses.push({
+                        id: ActualsManager.generateExpenseId(),
+                        category: 'auto',
+                        description: option.name || `Auto ${index + 1}`,
+                        amount: option.price,
+                        paidBy: '',
+                        notes: option.link ? `Link: ${option.link}` : ''
+                    });
+                }
+            });
+        } else if (scenario.expenses.car > 0) {
+            // Fallback se non ci sono opzioni dettagliate
             expenses.push({
                 id: ActualsManager.generateExpenseId(),
                 category: 'auto',
@@ -376,8 +400,22 @@ const ActualsUI = {
             });
         }
 
-        // Altro
-        if (scenario.expenses.other > 0) {
+        // Altro - Crea spese separate per ogni opzione "altro"
+        if (scenario.otherOptions && scenario.otherOptions.length > 0) {
+            scenario.otherOptions.forEach((option, index) => {
+                if (option.price > 0) {
+                    expenses.push({
+                        id: ActualsManager.generateExpenseId(),
+                        category: 'altro',
+                        description: option.name || `Altra spesa ${index + 1}`,
+                        amount: option.price,
+                        paidBy: '',
+                        notes: option.link ? `Link: ${option.link}` : ''
+                    });
+                }
+            });
+        } else if (scenario.expenses.other > 0) {
+            // Fallback se non ci sono opzioni dettagliate
             expenses.push({
                 id: ActualsManager.generateExpenseId(),
                 category: 'altro',
@@ -471,7 +509,7 @@ const ActualsUI = {
         this.updateTotals();
     },
 
-    // Carica spese
+    // Carica spese raggruppate per categoria
     loadExpenses(expenses) {
         this.currentExpenses = expenses;
         const container = document.getElementById('expensesActualList');
@@ -487,7 +525,72 @@ const ActualsUI = {
             return;
         }
 
-        container.innerHTML = expenses.map((exp, index) => this.createExpenseItem(exp, index)).join('');
+        // Raggruppa spese per categoria
+        const groupedExpenses = {};
+        expenses.forEach((exp, index) => {
+            const category = exp.category || 'altro';
+            if (!groupedExpenses[category]) {
+                groupedExpenses[category] = [];
+            }
+            groupedExpenses[category].push({ expense: exp, originalIndex: index });
+        });
+
+        // Ordina categorie per importanza (ordine personalizzato)
+        const categoryOrder = ['viaggio', 'hotel', 'casa', 'auto', 'ristorante', 'spesa', 'attivita', 'benzina', 'generali', 'extra', 'altro'];
+        const sortedCategories = Object.keys(groupedExpenses).sort((a, b) => {
+            const indexA = categoryOrder.indexOf(a);
+            const indexB = categoryOrder.indexOf(b);
+            // Se una categoria non è nell'ordine, mettila alla fine
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        });
+
+        // Genera HTML con intestazioni di categoria
+        let html = '';
+        sortedCategories.forEach(category => {
+            const categoryInfo = ActualsManager.categories.find(cat => cat.value === category) ||
+                                { icon: '📌', label: 'Altro' };
+            
+            // Calcola totale categoria
+            const categoryTotal = groupedExpenses[category].reduce((sum, item) =>
+                sum + (parseFloat(item.expense.amount) || 0), 0
+            );
+
+            html += `
+                <div class="expense-category-group" style="margin-bottom: var(--spacing-lg);">
+                    <div class="expense-category-header" style="
+                        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+                        color: white;
+                        padding: var(--spacing-sm) var(--spacing-md);
+                        border-radius: var(--radius-md);
+                        margin-bottom: var(--spacing-sm);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        font-weight: 600;
+                        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+                    ">
+                        <span style="font-size: 1.1rem;">
+                            ${categoryInfo.icon} ${categoryInfo.label}
+                            <span style="font-size: 0.9rem; opacity: 0.9; margin-left: var(--spacing-sm);">
+                                (${groupedExpenses[category].length} ${groupedExpenses[category].length === 1 ? 'spesa' : 'spese'})
+                            </span>
+                        </span>
+                        <span style="font-size: 1.1rem; font-weight: 700;">
+                            ${new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(categoryTotal)}
+                        </span>
+                    </div>
+                    <div class="expense-category-items" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        ${groupedExpenses[category].map(item =>
+                            this.createExpenseItem(item.expense, item.originalIndex)
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
         this.attachExpenseListeners();
     },
 
@@ -532,6 +635,9 @@ const ActualsUI = {
         const costPerPerson = expense.sharedBy && expense.sharedBy.length > 0
             ? (expense.amount / expense.sharedBy.length).toFixed(2)
             : '0.00';
+
+        // Ottieni simbolo valuta
+        const currencySymbol = this.getCurrencySymbol(expense.currency || 'EUR');
 
         const isSaved = expense.saved === true;
         const disabledAttr = isSaved ? 'disabled' : '';
@@ -580,9 +686,26 @@ const ActualsUI = {
                     
                     <!-- Colonna 2: Importo (riga 1) e Data (riga 2) -->
                     <div class="expense-field" style="grid-column: 2; grid-row: 1;">
-                        <label>Importo (€)</label>
-                        <input type="number" class="expense-amount" data-index="${index}"
-                               value="${expense.amount || 0}" min="0" step="0.01" required ${disabledAttr}>
+                        <label>Importo</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" class="expense-amount" data-index="${index}"
+                                   value="${expense.amount || 0}" min="0" step="0.01" required ${disabledAttr}
+                                   style="flex: 1;">
+                            <select class="expense-currency" data-index="${index}" ${disabledAttr}
+                                    style="width: 70px; font-size: 0.9rem;">
+                                <option value="EUR" ${(expense.currency || 'EUR') === 'EUR' ? 'selected' : ''}>€ EUR</option>
+                                <option value="USD" ${expense.currency === 'USD' ? 'selected' : ''}>$ USD</option>
+                                <option value="GBP" ${expense.currency === 'GBP' ? 'selected' : ''}>£ GBP</option>
+                                <option value="CHF" ${expense.currency === 'CHF' ? 'selected' : ''}>₣ CHF</option>
+                                <option value="JPY" ${expense.currency === 'JPY' ? 'selected' : ''}>¥ JPY</option>
+                                <option value="CNY" ${expense.currency === 'CNY' ? 'selected' : ''}>¥ CNY</option>
+                                <option value="CAD" ${expense.currency === 'CAD' ? 'selected' : ''}>$ CAD</option>
+                                <option value="AUD" ${expense.currency === 'AUD' ? 'selected' : ''}>$ AUD</option>
+                                <option value="NOK" ${expense.currency === 'NOK' ? 'selected' : ''}>kr NOK</option>
+                                <option value="SEK" ${expense.currency === 'SEK' ? 'selected' : ''}>kr SEK</option>
+                                <option value="DKK" ${expense.currency === 'DKK' ? 'selected' : ''}>kr DKK</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="expense-field" style="grid-column: 2; grid-row: 2;">
                         <label>Data</label>
@@ -609,7 +732,7 @@ const ActualsUI = {
                             <div class="split-summary">
                                 <span class="split-count">${expense.sharedBy ? expense.sharedBy.length : 0} pers.</span>
                                 <span class="split-divider">•</span>
-                                <span class="split-amount">€${costPerPerson}</span>
+                                <span class="split-amount">${currencySymbol}${costPerPerson}</span>
                             </div>
                         </div>
                         <div class="expense-participants-grid" style="flex: 1; overflow-y: auto;">
@@ -693,7 +816,7 @@ const ActualsUI = {
     // Attach listeners alle spese
     attachExpenseListeners() {
         // Input fields
-        const inputs = document.querySelectorAll('.expense-category, .expense-description, .expense-amount, .expense-paidby-select, .expense-date');
+        const inputs = document.querySelectorAll('.expense-category, .expense-description, .expense-amount, .expense-currency, .expense-paidby-select, .expense-date');
         inputs.forEach(input => {
             input.addEventListener('input', (e) => {
                 const index = parseInt(e.target.dataset.index);
@@ -707,6 +830,9 @@ const ActualsUI = {
                     } else if (classList.includes('expense-amount')) {
                         this.currentExpenses[index].amount = parseFloat(e.target.value) || 0;
                         this.loadExpenses(this.currentExpenses); // Ricarica per aggiornare il costo per persona
+                    } else if (classList.includes('expense-currency')) {
+                        this.currentExpenses[index].currency = e.target.value;
+                        this.loadExpenses(this.currentExpenses); // Ricarica per aggiornare il simbolo valuta
                     } else if (classList.includes('expense-paidby-select')) {
                         this.currentExpenses[index].paidBy = e.target.value;
                     } else if (classList.includes('expense-date')) {
@@ -866,6 +992,24 @@ const ActualsUI = {
             ExportManager.showSuccess('Consuntivo eliminato');
             this.loadActualsList();
         }
+    },
+
+    // Helper: Ottieni simbolo valuta
+    getCurrencySymbol(currency) {
+        const symbols = {
+            'EUR': '€',
+            'USD': '$',
+            'GBP': '£',
+            'CHF': '₣',
+            'JPY': '¥',
+            'CNY': '¥',
+            'CAD': '$',
+            'AUD': '$',
+            'NOK': 'kr',
+            'SEK': 'kr',
+            'DKK': 'kr'
+        };
+        return symbols[currency] || '€';
     }
 };
 

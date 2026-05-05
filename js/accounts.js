@@ -383,13 +383,14 @@ const AccountsManager = {
         const icons = {
             'generali': '📦',
             'viaggio': '✈️',
+            'hotel': '🏨',
+            'casa': '🏠',
+            'ristorante': '🍽️',
+            'auto': '🚗',
+            'attivita': '🎭',
             'spesa': '🛒',
             'benzina': '⛽',
             'extra': '✨',
-            'ristorante': '🍽️',
-            'hotel': '🏨',
-            'attivita': '🎭',
-            'trasporti': '🚗',
             'altro': '📌'
         };
         return icons[category] || '📌';
@@ -400,13 +401,14 @@ const AccountsManager = {
         const labels = {
             'generali': 'Generali',
             'viaggio': 'Viaggio',
+            'hotel': 'Hotel',
+            'casa': 'Casa',
+            'ristorante': 'Ristorante',
+            'auto': 'Auto',
+            'attivita': 'Attività',
             'spesa': 'Spesa',
             'benzina': 'Benzina',
             'extra': 'Extra',
-            'ristorante': 'Ristorante',
-            'hotel': 'Hotel',
-            'attivita': 'Attività',
-            'trasporti': 'Trasporti',
             'altro': 'Altro'
         };
         return labels[category] || 'Altro';
@@ -417,13 +419,14 @@ const AccountsManager = {
         const colors = {
             'generali': '#3b82f6',
             'viaggio': '#8b5cf6',
+            'hotel': '#6366f1',
+            'casa': '#10b981',
+            'ristorante': '#14b8a6',
+            'auto': '#06b6d4',
+            'attivita': '#f97316',
             'spesa': '#10b981',
             'benzina': '#f59e0b',
             'extra': '#ec4899',
-            'ristorante': '#14b8a6',
-            'hotel': '#6366f1',
-            'attivita': '#f97316',
-            'trasporti': '#06b6d4',
             'altro': '#64748b'
         };
         return colors[category] || '#64748b';

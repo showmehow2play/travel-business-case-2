@@ -7,9 +7,31 @@ const StorageManager = {
 
     // Inizializza lo storage
     init() {
-        if (!this.getData()) {
-            this.saveData({ scenarios: [], actuals: [] });
+        const existingData = this.getData();
+        
+        // Se non ci sono dati, carica i dati di esempio
+        if (!existingData || (existingData.scenarios.length === 0 && existingData.actuals.length === 0)) {
+            console.log('Caricamento dati di esempio...');
+            
+            // Verifica se SampleData è disponibile
+            if (typeof SampleData !== 'undefined') {
+                this.saveData({
+                    scenarios: SampleData.scenarios || [],
+                    actuals: SampleData.actuals || []
+                });
+                
+                // Carica anche i partecipanti di esempio nell'anagrafica
+                if (typeof participantsRegistry !== 'undefined' && SampleData.participants) {
+                    localStorage.setItem('participants_registry', JSON.stringify(SampleData.participants));
+                }
+                
+                console.log('Dati di esempio caricati con successo!');
+            } else {
+                // Se SampleData non è disponibile, inizializza con dati vuoti
+                this.saveData({ scenarios: [], actuals: [] });
+            }
         }
+        
         // Backup automatico ogni 5 minuti
         setInterval(() => this.createBackup(), 5 * 60 * 1000);
     },
