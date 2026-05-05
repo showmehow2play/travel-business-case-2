@@ -1,333 +1,748 @@
 // ===== Sample Data =====
 // Dati di esempio per la demo dell'applicazione
+// Generato automaticamente da export-to-sample-data.html
 
 const SampleData = {
-    scenarios: [
+    "scenarios": [
         {
-            id: 'sample-1',
-            name: 'Norvegia 2027',
-            destination: 'Oslo, Bergen, Tromsø',
-            startDate: '2027-06-15',
-            endDate: '2027-06-25',
-            flightDeparture: 'Milano Malpensa (MXP)',
-            flightArrival: 'Oslo Gardermoen (OSL)',
-            participants: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-            expenses: {
-                transport: 1200,
-                accommodation: 0,
-                food: 800,
-                car: 0,
-                activities: 600,
-                other: 0
+            "name": "Norway 2027 3 auto casa economica",
+            "destination": "Tromso",
+            "startDate": "2027-02-17",
+            "endDate": "2027-02-24",
+            "flightDeparture": "Milano",
+            "flightArrival": "Tromso",
+            "participants": [
+                "Chiara Cognos",
+                "Chiara Porporato",
+                "Davide Rosa",
+                "Giovanni",
+                "Ilaria Marangon",
+                "Lara",
+                "Lorenzo Destefanis",
+                "Luca Ramponi"
+            ],
+            "expenses": {
+                "transport": 2285,
+                "accommodation": 1129,
+                "food": 0,
+                "car": 1329,
+                "activities": 0,
+                "other": 600
             },
-            accommodationOptions: [
+            "notes": "",
+            "accommodationOptions": [
                 {
-                    name: 'Hotel Scandic Oslo',
-                    price: 1800,
-                    link: 'https://www.booking.com',
-                    nights: 10,
-                    pricePerNight: 180,
-                    notes: 'Colazione inclusa, centro città'
+                    "name": "Casa AirBnB 1",
+                    "price": 1129,
+                    "link": "https://www.airbnb.it/rooms/1603007542219191658?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924218_P3VFDrmoZG355-pB&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
                 },
                 {
-                    name: 'Airbnb Bergen',
-                    price: 1400,
-                    link: 'https://www.airbnb.com',
-                    nights: 10,
-                    pricePerNight: 140,
-                    notes: 'Appartamento con vista fiordo'
-                }
-            ],
-            selectedAccommodationIndex: 0,
-            carOptions: [
-                {
-                    name: 'Toyota RAV4 Hybrid',
-                    price: 850,
-                    link: 'https://www.rentalcars.com',
-                    days: 10,
-                    pricePerDay: 85,
-                    notes: 'Assicurazione completa inclusa'
-                }
-            ],
-            otherOptions: [
-                {
-                    name: 'Escursione Fiordi',
-                    price: 400,
-                    link: '',
-                    notes: 'Tour guidato di 2 giorni'
+                    "name": "Casa Airbnb Tromso 2",
+                    "price": 2173,
+                    "link": "https://www.airbnb.it/rooms/1339079133815994093?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924217_P3FY5ZxsaGvpNpHq&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
                 },
                 {
-                    name: 'Museo Vichingo',
-                    price: 120,
-                    link: '',
-                    notes: 'Biglietti per 4 persone'
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
                 }
             ],
-            notes: 'Viaggio estivo in Norvegia. Include voli, hotel, noleggio auto ed escursioni ai fiordi.',
-            createdAt: '2026-01-15T10:00:00.000Z',
-            updatedAt: '2026-01-15T10:00:00.000Z'
+            "selectedAccommodationIndex": 0,
+            "carOptions": [
+                {
+                    "name": "auto piccola 1 elettrica",
+                    "price": 335,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "auto piccola 2 elettrica",
+                    "price": 373,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "Auto media 1 elettrica",
+                    "price": 621,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "Auto media 2 elettrica",
+                    "price": 641,
+                    "link": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": "",
+                    "selected": false
+                }
+            ],
+            "otherOptions": [
+                {
+                    "name": "Bagaglio sportivo",
+                    "price": 600,
+                    "note": "Bagaglio sportivo x 6",
+                    "selected": true
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                }
+            ],
+            "id": "scenario_1777924522654_hdedlssu9",
+            "createdAt": "2026-05-04T19:55:22.654Z",
+            "updatedAt": "2026-05-05T08:17:37.057Z"
         },
         {
-            id: 'sample-2',
-            name: 'Weekend Parigi',
-            destination: 'Parigi, Francia',
-            startDate: '2027-03-10',
-            endDate: '2027-03-13',
-            flightDeparture: 'Milano Linate (LIN)',
-            flightArrival: 'Paris Charles de Gaulle (CDG)',
-            participants: ['Mario Rossi', 'Laura Bianchi'],
-            expenses: {
-                transport: 400,
-                accommodation: 0,
-                food: 300,
-                car: 0,
-                activities: 200,
-                other: 0
-            },
-            accommodationOptions: [
-                {
-                    name: 'Hotel Marais',
-                    price: 450,
-                    link: 'https://www.booking.com',
-                    nights: 3,
-                    pricePerNight: 150,
-                    notes: 'Quartiere Marais, vicino metro'
-                }
+            "name": "Norway 2027 Opz 2 auto grandi",
+            "destination": "Tromso",
+            "startDate": "2027-02-17",
+            "endDate": "2027-02-24",
+            "flightDeparture": "Milano",
+            "flightArrival": "Tromso",
+            "participants": [
+                "Chiara Cognos",
+                "Chiara Porporato",
+                "Davide Rosa",
+                "Giovanni",
+                "Ilaria Marangon",
+                "Lara",
+                "Lorenzo Destefanis",
+                "Luca Ramponi"
             ],
-            selectedAccommodationIndex: 0,
-            carOptions: [],
-            otherOptions: [
+            "expenses": {
+                "transport": 2285,
+                "accommodation": 1129,
+                "food": 0,
+                "car": 1262,
+                "activities": 0,
+                "other": 600
+            },
+            "notes": "",
+            "accommodationOptions": [
                 {
-                    name: 'Biglietti Louvre',
-                    price: 40,
-                    link: '',
-                    notes: '2 biglietti adulti'
+                    "name": "Casa AirBnB 1",
+                    "price": 1129,
+                    "link": "https://www.airbnb.it/rooms/1603007542219191658?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924218_P3VFDrmoZG355-pB&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
                 },
                 {
-                    name: 'Crociera Senna',
-                    price: 60,
-                    link: '',
-                    notes: 'Crociera serale con cena'
+                    "name": "Casa Airbnb Tromso 2",
+                    "price": 2173,
+                    "link": "https://www.airbnb.it/rooms/1339079133815994093?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924217_P3FY5ZxsaGvpNpHq&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
                 }
             ],
-            notes: 'Weekend romantico a Parigi. Include Torre Eiffel, Louvre e crociera sulla Senna.',
-            createdAt: '2026-01-20T14:30:00.000Z',
-            updatedAt: '2026-01-20T14:30:00.000Z'
+            "selectedAccommodationIndex": 0,
+            "carOptions": [
+                {
+                    "name": "auto piccola 1 elettrica",
+                    "price": 335,
+                    "link": "",
+                    "selected": false
+                },
+                {
+                    "name": "auto piccola 2 elettrica",
+                    "price": 373,
+                    "link": "",
+                    "selected": false
+                },
+                {
+                    "name": "Auto media 1 elettrica",
+                    "price": 621,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "Auto media 2 elettrica",
+                    "price": 641,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": "",
+                    "selected": false
+                }
+            ],
+            "otherOptions": [
+                {
+                    "name": "Bagaglio sportivo",
+                    "price": 600,
+                    "note": "Bagaglio sportivo x 6",
+                    "selected": true
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                }
+            ],
+            "id": "scenario_1777924539127_cn4b1gy95",
+            "createdAt": "2026-05-04T19:55:39.127Z",
+            "updatedAt": "2026-05-05T08:17:11.859Z"
         },
         {
-            id: 'sample-3',
-            name: 'Tour Giappone',
-            destination: 'Tokyo, Kyoto, Osaka',
-            startDate: '2027-09-01',
-            endDate: '2027-09-15',
-            flightDeparture: 'Roma Fiumicino (FCO)',
-            flightArrival: 'Tokyo Narita (NRT)',
-            participants: ['Giuseppe Verdi', 'Anna Neri', 'Marco Blu', 'Sofia Rosa'],
-            expenses: {
-                transport: 3200,
-                accommodation: 0,
-                food: 1200,
-                car: 0,
-                activities: 800,
-                other: 0
+            "name": "Norway 2027 Opz 2 auto grandi casa grande",
+            "destination": "Tromso",
+            "startDate": "2027-02-17",
+            "endDate": "2027-02-24",
+            "flightDeparture": "Milano",
+            "flightArrival": "Tromso",
+            "participants": [
+                "Chiara Cognos",
+                "Chiara Porporato",
+                "Davide Rosa",
+                "Giovanni",
+                "Ilaria Marangon",
+                "Lara",
+                "Lorenzo Destefanis",
+                "Luca Ramponi"
+            ],
+            "expenses": {
+                "transport": 2285,
+                "accommodation": 2173,
+                "food": 0,
+                "car": 1262,
+                "activities": 0,
+                "other": 600
             },
-            accommodationOptions: [
+            "notes": "",
+            "accommodationOptions": [
                 {
-                    name: 'Hotel Tokyo Shinjuku',
-                    price: 2100,
-                    link: 'https://www.booking.com',
-                    nights: 14,
-                    pricePerNight: 150,
-                    notes: 'Quartiere Shinjuku, vicino stazione'
+                    "name": "Casa AirBnB 1",
+                    "price": 1129,
+                    "link": "https://www.airbnb.it/rooms/1603007542219191658?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924218_P3VFDrmoZG355-pB&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
                 },
                 {
-                    name: 'Ryokan Kyoto',
-                    price: 2800,
-                    link: 'https://www.booking.com',
-                    nights: 14,
-                    pricePerNight: 200,
-                    notes: 'Esperienza tradizionale giapponese'
-                }
-            ],
-            selectedAccommodationIndex: 0,
-            carOptions: [],
-            otherOptions: [
-                {
-                    name: 'JR Pass 14 giorni',
-                    price: 1200,
-                    link: '',
-                    notes: 'Pass ferroviario per 4 persone'
+                    "name": "Casa Airbnb Tromso 2",
+                    "price": 2173,
+                    "link": "https://www.airbnb.it/rooms/1339079133815994093?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924217_P3FY5ZxsaGvpNpHq&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
                 },
                 {
-                    name: 'Tempio Fushimi Inari',
-                    price: 0,
-                    link: '',
-                    notes: 'Ingresso gratuito'
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
                 }
             ],
-            notes: 'Tour completo del Giappone. Include Tokyo, Kyoto, Osaka con JR Pass per gli spostamenti.',
-            createdAt: '2026-02-01T09:00:00.000Z',
-            updatedAt: '2026-02-01T09:00:00.000Z'
+            "selectedAccommodationIndex": 1,
+            "carOptions": [
+                {
+                    "name": "auto piccola 1 elettrica",
+                    "price": 335,
+                    "link": "",
+                    "selected": false
+                },
+                {
+                    "name": "auto piccola 2 elettrica",
+                    "price": 373,
+                    "link": "",
+                    "selected": false
+                },
+                {
+                    "name": "Auto media 1 elettrica",
+                    "price": 621,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "Auto media 2 elettrica",
+                    "price": 641,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": "",
+                    "selected": false
+                }
+            ],
+            "otherOptions": [
+                {
+                    "name": "Bagaglio sportivo",
+                    "price": 600,
+                    "note": "Bagaglio sportivo x 6",
+                    "selected": true
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                }
+            ],
+            "id": "scenario_1777969109568_x7tp0v2ia",
+            "createdAt": "2026-05-05T08:18:29.568Z",
+            "updatedAt": "2026-05-05T08:19:45.459Z"
+        },
+        {
+            "name": "Norway 2027 Opz 3 auto medie casa grande ",
+            "destination": "Tromso",
+            "startDate": "2027-02-17",
+            "endDate": "2027-02-24",
+            "flightDeparture": "Milano",
+            "flightArrival": "Tromso",
+            "participants": [
+                "Chiara Cognos",
+                "Chiara Porporato",
+                "Davide Rosa",
+                "Giovanni",
+                "Ilaria Marangon",
+                "Lara",
+                "Lorenzo Destefanis",
+                "Luca Ramponi"
+            ],
+            "expenses": {
+                "transport": 2285,
+                "accommodation": 2173,
+                "food": 0,
+                "car": 1329,
+                "activities": 0,
+                "other": 600
+            },
+            "notes": "",
+            "accommodationOptions": [
+                {
+                    "name": "Casa AirBnB 1",
+                    "price": 1129,
+                    "link": "https://www.airbnb.it/rooms/1603007542219191658?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924218_P3VFDrmoZG355-pB&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
+                },
+                {
+                    "name": "Casa Airbnb Tromso 2",
+                    "price": 2173,
+                    "link": "https://www.airbnb.it/rooms/1339079133815994093?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924217_P3FY5ZxsaGvpNpHq&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f"
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": ""
+                }
+            ],
+            "selectedAccommodationIndex": 1,
+            "carOptions": [
+                {
+                    "name": "auto piccola 1 elettrica",
+                    "price": 335,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "auto piccola 2 elettrica",
+                    "price": 373,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "Auto media 1 elettrica",
+                    "price": 621,
+                    "link": "",
+                    "selected": true
+                },
+                {
+                    "name": "Auto media 2 elettrica",
+                    "price": 641,
+                    "link": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "link": "",
+                    "selected": false
+                }
+            ],
+            "otherOptions": [
+                {
+                    "name": "Bagaglio sportivo",
+                    "price": 600,
+                    "note": "Bagaglio sportivo x 6",
+                    "selected": true
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                },
+                {
+                    "name": "",
+                    "price": 0,
+                    "note": "",
+                    "selected": false
+                }
+            ],
+            "id": "scenario_1777969160323_cz8zxr0vz",
+            "createdAt": "2026-05-05T08:19:20.323Z",
+            "updatedAt": "2026-05-05T08:21:10.241Z"
         }
     ],
-    actuals: [
+    "actuals": [
         {
-            id: 'actual-1',
-            name: 'Norvegia 2027',
-            scenarioId: 'sample-1',
-            participants: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-            expenses: [
+            "name": "Norway 2027 3 auto casa economica - Consuntivo",
+            "destination": "Tromso",
+            "startDate": "2027-02-17",
+            "endDate": "2027-02-24",
+            "participants": [
+                "Chiara Cognos",
+                "Chiara Porporato",
+                "Davide Rosa",
+                "Giovanni",
+                "Ilaria Marangon",
+                "Lara",
+                "Lorenzo Destefanis",
+                "Luca Ramponi"
+            ],
+            "expenses": [
                 {
-                    date: '2027-06-15',
-                    category: 'viaggio',
-                    description: 'Voli Milano-Oslo A/R',
-                    amount: 1200,
-                    currency: 'EUR',
-                    paidBy: 'Mario Rossi',
-                    sharedWith: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-                    link: '',
-                    notes: 'Norwegian Air',
-                    saved: true
+                    "id": "expense_1777989608216_bce3l8xv8",
+                    "category": "viaggio",
+                    "description": "Volo Milano → Tromso",
+                    "amount": 2285,
+                    "paidBy": "Ilaria Marangon",
+                    "notes": "",
+                    "sharedBy": [
+                        "Chiara Cognos",
+                        "Chiara Porporato",
+                        "Davide Rosa",
+                        "Giovanni",
+                        "Ilaria Marangon",
+                        "Lara",
+                        "Lorenzo Destefanis",
+                        "Luca Ramponi"
+                    ],
+                    "splitEqually": true,
+                    "date": "2026-05-05",
+                    "saved": true
                 },
                 {
-                    date: '2027-06-15',
-                    category: 'hotel',
-                    description: 'Hotel Scandic Oslo',
-                    amount: 1800,
-                    currency: 'EUR',
-                    paidBy: 'Laura Bianchi',
-                    sharedWith: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-                    link: 'https://www.booking.com',
-                    notes: '10 notti, colazione inclusa',
-                    saved: true
+                    "id": "expense_1777989608216_m0y1644qn",
+                    "category": "hotel",
+                    "description": "Casa AirBnB 1",
+                    "amount": 1129,
+                    "paidBy": "Davide Rosa",
+                    "notes": "Link: https://www.airbnb.it/rooms/1603007542219191658?adults=8&check_in=2027-02-17&check_out=2027-02-24&search_mode=regular_search&source_impression_id=p3_1777924218_P3VFDrmoZG355-pB&previous_page_section_name=1000&federated_search_id=cae21f81-03ab-42a2-987f-24143d913f3f",
+                    "sharedBy": [
+                        "Chiara Cognos",
+                        "Chiara Porporato",
+                        "Davide Rosa",
+                        "Giovanni",
+                        "Ilaria Marangon",
+                        "Lara",
+                        "Lorenzo Destefanis",
+                        "Luca Ramponi"
+                    ],
+                    "splitEqually": true,
+                    "date": "2026-05-05",
+                    "saved": true
                 },
                 {
-                    date: '2027-06-16',
-                    category: 'auto',
-                    description: 'Noleggio Toyota RAV4',
-                    amount: 850,
-                    currency: 'EUR',
-                    paidBy: 'Giuseppe Verdi',
-                    sharedWith: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-                    link: 'https://www.rentalcars.com',
-                    notes: '10 giorni, assicurazione completa',
-                    saved: true
+                    "id": "expense_1777989608216_dvwxlxfgh",
+                    "category": "auto",
+                    "description": "auto piccola 1 elettrica",
+                    "amount": 335,
+                    "paidBy": "Chiara Cognos",
+                    "notes": "",
+                    "sharedBy": [
+                        "Chiara Cognos",
+                        "Chiara Porporato",
+                        "Davide Rosa",
+                        "Giovanni",
+                        "Ilaria Marangon",
+                        "Lara",
+                        "Lorenzo Destefanis",
+                        "Luca Ramponi"
+                    ],
+                    "splitEqually": true,
+                    "date": "2026-05-05",
+                    "saved": true
                 },
                 {
-                    date: '2027-06-17',
-                    category: 'ristorante',
-                    description: 'Cena ristorante Maaemo',
-                    amount: 320,
-                    currency: 'EUR',
-                    paidBy: 'Mario Rossi',
-                    sharedWith: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-                    link: '',
-                    notes: 'Ristorante stellato Michelin',
-                    saved: true
+                    "id": "expense_1777989608216_9b8bbhrjg",
+                    "category": "auto",
+                    "description": "auto piccola 2 elettrica",
+                    "amount": 373,
+                    "paidBy": "Lara",
+                    "notes": "",
+                    "sharedBy": [
+                        "Chiara Cognos",
+                        "Chiara Porporato",
+                        "Davide Rosa",
+                        "Giovanni",
+                        "Ilaria Marangon",
+                        "Lara",
+                        "Lorenzo Destefanis",
+                        "Luca Ramponi"
+                    ],
+                    "splitEqually": true,
+                    "date": "2026-05-05",
+                    "saved": true
                 },
                 {
-                    date: '2027-06-18',
-                    category: 'attivita',
-                    description: 'Tour Fiordi Norvegesi',
-                    amount: 400,
-                    currency: 'EUR',
-                    paidBy: 'Anna Neri',
-                    sharedWith: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-                    link: '',
-                    notes: 'Escursione di 2 giorni',
-                    saved: true
+                    "id": "expense_1777989608216_1okpoqlll",
+                    "category": "auto",
+                    "description": "Auto media 1 elettrica",
+                    "amount": 621,
+                    "paidBy": "Luca Ramponi",
+                    "notes": "",
+                    "sharedBy": [
+                        "Chiara Cognos",
+                        "Chiara Porporato",
+                        "Davide Rosa",
+                        "Giovanni",
+                        "Ilaria Marangon",
+                        "Lara",
+                        "Lorenzo Destefanis",
+                        "Luca Ramponi"
+                    ],
+                    "splitEqually": true,
+                    "date": "2026-05-05",
+                    "saved": true
                 },
                 {
-                    date: '2027-06-20',
-                    category: 'spesa',
-                    description: 'Supermercato Rema 1000',
-                    amount: 180,
-                    currency: 'EUR',
-                    paidBy: 'Laura Bianchi',
-                    sharedWith: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-                    link: '',
-                    notes: 'Spesa per colazioni e pranzi',
-                    saved: true
+                    "id": "expense_1777989608216_b5hqiavls",
+                    "category": "altro",
+                    "description": "Bagaglio sportivo",
+                    "amount": 600,
+                    "paidBy": "Davide Rosa",
+                    "notes": "",
+                    "sharedBy": [
+                        "Chiara Cognos",
+                        "Chiara Porporato",
+                        "Davide Rosa",
+                        "Giovanni",
+                        "Ilaria Marangon",
+                        "Lara",
+                        "Lorenzo Destefanis",
+                        "Luca Ramponi"
+                    ],
+                    "splitEqually": true,
+                    "date": "2026-05-05",
+                    "saved": true
                 },
                 {
-                    date: '2027-06-22',
-                    category: 'benzina',
-                    description: 'Rifornimento Circle K',
-                    amount: 95,
-                    currency: 'EUR',
-                    paidBy: 'Giuseppe Verdi',
-                    sharedWith: ['Mario Rossi', 'Laura Bianchi', 'Giuseppe Verdi', 'Anna Neri'],
-                    link: '',
-                    notes: 'Pieno benzina',
-                    saved: true
+                    "id": "expense_1777989839892_2wogpxv6a",
+                    "category": "extra",
+                    "description": "sauna",
+                    "amount": 240,
+                    "date": "2026-05-05",
+                    "paidBy": "Chiara Porporato",
+                    "sharedBy": [
+                        "Chiara Cognos",
+                        "Davide Rosa",
+                        "Giovanni",
+                        "Ilaria Marangon",
+                        "Lara",
+                        "Luca Ramponi"
+                    ],
+                    "splitEqually": true,
+                    "notes": "",
+                    "saved": true
                 }
             ],
-            createdAt: '2027-06-15T08:00:00.000Z',
-            updatedAt: '2027-06-22T18:00:00.000Z'
+            "notes": "Basato sul preventivo: Norway 2027 3 auto casa economica",
+            "id": "scenario_1777989654564_2x5989xci",
+            "type": "actual",
+            "createdAt": "2026-05-05T14:00:54.564Z",
+            "updatedAt": "2026-05-05T14:04:56.141Z"
         }
     ],
-    participants: [
+    "participants": [
         {
-            id: 'p1',
-            name: 'Mario Rossi',
-            email: 'mario.rossi@email.com',
-            phone: '+39 333 1234567',
-            idCard: 'AB1234567',
-            notes: 'Preferisce posto finestrino',
-            createdAt: '2026-01-10T10:00:00.000Z',
-            updatedAt: '2026-01-10T10:00:00.000Z'
+            "id": "1777929930509",
+            "name": "Davide Rosa",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "",
+            "createdAt": "2026-05-04T21:25:30.509Z",
+            "updatedAt": "2026-05-04T21:25:30.509Z"
         },
         {
-            id: 'p2',
-            name: 'Laura Bianchi',
-            email: 'laura.bianchi@email.com',
-            phone: '+39 333 2345678',
-            idCard: 'CD2345678',
-            notes: 'Vegetariana',
-            createdAt: '2026-01-10T10:05:00.000Z',
-            updatedAt: '2026-01-10T10:05:00.000Z'
+            "id": "1777930277974",
+            "name": "Ilaria Marangon",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "Ciaspola. E rompe",
+            "createdAt": "2026-05-04T21:31:17.974Z",
+            "updatedAt": "2026-05-04T21:34:42.203Z"
         },
         {
-            id: 'p3',
-            name: 'Giuseppe Verdi',
-            email: 'giuseppe.verdi@email.com',
-            phone: '+39 333 3456789',
-            idCard: 'EF3456789',
-            notes: '',
-            createdAt: '2026-01-10T10:10:00.000Z',
-            updatedAt: '2026-01-10T10:10:00.000Z'
+            "id": "1777930446170",
+            "name": "Luca Ramponi",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "Russa. Tanto",
+            "createdAt": "2026-05-04T21:34:06.170Z",
+            "updatedAt": "2026-05-04T21:34:06.170Z"
         },
         {
-            id: 'p4',
-            name: 'Anna Neri',
-            email: 'anna.neri@email.com',
-            phone: '+39 333 4567890',
-            idCard: 'GH4567890',
-            notes: 'Allergia ai crostacei',
-            createdAt: '2026-01-10T10:15:00.000Z',
-            updatedAt: '2026-01-10T10:15:00.000Z'
+            "id": "1777930468202",
+            "name": "Lara",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "Snowboarder ma è comunque simpatica",
+            "createdAt": "2026-05-04T21:34:28.202Z",
+            "updatedAt": "2026-05-04T21:34:28.202Z"
         },
         {
-            id: 'p5',
-            name: 'Marco Blu',
-            email: 'marco.blu@email.com',
-            phone: '+39 333 5678901',
-            idCard: 'IJ5678901',
-            notes: '',
-            createdAt: '2026-01-10T10:20:00.000Z',
-            updatedAt: '2026-01-10T10:20:00.000Z'
+            "id": "1777930504437",
+            "name": "Lorenzo Destefanis",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "Russa. Ma meno di Rampo",
+            "createdAt": "2026-05-04T21:35:04.437Z",
+            "updatedAt": "2026-05-04T21:35:04.437Z"
         },
         {
-            id: 'p6',
-            name: 'Sofia Rosa',
-            email: 'sofia.rosa@email.com',
-            phone: '+39 333 6789012',
-            idCard: 'KL6789012',
-            notes: 'Porta sempre la macchina fotografica',
-            createdAt: '2026-01-10T10:25:00.000Z',
-            updatedAt: '2026-01-10T10:25:00.000Z'
+            "id": "1777930519270",
+            "name": "Chiara Cognos",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "",
+            "createdAt": "2026-05-04T21:35:19.270Z",
+            "updatedAt": "2026-05-04T21:35:19.270Z"
+        },
+        {
+            "id": "1777930529854",
+            "name": "Giovanni",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "",
+            "createdAt": "2026-05-04T21:35:29.854Z",
+            "updatedAt": "2026-05-04T21:35:29.854Z"
+        },
+        {
+            "id": "1777930541152",
+            "name": "Chiara Porporato",
+            "email": "",
+            "phone": "",
+            "idCard": "",
+            "notes": "",
+            "createdAt": "2026-05-04T21:35:41.152Z",
+            "updatedAt": "2026-05-04T21:35:41.152Z"
         }
     ]
 };
-
-// Made with Bob
