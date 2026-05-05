@@ -97,7 +97,12 @@
             <div id="actualsView" class="view">
                 <div class="view-header">
                     <h2>Consuntivi di Viaggio</h2>
-                    <button id="newActualBtn" class="btn btn-primary">+ Nuovo Consuntivo</button>
+                    <div class="header-actions">
+                        <button id="viewAccountsFromListBtn" class="btn btn-secondary" title="Analisi Conti">
+                            💰 Conti
+                        </button>
+                        <button id="newActualBtn" class="btn btn-primary">+ Nuovo Consuntivo</button>
+                    </div>
                 </div>
                 <div class="scenarios-grid" id="actualsList"></div>
             </div>
@@ -129,6 +134,7 @@
                     <button id="backActualBtn" class="btn btn-secondary">← Indietro</button>
                     <h2 id="actualTitle">Dettaglio Consuntivo</h2>
                     <div class="header-actions">
+                        <button id="viewAccountsBtn" class="btn btn-secondary">📊 Conti</button>
                         <button id="deleteActualBtn" class="btn btn-danger">🗑️ Elimina</button>
                     </div>
                 </div>
@@ -202,6 +208,110 @@
                         <button type="button" id="cancelActualBtn" class="btn btn-secondary">Annulla</button>
                     </div>
                 </form>
+            </div>
+
+            <!-- Accounts View (Conti) -->
+            <div id="accountsView" class="view">
+                <div class="view-header">
+                    <button id="backFromAccountsBtn" class="btn btn-secondary">← Indietro</button>
+                    <h2 id="accountsTitle">📊 Conti - Analisi Spese</h2>
+                </div>
+
+                <!-- Statistiche Generali -->
+                <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">💰 Totale Viaggio</div>
+                            <div class="stat-value" id="accountsTotalCost">€0.00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">👥 Numero Partecipanti</div>
+                            <div class="stat-value" id="accountsParticipantsCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">📊 Costo Medio Persona</div>
+                            <div class="stat-value" id="accountsAvgCost">€0.00</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">🧾 Numero Spese</div>
+                            <div class="stat-value" id="accountsExpensesCount">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selettore Partecipante -->
+                <div class="form-section">
+                    <h3>👤 Analisi per Partecipante</h3>
+                    <div class="form-group">
+                        <label for="accountsParticipantSelect">Seleziona Partecipante</label>
+                        <select id="accountsParticipantSelect" class="form-control">
+                            <option value="">-- Seleziona un partecipante --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Riepilogo Partecipante Selezionato -->
+                <div id="participantSummary" style="display: none; margin-top: var(--spacing-lg);">
+                    <div class="form-section">
+                        <h3 id="participantSummaryTitle">Riepilogo Spese</h3>
+                        
+                        <!-- Statistiche Partecipante -->
+                        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
+                            <div class="stat-card">
+                                <div class="stat-content">
+                                    <div class="stat-label">💳 Spese Pagate</div>
+                                    <div class="stat-value" id="participantPaidAmount">€0.00</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-content">
+                                    <div class="stat-label">🤝 Quota Spese Condivise</div>
+                                    <div class="stat-value" id="participantSharedAmount">€0.00</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-content">
+                                    <div class="stat-label">⚖️ Bilancio</div>
+                                    <div class="stat-value" id="participantBalance">€0.00</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabella Spese Dettagliate -->
+                        <h4>Dettaglio Spese</h4>
+                        <div style="overflow-x: auto;">
+                            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                                        <th style="padding: var(--spacing-sm); text-align: left;">Data</th>
+                                        <th style="padding: var(--spacing-sm); text-align: left;">Categoria</th>
+                                        <th style="padding: var(--spacing-sm); text-align: left;">Descrizione</th>
+                                        <th style="padding: var(--spacing-sm); text-align: right;">Importo</th>
+                                        <th style="padding: var(--spacing-sm); text-align: left;">Pagato da</th>
+                                        <th style="padding: var(--spacing-sm); text-align: right;">Quota</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="participantExpensesTable">
+                                    <!-- Le spese verranno inserite qui -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Grafico Spese per Categoria -->
+                        <div style="margin-top: var(--spacing-lg);">
+                            <h4>Spese per Categoria</h4>
+                            <div style="max-width: 500px; margin: 0 auto;">
+                                <canvas id="participantCategoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Compare View -->
@@ -778,6 +888,7 @@
     <script src="js/scenarios.js"></script>
     <script src="js/actuals.js"></script>
     <script src="js/actuals-ui.js"></script>
+    <script src="js/accounts.js"></script>
     <script src="js/export.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/flights.js"></script>

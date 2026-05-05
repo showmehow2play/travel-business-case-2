@@ -52,6 +52,22 @@ const ActualsUI = {
             });
         }
 
+        // Visualizza Conti (dalla lista principale)
+        const viewAccountsFromListBtn = document.getElementById('viewAccountsFromListBtn');
+        if (viewAccountsFromListBtn) {
+            viewAccountsFromListBtn.addEventListener('click', () => {
+                this.viewAccountsFromList();
+            });
+        }
+
+        // Visualizza Conti (dal dettaglio consuntivo)
+        const viewAccountsBtn = document.getElementById('viewAccountsBtn');
+        if (viewAccountsBtn) {
+            viewAccountsBtn.addEventListener('click', () => {
+                this.viewAccounts();
+            });
+        }
+
         // Aggiungi partecipante
         const addActualParticipantBtn = document.getElementById('addActualParticipantBtn');
         if (addActualParticipantBtn) {
@@ -202,6 +218,7 @@ const ActualsUI = {
             this.loadActualForm(ActualsManager.createEmptyActual());
             document.getElementById('actualTitle').textContent = 'Nuovo Consuntivo';
             document.getElementById('deleteActualBtn').style.display = 'none';
+            document.getElementById('viewAccountsBtn').style.display = 'none';
             App.showView('actualDetailView');
         }
     },
@@ -283,6 +300,7 @@ const ActualsUI = {
         this.loadActualForm(actualData);
         document.getElementById('actualTitle').textContent = 'Nuovo Consuntivo (da preventivo)';
         document.getElementById('deleteActualBtn').style.display = 'none';
+        document.getElementById('viewAccountsBtn').style.display = 'none';
         App.showView('actualDetailView');
         
         ExportManager.showSuccess(`Dati caricati dal preventivo "${scenario.name}"`);
@@ -379,6 +397,7 @@ const ActualsUI = {
         this.loadActualForm(ActualsManager.createEmptyActual());
         document.getElementById('actualTitle').textContent = 'Nuovo Consuntivo';
         document.getElementById('deleteActualBtn').style.display = 'none';
+        document.getElementById('viewAccountsBtn').style.display = 'none';
         App.showView('actualDetailView');
     },
 
@@ -391,6 +410,7 @@ const ActualsUI = {
             this.loadActualForm(actual);
             document.getElementById('actualTitle').textContent = `Modifica: ${actual.name}`;
             document.getElementById('deleteActualBtn').style.display = 'inline-flex';
+            document.getElementById('viewAccountsBtn').style.display = 'inline-flex';
             App.showView('actualDetailView');
         } else {
             ExportManager.showError('Consuntivo non trovato');
@@ -799,6 +819,41 @@ const ActualsUI = {
             App.switchView('actuals');
             this.loadActualsList();
         }
+    },
+
+    // Visualizza pagina Conti dalla lista principale
+    viewAccountsFromList() {
+        const actuals = StorageManager.getActuals() || [];
+        
+        if (actuals.length === 0) {
+            App.showToast('Crea prima un consuntivo per visualizzare i conti', 'warning');
+            return;
+        }
+
+        // Se c'è un solo consuntivo, aprilo direttamente
+        if (actuals.length === 1) {
+            AccountsManager.init(actuals[0]);
+            App.showView('accountsView');
+            return;
+        }
+
+        // Se ci sono più consuntivi, chiedi quale aprire
+        const actualNames = actuals.map(a => `${a.name} (${a.destination || 'N/A'})`).join('\n');
+        App.showToast('Apri un consuntivo per visualizzare i suoi conti', 'info');
+    },
+
+    // Visualizza pagina Conti dal dettaglio consuntivo
+    viewAccounts() {
+        if (!this.currentActualId) return;
+
+        const actual = StorageManager.getActual(this.currentActualId);
+        if (!actual) return;
+
+        // Inizializza AccountsManager con il consuntivo corrente
+        AccountsManager.init(actual);
+
+        // Mostra la vista Conti
+        App.showView('accountsView');
     },
 
     // Elimina dalla lista
