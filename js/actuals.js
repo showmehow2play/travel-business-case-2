@@ -11,6 +11,9 @@ const ActualsManager = {
         { value: 'viaggio', label: 'Viaggio', icon: '✈️' },
         { value: 'auto', label: 'Auto', icon: '🚗' },
         { value: 'attivita', label: 'Attività', icon: '🎭' },
+        { value: 'spesa', label: 'Spesa', icon: '🛒' },
+        { value: 'benzina', label: 'Benzina', icon: '⛽' },
+        { value: 'extra', label: 'Extra', icon: '✨' },
         { value: 'altro', label: 'Altro', icon: '📝' }
     ],
 
@@ -35,7 +38,10 @@ const ActualsManager = {
             category: 'generali',
             description: '',
             amount: 0,
+            date: new Date().toISOString().split('T')[0], // Data odierna in formato YYYY-MM-DD
             paidBy: '',
+            sharedBy: [], // Array di partecipanti che dividono la spesa
+            splitEqually: true, // Se true, divide equamente tra sharedBy
             notes: ''
         };
     },

@@ -474,39 +474,136 @@ const ActualsUI = {
     // Crea elemento spesa
     createExpenseItem(expense, index) {
         const categories = ActualsManager.categories;
-        const categoryOptions = categories.map(cat => 
+        const categoryOptions = categories.map(cat =>
             `<option value="${cat.value}" ${expense.category === cat.value ? 'selected' : ''}>
                 ${cat.icon} ${cat.label}
             </option>`
         ).join('');
 
+        // Ottieni lista partecipanti
+        const participants = Array.from(document.querySelectorAll('#actualParticipantsList .participant-tag span'))
+            .map(span => span.textContent);
+
+        const paidByOptions = participants.map(p =>
+            `<option value="${p}" ${expense.paidBy === p ? 'selected' : ''}>${p}</option>`
+        ).join('');
+
+        // Inizializza sharedBy se non esiste
+        if (!expense.sharedBy) {
+            expense.sharedBy = [...participants];
+            expense.splitEqually = true;
+        }
+
+        // Inizializza data se non esiste
+        if (!expense.date) {
+            expense.date = new Date().toISOString().split('T')[0];
+        }
+
+        const sharedByCheckboxes = participants.map(p => {
+            const isChecked = expense.sharedBy && expense.sharedBy.includes(p);
+            return `
+                <label class="participant-checkbox-compact">
+                    <input type="checkbox" class="expense-sharedby" data-index="${index}" data-participant="${p}" ${isChecked ? 'checked' : ''}>
+                    <span>${p}</span>
+                </label>
+            `;
+        }).join('');
+
+        const costPerPerson = expense.sharedBy && expense.sharedBy.length > 0
+            ? (expense.amount / expense.sharedBy.length).toFixed(2)
+            : '0.00';
+
+        const isSaved = expense.saved === true;
+        const disabledAttr = isSaved ? 'disabled' : '';
+        const opacityStyle = isSaved ? 'opacity: 0.7;' : '';
+
         return `
-            <div class="expense-item expense-item-new" data-index="${index}">
-                <div class="expense-field">
-                    <label>Categoria</label>
-                    <select class="expense-category" data-index="${index}">
-                        ${categoryOptions}
-                    </select>
-                </div>
-                <div class="expense-field">
-                    <label>Descrizione *</label>
-                    <input type="text" class="expense-description" data-index="${index}" 
-                           value="${expense.description || ''}" placeholder="es: Cena ristorante" required>
-                </div>
-                <div class="expense-field">
-                    <label>Importo (€) *</label>
-                    <input type="number" class="expense-amount" data-index="${index}" 
-                           value="${expense.amount || 0}" min="0" step="0.01" required>
-                </div>
-                <div class="expense-field">
-                    <label>Pagato da</label>
-                    <input type="text" class="expense-paidby" data-index="${index}" 
-                           value="${expense.paidBy || ''}" placeholder="Nome">
-                </div>
-                <div class="expense-actions">
-                    <button type="button" class="btn-icon btn-delete" onclick="ActualsUI.removeExpense(${index})" title="Elimina spesa">
+            <div class="expense-item-wrapper" style="position: relative; margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: var(--spacing-sm);">
+                <!-- Pulsanti azione a sinistra del box -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- Elimina (rosso) - sempre visibile -->
+                    <button type="button" class="btn-icon" onclick="ActualsUI.removeExpense(${index})"
+                            title="Elimina spesa"
+                            style="background: #ef4444; color: white; width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         🗑️
                     </button>
+                    
+                    <!-- Salva (verde) - visibile solo se non salvata -->
+                    <button type="button" class="btn-icon" onclick="ActualsUI.saveExpense(${index})"
+                            title="Salva spesa"
+                            style="background: #10b981; color: white; width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: ${isSaved ? 'none' : 'flex'}; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        ✓
+                    </button>
+                    
+                    <!-- Modifica (blu) - visibile solo se salvata -->
+                    <button type="button" class="btn-icon" onclick="ActualsUI.editExpense(${index})"
+                            title="Modifica spesa"
+                            style="background: #3b82f6; color: white; width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: ${isSaved ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        ✏️
+                    </button>
+                </div>
+                
+                <div class="expense-item expense-item-new" data-index="${index}" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; grid-template-rows: auto auto; gap: var(--spacing-md); padding: var(--spacing-md); ${opacityStyle}">
+                    
+                    <!-- Colonna 1: Descrizione (riga 1) e Categoria (riga 2) -->
+                    <div class="expense-field" style="grid-column: 1; grid-row: 1;">
+                        <label>Descrizione</label>
+                        <input type="text" class="expense-description" data-index="${index}"
+                               value="${expense.description || ''}" placeholder="es: Cena ristorante" required ${disabledAttr}>
+                    </div>
+                    <div class="expense-field" style="grid-column: 1; grid-row: 2;">
+                        <label>Categoria</label>
+                        <select class="expense-category" data-index="${index}" ${disabledAttr}>
+                            ${categoryOptions}
+                        </select>
+                    </div>
+                    
+                    <!-- Colonna 2: Importo (riga 1) e Data (riga 2) -->
+                    <div class="expense-field" style="grid-column: 2; grid-row: 1;">
+                        <label>Importo (€)</label>
+                        <input type="number" class="expense-amount" data-index="${index}"
+                               value="${expense.amount || 0}" min="0" step="0.01" required ${disabledAttr}>
+                    </div>
+                    <div class="expense-field" style="grid-column: 2; grid-row: 2;">
+                        <label>Data</label>
+                        <input type="date" class="expense-date" data-index="${index}"
+                               value="${expense.date || ''}" required ${disabledAttr}>
+                    </div>
+                    
+                    <!-- Colonna 3: Pagato da (span 2 righe) -->
+                    <div class="expense-field" style="grid-column: 3; grid-row: 1 / 3; display: flex; flex-direction: column;">
+                        <label>Pagato da</label>
+                        <select class="expense-paidby-select" data-index="${index}" style="flex: 1;" ${disabledAttr}>
+                            <option value="">Seleziona...</option>
+                            ${paidByOptions}
+                        </select>
+                    </div>
+                    
+                    <!-- Colonna 4: Partecipanti (span 2 righe) -->
+                    <div class="expense-row-split" style="grid-column: 4; grid-row: 1 / 3; display: flex; flex-direction: column;">
+                        <div class="expense-split-header" style="margin-bottom: 0.5rem;">
+                            <span class="split-label">👥 Diviso tra:</span>
+                            <button type="button" class="btn-link-small" onclick="ActualsUI.toggleAllParticipants(${index})" ${disabledAttr}>
+                                ${expense.sharedBy && expense.sharedBy.length === participants.length ? 'Deseleziona' : 'Tutti'}
+                            </button>
+                            <div class="split-summary">
+                                <span class="split-count">${expense.sharedBy ? expense.sharedBy.length : 0} pers.</span>
+                                <span class="split-divider">•</span>
+                                <span class="split-amount">€${costPerPerson}</span>
+                            </div>
+                        </div>
+                        <div class="expense-participants-grid" style="flex: 1; overflow-y: auto;">
+                            ${participants.map(p => {
+                                const isChecked = expense.sharedBy && expense.sharedBy.includes(p);
+                                return `
+                                    <label class="participant-checkbox-compact">
+                                        <input type="checkbox" class="expense-sharedby" data-index="${index}" data-participant="${p}" ${isChecked ? 'checked' : ''} ${disabledAttr}>
+                                        <span>${p}</span>
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -529,31 +626,123 @@ const ActualsUI = {
         }
     },
 
+    // Salva spesa (conferma e blocca modifica)
+    saveExpense(index) {
+        const expense = this.currentExpenses[index];
+        
+        // Validazione base
+        if (!expense.description || !expense.category || !expense.amount || !expense.paidBy) {
+            alert('Compila tutti i campi obbligatori: Descrizione, Categoria, Importo e Pagato da');
+            return;
+        }
+        
+        if (!expense.sharedBy || expense.sharedBy.length === 0) {
+            alert('Seleziona almeno un partecipante per la divisione della spesa');
+            return;
+        }
+        
+        // Marca la spesa come salvata
+        expense.saved = true;
+        
+        // Ricarica per disabilitare i campi
+        this.loadExpenses(this.currentExpenses);
+        this.updateTotals();
+        
+        // Feedback visivo
+        if (typeof showToast !== 'undefined') {
+            showToast('Spesa salvata con successo', 'success');
+        }
+    },
+
+    // Modifica spesa (riabilita modifica)
+    editExpense(index) {
+        const expense = this.currentExpenses[index];
+        
+        // Rimuovi il flag saved per permettere la modifica
+        expense.saved = false;
+        
+        // Ricarica per riabilitare i campi
+        this.loadExpenses(this.currentExpenses);
+        
+        // Feedback visivo
+        if (typeof showToast !== 'undefined') {
+            showToast('Spesa in modalità modifica', 'info');
+        }
+    },
+
     // Attach listeners alle spese
     attachExpenseListeners() {
-        const inputs = document.querySelectorAll('.expense-category, .expense-description, .expense-amount, .expense-paidby');
+        // Input fields
+        const inputs = document.querySelectorAll('.expense-category, .expense-description, .expense-amount, .expense-paidby-select, .expense-date');
         inputs.forEach(input => {
             input.addEventListener('input', (e) => {
                 const index = parseInt(e.target.dataset.index);
-                const field = e.target.className.split(' ')[0].replace('expense-', '');
+                const classList = e.target.className;
                 
                 if (this.currentExpenses[index]) {
-                    if (field === 'category') {
+                    if (classList.includes('expense-category')) {
                         this.currentExpenses[index].category = e.target.value;
-                    } else if (field === 'description') {
+                    } else if (classList.includes('expense-description')) {
                         this.currentExpenses[index].description = e.target.value;
-                    } else if (field === 'amount') {
+                    } else if (classList.includes('expense-amount')) {
                         this.currentExpenses[index].amount = parseFloat(e.target.value) || 0;
-                    } else if (field === 'paidby') {
+                        this.loadExpenses(this.currentExpenses); // Ricarica per aggiornare il costo per persona
+                    } else if (classList.includes('expense-paidby-select')) {
                         this.currentExpenses[index].paidBy = e.target.value;
+                    } else if (classList.includes('expense-date')) {
+                        this.currentExpenses[index].date = e.target.value;
                     }
                     
-                    if (field === 'amount') {
+                    if (classList.includes('expense-amount')) {
                         this.updateTotals();
                     }
                 }
             });
         });
+
+        // Checkboxes per sharedBy
+        const checkboxes = document.querySelectorAll('.expense-sharedby');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                const participant = e.target.dataset.participant;
+                
+                if (this.currentExpenses[index]) {
+                    if (!this.currentExpenses[index].sharedBy) {
+                        this.currentExpenses[index].sharedBy = [];
+                    }
+                    
+                    if (e.target.checked) {
+                        if (!this.currentExpenses[index].sharedBy.includes(participant)) {
+                            this.currentExpenses[index].sharedBy.push(participant);
+                        }
+                    } else {
+                        this.currentExpenses[index].sharedBy = this.currentExpenses[index].sharedBy.filter(p => p !== participant);
+                    }
+                    
+                    this.loadExpenses(this.currentExpenses); // Ricarica per aggiornare il costo per persona
+                }
+            });
+        });
+    },
+
+    // Toggle tutti i partecipanti per una spesa
+    toggleAllParticipants(index) {
+        if (!this.currentExpenses[index]) return;
+        
+        const participants = Array.from(document.querySelectorAll('#actualParticipantsList .participant-tag span'))
+            .map(span => span.textContent);
+        
+        const allSelected = this.currentExpenses[index].sharedBy &&
+                           this.currentExpenses[index].sharedBy.length === participants.length;
+        
+        if (allSelected) {
+            this.currentExpenses[index].sharedBy = [];
+        } else {
+            this.currentExpenses[index].sharedBy = [...participants];
+        }
+        
+        this.loadExpenses(this.currentExpenses);
     },
 
     // Aggiorna totali

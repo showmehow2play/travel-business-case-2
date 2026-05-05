@@ -784,12 +784,16 @@ const App = {
             if (emptyState) emptyState.style.display = 'block';
             if (clearBtn) clearBtn.style.display = 'none';
         } else {
-            list.innerHTML = participants.map(p => `
-                <div class="participant-tag">
-                    <span>${p}</span>
-                    <button type="button" class="remove-participant-btn" data-participant="${p.replace(/"/g, '"')}">✕</button>
-                </div>
-            `).join('');
+            list.innerHTML = participants.map(p => {
+                // Escape HTML per sicurezza ma mantieni il nome originale nel data attribute
+                const escapedName = p.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+                return `
+                    <div class="participant-tag">
+                        <span>${escapedName}</span>
+                        <button type="button" class="remove-participant-btn" data-participant="${escapedName}">✕</button>
+                    </div>
+                `;
+            }).join('');
             if (emptyState) emptyState.style.display = 'none';
             if (clearBtn) clearBtn.style.display = 'inline-block';
         }
@@ -830,11 +834,14 @@ const App = {
         if (emptyState) emptyState.style.display = 'none';
         if (clearBtn) clearBtn.style.display = 'inline-block';
         
+        // Escape HTML per sicurezza
+        const escapedName = name.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+        
         const tag = document.createElement('div');
         tag.className = 'participant-tag';
         tag.innerHTML = `
-            <span>${name}</span>
-            <button type="button" class="remove-participant-btn" data-participant="${name.replace(/"/g, '"')}">✕</button>
+            <span>${escapedName}</span>
+            <button type="button" class="remove-participant-btn" data-participant="${escapedName}">✕</button>
         `;
         list.appendChild(tag);
         this.updateTotals();
@@ -892,26 +899,41 @@ const App = {
 
     // Rimuovi partecipante
     removeParticipant(name) {
+        console.log('Tentativo rimozione partecipante:', name);
+        
         const tags = document.querySelectorAll('.participant-tag');
+        let removed = false;
+        
         tags.forEach(tag => {
             const nameSpan = tag.querySelector('span');
-            if (nameSpan && nameSpan.textContent === name) {
+            const removeBtn = tag.querySelector('.remove-participant-btn');
+            
+            // Confronta sia con textContent che con data-participant per gestire caratteri escaped
+            if (nameSpan && (nameSpan.textContent === name ||
+                (removeBtn && removeBtn.dataset.participant === name))) {
+                console.log('Rimozione tag per:', nameSpan.textContent);
                 tag.remove();
+                removed = true;
             }
         });
         
-        // Mostra lo stato vuoto e nascondi il pulsante azzera se non ci sono più partecipanti
-        const list = document.getElementById('participantsList');
-        const emptyState = document.getElementById('participantsEmptyState');
-        const clearBtn = document.getElementById('clearParticipantsBtn');
-        
-        if (list && list.children.length === 0) {
-            if (emptyState) emptyState.style.display = 'block';
-            if (clearBtn) clearBtn.style.display = 'none';
+        if (removed) {
+            // Mostra lo stato vuoto e nascondi il pulsante azzera se non ci sono più partecipanti
+            const list = document.getElementById('participantsList');
+            const emptyState = document.getElementById('participantsEmptyState');
+            const clearBtn = document.getElementById('clearParticipantsBtn');
+            
+            if (list && list.children.length === 0) {
+                if (emptyState) emptyState.style.display = 'block';
+                if (clearBtn) clearBtn.style.display = 'none';
+            }
+            
+            this.updateTotals();
+            this.loadParticipantSelector(); // Aggiorna il selettore
+            showToast('Partecipante rimosso', 'success');
+        } else {
+            console.warn('Partecipante non trovato:', name);
         }
-        
-        this.updateTotals();
-        this.loadParticipantSelector(); // Aggiorna il selettore
     },
 
     // Azzera tutti i partecipanti

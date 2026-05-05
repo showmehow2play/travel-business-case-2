@@ -2017,3 +2017,208 @@ body {
     flex: 1;
     min-width: 200px;
 }
+
+/* ===== Expense Items (Consuntivi) - 3-Row Compact Layout ===== */
+.expense-item-new {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    transition: all var(--transition-base);
+}
+
+.expense-item-new:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Riga 1: Descrizione */
+.expense-row-description {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-sm);
+    align-items: end;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Riga 2: Categoria, Importo, Pagato da */
+.expense-row-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--spacing-md);
+    align-items: end;
+    margin-bottom: var(--spacing-sm);
+}
+
+.expense-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.expense-field-full {
+    width: 100%;
+}
+
+.expense-field label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+.expense-field input,
+.expense-field select {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    transition: all var(--transition-base);
+    width: 100%;
+}
+
+.expense-field input:focus,
+.expense-field select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.1);
+}
+
+.expense-actions {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.expense-actions .btn-icon {
+    padding: 0.5rem;
+    font-size: 1.1rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-radius: var(--radius-sm);
+}
+
+.expense-actions .btn-icon:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Riga 3: Divisione spesa */
+.expense-row-split {
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border-light);
+}
+
+.expense-split-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.split-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.btn-link-small {
+    font-size: 0.65rem;
+    color: var(--primary-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.btn-link-small:hover {
+    color: var(--primary-hover);
+}
+
+.split-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-left: auto;
+    padding: 0.2rem 0.6rem;
+    background: var(--primary-light);
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.split-count {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.split-divider {
+    color: var(--border-color);
+}
+
+.split-amount {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* Griglia partecipanti compatta */
+.expense-participants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.375rem;
+}
+
+.participant-checkbox-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: 0.75rem;
+    user-select: none;
+}
+
+.participant-checkbox-compact:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-color);
+}
+
+.participant-checkbox-compact input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.participant-checkbox-compact input[type="checkbox"]:checked + span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.participant-checkbox-compact span {
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-small {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
