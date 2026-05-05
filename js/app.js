@@ -22,6 +22,17 @@ const App = {
             });
         });
 
+        // Event delegation per i pulsanti di rimozione partecipanti
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-participant-btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+                const participantName = e.target.dataset.participant;
+                console.log('Rimozione partecipante:', participantName);
+                this.removeParticipant(participantName);
+            }
+        });
+
         // Dashboard stats navigation
         const totalScenariosCard = document.getElementById('totalScenariosCard');
         if (totalScenariosCard) {
@@ -74,6 +85,27 @@ const App = {
                 this.hideExportModal();
             });
         });
+
+        // Participants view buttons
+        const syncParticipantsBtn = document.getElementById('syncParticipantsBtn');
+        if (syncParticipantsBtn) {
+            syncParticipantsBtn.addEventListener('click', () => {
+                autoSyncParticipants();
+                renderParticipantsList();
+            });
+        }
+
+        const participantSearch = document.getElementById('participantSearch');
+        if (participantSearch) {
+            participantSearch.addEventListener('input', (e) => {
+                const query = e.target.value;
+                if (query.trim()) {
+                    searchParticipants(query);
+                } else {
+                    renderParticipantsList();
+                }
+            });
+        }
 
         // Scenario form
         document.getElementById('scenarioForm').addEventListener('submit', (e) => {
@@ -211,6 +243,16 @@ const App = {
                     break;
                 case 'scenarios':
                     this.loadScenariosList();
+                    break;
+                case 'actuals':
+                    if (typeof ActualsUI !== 'undefined') {
+                        ActualsUI.loadActualsList();
+                    }
+                    break;
+                case 'participants':
+                    if (typeof renderParticipantsList !== 'undefined') {
+                        renderParticipantsList();
+                    }
                     break;
                 case 'compare':
                     this.loadCompareView();
@@ -723,6 +765,7 @@ const App = {
             AccommodationCarManager.loadOtherOptions(scenario.otherOptions || []);
 
             this.loadParticipants(scenario.participants || []);
+            this.loadParticipantSelector(); // Carica il selettore dall'anagrafica
             this.updateTotals();
         } catch (error) {
             console.error('Errore nel caricamento del form:', error);
@@ -733,12 +776,23 @@ const App = {
     // Carica i partecipanti
     loadParticipants(participants) {
         const list = document.getElementById('participantsList');
-        list.innerHTML = participants.map(p => `
-            <div class="participant-tag">
-                <span>${p}</span>
-                <button type="button" onclick="App.removeParticipant('${p}')">✕</button>
-            </div>
-        `).join('');
+        const emptyState = document.getElementById('participantsEmptyState');
+        const clearBtn = document.getElementById('clearParticipantsBtn');
+        
+        if (participants.length === 0) {
+            list.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
+            if (clearBtn) clearBtn.style.display = 'none';
+        } else {
+            list.innerHTML = participants.map(p => `
+                <div class="participant-tag">
+                    <span>${p}</span>
+                    <button type="button" class="remove-participant-btn" data-participant="${p.replace(/"/g, '"')}">✕</button>
+                </div>
+            `).join('');
+            if (emptyState) emptyState.style.display = 'none';
+            if (clearBtn) clearBtn.style.display = 'inline-block';
+        }
     },
 
     // Aggiungi partecipante
@@ -747,28 +801,139 @@ const App = {
         const name = input.value.trim();
         
         if (name) {
-            const list = document.getElementById('participantsList');
-            const tag = document.createElement('div');
-            tag.className = 'participant-tag';
-            tag.innerHTML = `
-                <span>${name}</span>
-                <button type="button" onclick="App.removeParticipant('${name}')">✕</button>
-            `;
-            list.appendChild(tag);
+            this.addParticipantToList(name);
             input.value = '';
-            this.updateTotals();
+            
+            // Aggiungi all'anagrafica se non esiste
+            if (typeof participantsRegistry !== 'undefined') {
+                participantsRegistry.addOrGet(name);
+            }
         }
+    },
+
+    // Aggiungi partecipante alla lista (helper)
+    addParticipantToList(name) {
+        // Verifica se già presente
+        const existing = Array.from(document.querySelectorAll('.participant-tag span'))
+            .find(span => span.textContent === name);
+        
+        if (existing) {
+            showToast('Partecipante già aggiunto', 'error');
+            return;
+        }
+
+        const list = document.getElementById('participantsList');
+        const emptyState = document.getElementById('participantsEmptyState');
+        const clearBtn = document.getElementById('clearParticipantsBtn');
+        
+        // Nascondi lo stato vuoto e mostra il pulsante azzera
+        if (emptyState) emptyState.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'inline-block';
+        
+        const tag = document.createElement('div');
+        tag.className = 'participant-tag';
+        tag.innerHTML = `
+            <span>${name}</span>
+            <button type="button" class="remove-participant-btn" data-participant="${name.replace(/"/g, '"')}">✕</button>
+        `;
+        list.appendChild(tag);
+        this.updateTotals();
+    },
+
+    // Carica il selettore partecipanti dall'anagrafica
+    loadParticipantSelector() {
+        const container = document.getElementById('participantSelectorList');
+        if (!container || typeof participantsRegistry === 'undefined') return;
+
+        const participants = participantsRegistry.getAllSorted();
+        
+        if (participants.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Nessun partecipante in anagrafica.<br>
+                    <a href="#" onclick="App.switchView('participants'); return false;" style="color: var(--primary-color);">
+                        Vai all'Anagrafica
+                    </a> per aggiungerne.
+                </div>
+            `;
+            return;
+        }
+
+        // Ottieni i partecipanti già aggiunti
+        const addedParticipants = Array.from(document.querySelectorAll('.participant-tag span'))
+            .map(span => span.textContent);
+
+        container.innerHTML = participants.map(p => {
+            const isAdded = addedParticipants.includes(p.name);
+            return `
+                <div class="participant-option ${isAdded ? 'disabled' : ''}" onclick="App.selectParticipantFromRegistry('${p.name.replace(/'/g, "\\'")}')">
+                    <span class="participant-option-name">${p.name}</span>
+                    ${p.email ? `<span class="participant-option-info">📧 ${p.email}</span>` : ''}
+                    ${isAdded ? '<span class="participant-option-added">✓ Aggiunto</span>' : ''}
+                </div>
+            `;
+        }).join('');
+    },
+
+    // Seleziona partecipante dall'anagrafica
+    selectParticipantFromRegistry(name) {
+        this.addParticipantToList(name);
+        this.loadParticipantSelector(); // Ricarica per aggiornare lo stato
+    },
+
+    // Aggiorna il selettore partecipanti
+    refreshParticipantSelector() {
+        if (typeof autoSyncParticipants !== 'undefined') {
+            autoSyncParticipants();
+        }
+        this.loadParticipantSelector();
+        showToast('Anagrafica aggiornata', 'success');
     },
 
     // Rimuovi partecipante
     removeParticipant(name) {
         const tags = document.querySelectorAll('.participant-tag');
         tags.forEach(tag => {
-            if (tag.textContent.includes(name)) {
+            const nameSpan = tag.querySelector('span');
+            if (nameSpan && nameSpan.textContent === name) {
                 tag.remove();
             }
         });
+        
+        // Mostra lo stato vuoto e nascondi il pulsante azzera se non ci sono più partecipanti
+        const list = document.getElementById('participantsList');
+        const emptyState = document.getElementById('participantsEmptyState');
+        const clearBtn = document.getElementById('clearParticipantsBtn');
+        
+        if (list && list.children.length === 0) {
+            if (emptyState) emptyState.style.display = 'block';
+            if (clearBtn) clearBtn.style.display = 'none';
+        }
+        
         this.updateTotals();
+        this.loadParticipantSelector(); // Aggiorna il selettore
+    },
+
+    // Azzera tutti i partecipanti
+    clearAllParticipants() {
+        if (confirm('Sei sicuro di voler rimuovere tutti i partecipanti?')) {
+            const list = document.getElementById('participantsList');
+            const emptyState = document.getElementById('participantsEmptyState');
+            const clearBtn = document.getElementById('clearParticipantsBtn');
+            
+            // Rimuovi tutti i tag
+            if (list) {
+                list.innerHTML = '';
+            }
+            
+            // Mostra lo stato vuoto e nascondi il pulsante azzera
+            if (emptyState) emptyState.style.display = 'block';
+            if (clearBtn) clearBtn.style.display = 'none';
+            
+            this.updateTotals();
+            this.loadParticipantSelector(); // Aggiorna il selettore
+            showToast('Tutti i partecipanti sono stati rimossi', 'success');
+        }
     },
 
     // Aggiorna i totali

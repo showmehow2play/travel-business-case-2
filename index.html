@@ -23,7 +23,9 @@
             </div>
             <nav class="app-nav">
                 <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
-                <button class="nav-btn" data-view="scenarios">📋 Scenari</button>
+                <button class="nav-btn" data-view="scenarios">📋 Preventivi</button>
+                <button class="nav-btn" data-view="actuals">💰 Consuntivi</button>
+                <button class="nav-btn" data-view="participants">👥 Anagrafica</button>
                 <button class="nav-btn" data-view="compare">🔄 Confronta</button>
             </nav>
         </header>
@@ -91,6 +93,117 @@
                 <div class="scenarios-grid" id="scenariosList"></div>
             </div>
 
+            <!-- Actuals View (Consuntivi) -->
+            <div id="actualsView" class="view">
+                <div class="view-header">
+                    <h2>Consuntivi di Viaggio</h2>
+                    <button id="newActualBtn" class="btn btn-primary">+ Nuovo Consuntivo</button>
+                </div>
+                <div class="scenarios-grid" id="actualsList"></div>
+            </div>
+
+            <!-- Participants View (Anagrafica) -->
+            <div id="participantsView" class="view">
+                <div class="view-header">
+                    <h2>Anagrafica Partecipanti</h2>
+                    <div class="header-actions">
+                        <button id="syncParticipantsBtn" class="btn btn-secondary" title="Sincronizza da preventivi e consuntivi">
+                            🔄 Sincronizza
+                        </button>
+                        <button id="addParticipantBtn" class="btn btn-primary" onclick="showAddParticipantModal()">
+                            + Aggiungi Partecipante
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="search-bar">
+                    <input type="text" id="participantSearch" placeholder="🔍 Cerca per nome, email o telefono..." />
+                </div>
+                
+                <div id="participantsList"></div>
+            </div>
+
+            <!-- Actual Detail View (Dettaglio Consuntivo) -->
+            <div id="actualDetailView" class="view">
+                <div class="view-header">
+                    <button id="backActualBtn" class="btn btn-secondary">← Indietro</button>
+                    <h2 id="actualTitle">Dettaglio Consuntivo</h2>
+                    <div class="header-actions">
+                        <button id="deleteActualBtn" class="btn btn-danger">🗑️ Elimina</button>
+                    </div>
+                </div>
+
+                <form id="actualForm" class="scenario-form">
+                    <div class="form-section">
+                        <h3>📍 Informazioni Generali</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="actualName">Nome Viaggio *</label>
+                                <input type="text" id="actualName" required placeholder="es: Viaggio Norvegia 2027">
+                            </div>
+                            <div class="form-group">
+                                <label for="actualDestination">Destinazione *</label>
+                                <input type="text" id="actualDestination" required placeholder="es: Tromso, Norvegia">
+                            </div>
+                            <div class="form-group">
+                                <label for="actualStartDate">Data Inizio</label>
+                                <input type="date" id="actualStartDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="actualEndDate">Data Fine</label>
+                                <input type="date" id="actualEndDate">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>👥 Partecipanti</h3>
+                        <div class="participants-container">
+                            <div id="actualParticipantsList" class="participants-list"></div>
+                            <div class="add-participant">
+                                <input type="text" id="newActualParticipant" placeholder="Nome partecipante">
+                                <button type="button" id="addActualParticipantBtn" class="btn btn-secondary">+ Aggiungi</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>💰 Spese Effettive</h3>
+                        <div class="expenses-actual-container">
+                            <div class="expenses-actual-header">
+                                <button type="button" id="addExpenseBtn" class="btn btn-primary">+ Aggiungi Spesa</button>
+                            </div>
+                            <div id="expensesActualList" class="expenses-actual-list">
+                                <!-- Le spese verranno aggiunte dinamicamente qui -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📝 Note</h3>
+                        <div class="form-group">
+                            <textarea id="actualNotes" rows="4" placeholder="Aggiungi note o dettagli aggiuntivi..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="totals-section">
+                        <div class="total-item">
+                            <span class="total-label">Totale Spese:</span>
+                            <span class="total-value" id="actualTotalCost">€0.00</span>
+                        </div>
+                        <div class="total-item highlight">
+                            <span class="total-label">Costo per Partecipante:</span>
+                            <span class="total-value" id="actualCostPerPerson">€0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Salva Consuntivo</button>
+                        <button type="button" id="cancelActualBtn" class="btn btn-secondary">Annulla</button>
+                    </div>
+                </form>
+            </div>
+
             <!-- Compare View -->
             <div id="compareView" class="view">
                 <div class="view-header">
@@ -143,10 +256,35 @@
                     <div class="form-section">
                         <h3>👥 Partecipanti</h3>
                         <div class="participants-container">
-                            <div id="participantsList" class="participants-list"></div>
+                            <!-- Lista partecipanti aggiunti -->
+                            <div class="participants-added-section">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+                                    <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.9rem; font-weight: 600;">
+                                        📋 Partecipanti Aggiunti
+                                    </h4>
+                                    <button type="button" id="clearParticipantsBtn" class="btn-link" style="color: var(--danger-color); font-size: 0.85rem; display: none;" onclick="App.clearAllParticipants()">
+                                        🗑️ Azzera Tutti
+                                    </button>
+                                </div>
+                                <div id="participantsList" class="participants-list"></div>
+                                <div id="participantsEmptyState" class="empty-state" style="display: none; padding: var(--spacing-md); text-align: center; color: var(--text-muted); font-size: 0.9rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md);">
+                                    Nessun partecipante aggiunto. Seleziona dall'anagrafica o aggiungi manualmente.
+                                </div>
+                            </div>
+                            
+                            <!-- Selettore dall'anagrafica -->
+                            <div class="participant-selector">
+                                <div class="participant-selector-header">
+                                    <h4>Seleziona dall'Anagrafica</h4>
+                                    <button type="button" class="btn-link" onclick="App.refreshParticipantSelector()">🔄 Aggiorna</button>
+                                </div>
+                                <div id="participantSelectorList" class="participant-options"></div>
+                            </div>
+                            
+                            <!-- Aggiunta manuale -->
                             <div class="add-participant">
-                                <input type="text" id="newParticipant" placeholder="Nome partecipante">
-                                <button type="button" id="addParticipantBtn" class="btn btn-secondary">+ Aggiungi</button>
+                                <input type="text" id="newParticipant" placeholder="Oppure aggiungi nuovo nome">
+                                <button type="button" id="addParticipantBtn" class="btn btn-secondary">+ Aggiungi Manualmente</button>
                             </div>
                         </div>
                     </div>
@@ -560,6 +698,61 @@
             </div>
         </div>
 
+        <!-- Participant Modal -->
+        <div id="participantModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="participantModalTitle">Aggiungi Partecipante</h3>
+                    <button class="modal-close" onclick="closeParticipantModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="participantForm" onsubmit="saveParticipant(event)">
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="participantName">Nome Completo *</label>
+                                <input type="text" id="participantName" required placeholder="es: Mario Rossi">
+                                <small style="color: var(--text-secondary); font-size: 0.85rem;">Solo il nome è obbligatorio, gli altri campi sono opzionali</small>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>📋 Informazioni di Contatto (Opzionali)</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="participantEmail">Email</label>
+                                    <input type="email" id="participantEmail" placeholder="mario.rossi@email.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="participantPhone">Telefono</label>
+                                    <input type="tel" id="participantPhone" placeholder="+39 123 456 7890">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>🆔 Documento (Opzionale)</h3>
+                            <div class="form-group">
+                                <label for="participantIdCard">Numero Carta d'Identità / Passaporto</label>
+                                <input type="text" id="participantIdCard" placeholder="es: CA1234567">
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>📝 Note (Opzionali)</h3>
+                            <div class="form-group">
+                                <textarea id="participantNotes" rows="3" placeholder="Note aggiuntive..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">💾 Salva</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeParticipantModal()">Annulla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <!-- Import File Input -->
         <input type="file" id="importFile" accept=".json" style="display: none;">
 
@@ -572,7 +765,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="js/storage.js"></script>
+    <script src="js/participants.js"></script>
     <script src="js/scenarios.js"></script>
+    <script src="js/actuals.js"></script>
+    <script src="js/actuals-ui.js"></script>
     <script src="js/export.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/flights.js"></script>

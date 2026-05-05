@@ -8,7 +8,7 @@ const StorageManager = {
     // Inizializza lo storage
     init() {
         if (!this.getData()) {
-            this.saveData({ scenarios: [] });
+            this.saveData({ scenarios: [], actuals: [] });
         }
         // Backup automatico ogni 5 minuti
         setInterval(() => this.createBackup(), 5 * 60 * 1000);
@@ -24,11 +24,12 @@ const StorageManager = {
                 return null;
             }
 
+            // Assicura che esistano entrambi gli array
             if (!Array.isArray(parsed.scenarios)) {
-                console.warn('Dati storage non validi o incompleti, inizializzazione automatica eseguita');
-                const normalized = { scenarios: [] };
-                this.saveData(normalized);
-                return normalized;
+                parsed.scenarios = [];
+            }
+            if (!Array.isArray(parsed.actuals)) {
+                parsed.actuals = [];
             }
 
             return parsed;
@@ -36,7 +37,7 @@ const StorageManager = {
             console.error('Errore nel recupero dei dati:', error);
 
             try {
-                const normalized = { scenarios: [] };
+                const normalized = { scenarios: [], actuals: [] };
                 this.saveData(normalized);
                 return normalized;
             } catch (saveError) {
@@ -70,7 +71,9 @@ const StorageManager = {
             return false;
         }
 
-        return this.saveData({ scenarios });
+        const data = this.getData() || { scenarios: [], actuals: [] };
+        data.scenarios = scenarios;
+        return this.saveData(data);
     },
 
     // Aggiungi uno scenario
@@ -137,6 +140,95 @@ const StorageManager = {
                 updatedAt: undefined
             };
             return this.addScenario(duplicate);
+        }
+        return null;
+    },
+
+    // ===== Gestione Consuntivi (Actuals) =====
+
+    // Ottieni tutti i consuntivi
+    getActuals() {
+        const data = this.getData();
+        return data ? (data.actuals || []) : [];
+    },
+
+    // Salva i consuntivi
+    saveActuals(actuals) {
+        if (!Array.isArray(actuals)) {
+            console.error('Tentativo di salvare consuntivi in formato non valido:', actuals);
+            return false;
+        }
+
+        const data = this.getData() || { scenarios: [], actuals: [] };
+        data.actuals = actuals;
+        return this.saveData(data);
+    },
+
+    // Aggiungi un consuntivo
+    addActual(actual) {
+        const actuals = this.getActuals();
+        const newActual = {
+            ...actual,
+            id: this.generateId(),
+            type: 'actual',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        actuals.push(newActual);
+        const saved = this.saveActuals(actuals);
+
+        if (!saved) {
+            console.error('Errore nel salvataggio del nuovo consuntivo');
+            return null;
+        }
+
+        console.log('Consuntivo salvato correttamente:', newActual);
+        return newActual;
+    },
+
+    // Aggiorna un consuntivo
+    updateActual(id, updates) {
+        const actuals = this.getActuals();
+        const index = actuals.findIndex(a => a.id === id);
+        if (index !== -1) {
+            actuals[index] = {
+                ...actuals[index],
+                ...updates,
+                updatedAt: new Date().toISOString()
+            };
+            this.saveActuals(actuals);
+            return actuals[index];
+        }
+        return null;
+    },
+
+    // Elimina un consuntivo
+    deleteActual(id) {
+        const actuals = this.getActuals();
+        const filtered = actuals.filter(a => a.id !== id);
+        this.saveActuals(filtered);
+        return filtered.length < actuals.length;
+    },
+
+    // Ottieni un consuntivo per ID
+    getActual(id) {
+        const actuals = this.getActuals();
+        return actuals.find(a => a.id === id);
+    },
+
+    // Duplica un consuntivo
+    duplicateActual(id) {
+        const actual = this.getActual(id);
+        if (actual) {
+            const duplicate = {
+                ...actual,
+                name: `${actual.name} (Copia)`,
+                id: undefined,
+                createdAt: undefined,
+                updatedAt: undefined
+            };
+            return this.addActual(duplicate);
         }
         return null;
     },
