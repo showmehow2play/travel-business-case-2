@@ -3,69 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-cache="no-cache, no-store, must-revalidate">
+    <meta http-pragma="no-cache">
+    <meta http-expires="0">
     <title>Business Case Viaggi</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#8b5cf6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Travel BC">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8b5cf6',
+                        secondary: '#3b82f6',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom CSS (mantiene gli stili esistenti) -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/tailwind-overrides.css">
 </head>
 <body>
     <div class="app-container">
         <!-- Header -->
-        <header class="app-header">
-            <div class="header-content">
-                <h1>🧳 Business Case Viaggi</h1>
-                <div class="header-actions">
-                    <button id="importBtn" class="btn btn-secondary" title="Importa dati">
+        <header class="app-header bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 shadow-2xl">
+            <div class="header-content max-w-7xl mx-auto px-6 py-4">
+                <h1 class="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
+                    <span class="text-4xl">🧳</span>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-100">Business Case Viaggi</span>
+                </h1>
+                <div class="header-actions flex gap-3">
+                    <button id="importBtn" class="btn btn-secondary bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30 px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg" title="Importa dati">
                         📥 Importa
                     </button>
-                    <button id="exportMenuBtn" class="btn btn-secondary" title="Esporta dati">
+                    <button id="exportMenuBtn" class="btn btn-secondary bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30 px-4 py-2 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg" title="Esporta dati">
                         📤 Esporta
                     </button>
                 </div>
             </div>
-            <nav class="app-nav">
-                <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
-                <button class="nav-btn" data-view="scenarios">📋 Preventivi</button>
-                <button class="nav-btn" data-view="actuals">💰 Consuntivi</button>
-                <button class="nav-btn" data-view="participants">👥 Anagrafica Partecipanti</button>
-                <button class="nav-btn" data-view="compare">🔄 Confronta</button>
+            <nav class="app-nav bg-white/10 backdrop-blur-lg border-t border-white/20">
+                <div class="max-w-7xl mx-auto px-6 py-3 flex flex-wrap gap-2 justify-center md:justify-start">
+                    <button class="nav-btn active px-6 py-3 rounded-full font-semibold transition-all hover:scale-105" data-view="dashboard">📊 Dashboard</button>
+                    <button class="nav-btn px-6 py-3 rounded-full font-semibold transition-all hover:scale-105" data-view="scenarios">📋 Preventivi</button>
+                    <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="actuals">💰 Consuntivi</button>
+                    <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="participants">👥 Anagrafica Partecipanti</button>
+                    <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="compare">🔄 Confronta</button>
+                </div>
             </nav>
         </header>
 
         <!-- Main Content -->
-        <main class="app-main">
+        <main class="app-main bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 min-h-screen">
             <!-- Dashboard View -->
             <div id="dashboardView" class="view active">
-                <div class="view-header">
-                    <h2>Dashboard</h2>
-                    <button id="newScenarioBtn" class="btn btn-primary">+ Nuovo Scenario</button>
+                <div class="view-header max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
+                    <button id="newScenarioBtn" class="btn btn-primary bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all">
+                        ✨ Nuovo Scenario
+                    </button>
                 </div>
                 
-                <div class="stats-grid">
-                    <div class="stat-card stat-card-clickable" id="totalScenariosCard" role="button" tabindex="0" aria-label="Apri la lista degli scenari">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Scenari Totali</div>
-                            <div class="stat-value" id="totalScenarios">0</div>
+                <div class="stats-grid max-w-7xl mx-auto px-6 pb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Card 1: Scenari Totali -->
+                    <div class="stat-card stat-card-clickable bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 shadow-xl transform hover:scale-105 transition-all cursor-pointer group" id="totalScenariosCard" role="button" tabindex="0" aria-label="Apri la lista degli scenari">
+                        <div class="flex items-start justify-between">
+                            <div class="stat-content flex-1">
+                                <div class="stat-label text-indigo-100 text-sm font-medium mb-2">Scenari Totali</div>
+                                <div class="stat-value text-5xl font-bold text-white mb-1" id="totalScenarios">0</div>
+                                <div class="text-indigo-200 text-xs">Clicca per vedere tutti</div>
+                            </div>
+                            <div class="stat-icon text-5xl opacity-20 group-hover:opacity-30 transition-opacity">📊</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Spesa Media</div>
-                            <div class="stat-value" id="avgCost">€0</div>
+                    
+                    <!-- Card 2: Spesa Media -->
+                    <div class="stat-card bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-6 shadow-xl transform hover:scale-105 transition-all">
+                        <div class="flex items-start justify-between">
+                            <div class="stat-content flex-1">
+                                <div class="stat-label text-blue-100 text-sm font-medium mb-2">Spesa Media</div>
+                                <div class="stat-value text-5xl font-bold text-white mb-1" id="avgCost">€0</div>
+                                <div class="text-blue-200 text-xs">Per scenario</div>
+                            </div>
+                            <div class="stat-icon text-5xl opacity-20">💰</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Partecipanti Totali</div>
-                            <div class="stat-value" id="totalParticipants">0</div>
+                    
+                    <!-- Card 3: Partecipanti Totali -->
+                    <div class="stat-card bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 shadow-xl transform hover:scale-105 transition-all">
+                        <div class="flex items-start justify-between">
+                            <div class="stat-content flex-1">
+                                <div class="stat-label text-green-100 text-sm font-medium mb-2">Partecipanti Totali</div>
+                                <div class="stat-value text-5xl font-bold text-white mb-1" id="totalParticipants">0</div>
+                                <div class="text-green-200 text-xs">Registrati</div>
+                            </div>
+                            <div class="stat-icon text-5xl opacity-20">👥</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📍</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Destinazioni</div>
-                            <div class="stat-value" id="totalDestinations">0</div>
+                    
+                    <!-- Card 4: Destinazioni -->
+                    <div class="stat-card bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-6 shadow-xl transform hover:scale-105 transition-all">
+                        <div class="flex items-start justify-between">
+                            <div class="stat-content flex-1">
+                                <div class="stat-label text-orange-100 text-sm font-medium mb-2">Destinazioni</div>
+                                <div class="stat-value text-5xl font-bold text-white mb-1" id="totalDestinations">0</div>
+                                <div class="text-orange-200 text-xs">Uniche</div>
+                            </div>
+                            <div class="stat-icon text-5xl opacity-20">📍</div>
                         </div>
                     </div>
                 </div>
@@ -125,7 +179,7 @@
                     <input type="text" id="participantSearch" placeholder="🔍 Cerca per nome, email o telefono..." />
                 </div>
                 
-                <div id="participantsList"></div>
+                <div id="participantsRegistryList"></div>
             </div>
 
             <!-- Actual Detail View (Dettaglio Consuntivo) -->
@@ -135,6 +189,7 @@
                     <h2 id="actualTitle">Dettaglio Consuntivo</h2>
                     <div class="header-actions">
                         <button id="viewAccountsBtn" class="btn btn-secondary">📊 Conti</button>
+                        <button id="viewSettlementsFromActualBtn" class="btn btn-secondary">🔄 Dare/Avere</button>
                         <button id="deleteActualBtn" class="btn btn-danger">🗑️ Elimina</button>
                     </div>
                 </div>
@@ -215,6 +270,9 @@
                 <div class="view-header">
                     <button id="backFromAccountsBtn" class="btn btn-secondary">← Indietro</button>
                     <h2 id="accountsTitle">📊 Conti - Analisi Spese</h2>
+                    <div class="header-actions">
+                        <button id="viewSettlementsFromAccountsBtn" class="btn btn-secondary">🔄 Dare/Avere</button>
+                    </div>
                 </div>
 
                 <!-- Statistiche Generali -->
@@ -313,6 +371,73 @@
                     </div>
                 </div>
             </div>
+            <!-- Settlements View (Dare/Avere) -->
+            <div id="settlementsView" class="view">
+                <div class="view-header">
+                    <button id="backFromSettlementsBtn" class="btn btn-secondary">← Indietro</button>
+                    <h2 id="settlementsTitle">🔄 Gestione Dare/Avere</h2>
+                </div>
+
+                <!-- Selettore Consuntivo -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="settlementsActualSelect">Seleziona Consuntivo</label>
+                        <select id="settlementsActualSelect" class="form-control">
+                            <option value="">-- Seleziona un consuntivo --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Contenuto principale -->
+                <div id="settlementsContent" style="display: none;">
+                    <!-- Statistiche Generali -->
+                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                        <div class="stat-card">
+                            <div class="stat-content">
+                                <div class="stat-label">💰 Totale Spese</div>
+                                <div class="stat-value" id="settlementsTotalCost">€0.00</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-content">
+                                <div class="stat-label">👥 Partecipanti</div>
+                                <div class="stat-value" id="settlementsParticipantsCount">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-content">
+                                <div class="stat-label">📊 Quota Media</div>
+                                <div class="stat-value" id="settlementsEqualShare">€0.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bilanci Partecipanti -->
+                    <div class="form-section">
+                        <h3>💳 Bilanci Partecipanti</h3>
+                        <div id="participantBalances" class="balances-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-md);"></div>
+                    </div>
+
+                    <!-- Pulsante Ottimizza -->
+                    <div style="text-align: center; margin: var(--spacing-lg) 0;">
+                        <button id="optimizeSettlementsBtn" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.75rem 2rem;">
+                            ⚡ Ottimizza Trasferimenti
+                        </button>
+                    </div>
+
+                    <!-- Trasferimenti Ottimizzati -->
+                    <div id="optimizedTransfers" style="display: none;">
+                        <div class="form-section">
+                            <h3>💸 Trasferimenti Ottimizzati</h3>
+                            <p style="color: #6c757d; margin-bottom: var(--spacing-md);">
+                                Questi sono i trasferimenti minimi necessari per pareggiare i conti:
+                            </p>
+                            <div id="transfersList" class="transfers-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Compare View -->
             <div id="compareView" class="view">
@@ -365,38 +490,43 @@
 
                     <div class="form-section">
                         <h3>👥 Partecipanti</h3>
-                        <div class="participants-container">
-                            <!-- Lista partecipanti aggiunti -->
-                            <div class="participants-added-section">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
-                                    <h4 style="margin: 0; color: var(--text-secondary); font-size: 0.9rem; font-weight: 600;">
-                                        📋 Partecipanti Aggiunti
-                                    </h4>
-                                    <button type="button" id="clearParticipantsBtn" class="btn-link" style="color: var(--danger-color); font-size: 0.85rem; display: none;" onclick="App.clearAllParticipants()">
-                                        🗑️ Azzera Tutti
-                                    </button>
-                                </div>
-                                <div id="participantsList" class="participants-list"></div>
-                                <div id="participantsEmptyState" class="empty-state" style="display: none; padding: var(--spacing-md); text-align: center; color: var(--text-muted); font-size: 0.9rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-bottom: var(--spacing-md);">
-                                    Nessun partecipante aggiunto. Seleziona dall'anagrafica o aggiungi manualmente.
-                                </div>
-                            </div>
-                            
-                            <!-- Selettore dall'anagrafica -->
-                            <div class="participant-selector">
-                                <div class="participant-selector-header">
-                                    <h4>Seleziona dall'Anagrafica</h4>
-                                    <button type="button" class="btn-link" onclick="App.refreshParticipantSelector()">🔄 Aggiorna</button>
+                        
+                        <!-- Lista partecipanti correnti - ESPANSA con griglia multi-colonna -->
+                        <div id="participantsList" class="participants-list"></div>
+                        <div id="participantsEmptyState" style="
+                            display: block;
+                            padding: 1.5rem;
+                            text-align: center;
+                            color: #6c757d;
+                            font-size: 0.95rem;
+                            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                            border-radius: 12px;
+                            border: 2px dashed #dee2e6;
+                            margin-bottom: 1.5rem;
+                        ">
+                            👥 Nessun partecipante aggiunto ancora
+                        </div>
+                        
+                        <!-- Input per aggiungere -->
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;">
+                            <input type="text" id="newParticipant" placeholder="Nome partecipante" style="flex: 1;">
+                            <button type="button" id="addParticipantBtn" class="btn btn-secondary">+ Aggiungi</button>
+                            <button type="button" id="clearParticipantsBtn" class="btn btn-danger" style="display: none;">🗑️ Azzera tutti</button>
+                        </div>
+                        
+                        <!-- Selettore dall'anagrafica -->
+                        <details style="margin-top: 0.5rem;">
+                            <summary style="cursor: pointer; color: #007bff; font-size: 0.9rem; user-select: none; padding: 0.25rem 0;">
+                                📋 Oppure seleziona dall'Anagrafica
+                            </summary>
+                            <div style="margin-top: 0.5rem; padding: 0.75rem; background: #f8f9fa; border-radius: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <span style="font-size: 0.85rem; color: #6c757d;">Seleziona partecipanti esistenti:</span>
+                                    <button type="button" class="btn-link" onclick="App.refreshParticipantSelector()" style="font-size: 0.85rem;">🔄 Aggiorna</button>
                                 </div>
                                 <div id="participantSelectorList" class="participant-options"></div>
                             </div>
-                            
-                            <!-- Aggiunta manuale -->
-                            <div class="add-participant">
-                                <input type="text" id="newParticipant" placeholder="Oppure aggiungi nuovo nome">
-                                <button type="button" id="addParticipantBtn" class="btn btn-secondary">+ Aggiungi Manualmente</button>
-                            </div>
-                        </div>
+                        </details>
                     </div>
 
                     <div class="form-section">
@@ -857,6 +987,19 @@
                         </div>
 
                         <div class="form-section">
+                            <h3>📷 Foto (Opzionale)</h3>
+                            <div class="form-group">
+                                <label for="participantPhoto">Carica una foto</label>
+                                <input type="file" id="participantPhoto" accept="image/*" onchange="handlePhotoUpload(event)">
+                                <div id="photoPreview" style="margin-top: 1rem; display: none;">
+                                    <img id="photoPreviewImg" style="max-width: 150px; max-height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color);" />
+                                    <button type="button" class="btn btn-secondary" onclick="removePhoto()" style="margin-top: 0.5rem; font-size: 0.85rem;">🗑️ Rimuovi Foto</button>
+                                </div>
+                                <small style="color: var(--text-secondary); font-size: 0.85rem;">La foto verrà visualizzata nelle pagine Conti e Dare/Avere</small>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
                             <h3>📝 Note (Opzionali)</h3>
                             <div class="form-group">
                                 <textarea id="participantNotes" rows="3" placeholder="Note aggiuntive..."></textarea>
@@ -883,17 +1026,35 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="js/destination-autocomplete.js"></script>
+    <script src="js/destination-themes.js"></script>
     <script src="js/sample-data.js"></script>
     <script src="js/storage.js"></script>
-    <script src="js/participants.js"></script>
+    <script src="js/participants.js?v=2"></script>
     <script src="js/scenarios.js"></script>
     <script src="js/actuals.js"></script>
     <script src="js/actuals-ui.js"></script>
     <script src="js/accounts.js"></script>
+    <script src="js/settlements.js"></script>
     <script src="js/export.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/flights.js"></script>
     <script src="js/accommodation-car.js"></script>
-    <script src="js/app.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('✅ PWA Service Worker registrato:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('⚠️ Registrazione Service Worker fallita:', error);
+                    });
+            });
+        }
+    </script>
+    <script src="js/app.js?v=17"></script>
 </body>
 </html>

@@ -60,6 +60,19 @@ const ActualsUI = {
             });
         }
 
+        // Visualizza Dare/Avere (dal dettaglio consuntivo)
+        const viewSettlementsFromActualBtn = document.getElementById('viewSettlementsFromActualBtn');
+        if (viewSettlementsFromActualBtn) {
+            viewSettlementsFromActualBtn.addEventListener('click', () => {
+                if (this.currentActual) {
+                    this.viewSettlements(this.currentActual.id);
+                } else if (this.currentActualId) {
+                    // Fallback: usa currentActualId se currentActual non è disponibile
+                    this.viewSettlements(this.currentActualId);
+                }
+            });
+        }
+
         // Visualizza Conti (dal dettaglio consuntivo)
         const viewAccountsBtn = document.getElementById('viewAccountsBtn');
         if (viewAccountsBtn) {
@@ -219,6 +232,7 @@ const ActualsUI = {
             document.getElementById('actualTitle').textContent = 'Nuovo Consuntivo';
             document.getElementById('deleteActualBtn').style.display = 'none';
             document.getElementById('viewAccountsBtn').style.display = 'none';
+            document.getElementById('viewSettlementsFromActualBtn').style.display = 'none';
             App.showView('actualDetailView');
         }
     },
@@ -301,6 +315,7 @@ const ActualsUI = {
         document.getElementById('actualTitle').textContent = 'Nuovo Consuntivo (da preventivo)';
         document.getElementById('deleteActualBtn').style.display = 'none';
         document.getElementById('viewAccountsBtn').style.display = 'none';
+        document.getElementById('viewSettlementsFromActualBtn').style.display = 'none';
         App.showView('actualDetailView');
         
         ExportManager.showSuccess(`Dati caricati dal preventivo "${scenario.name}"`);
@@ -436,6 +451,7 @@ const ActualsUI = {
         document.getElementById('actualTitle').textContent = 'Nuovo Consuntivo';
         document.getElementById('deleteActualBtn').style.display = 'none';
         document.getElementById('viewAccountsBtn').style.display = 'none';
+        document.getElementById('viewSettlementsFromActualBtn').style.display = 'none';
         App.showView('actualDetailView');
     },
 
@@ -449,6 +465,7 @@ const ActualsUI = {
             document.getElementById('actualTitle').textContent = `Modifica: ${actual.name}`;
             document.getElementById('deleteActualBtn').style.display = 'inline-flex';
             document.getElementById('viewAccountsBtn').style.display = 'inline-flex';
+            document.getElementById('viewSettlementsFromActualBtn').style.display = 'inline-flex';
             App.showView('actualDetailView');
         } else {
             ExportManager.showError('Consuntivo non trovato');
@@ -966,6 +983,19 @@ const ActualsUI = {
         // Se ci sono più consuntivi, chiedi quale aprire
         const actualNames = actuals.map(a => `${a.name} (${a.destination || 'N/A'})`).join('\n');
         App.showToast('Apri un consuntivo per visualizzare i suoi conti', 'info');
+    },
+
+    // Visualizza pagina Dare/Avere per un consuntivo specifico
+    viewSettlements(actualId) {
+        const actual = StorageManager.getActual(actualId);
+        if (!actual) {
+            App.showToast('Consuntivo non trovato', 'error');
+            return;
+        }
+
+        // Carica direttamente il consuntivo nella view settlements
+        SettlementsManager.loadActualDirect(actual);
+        App.showView('settlementsView');
     },
 
     // Visualizza pagina Conti dal dettaglio consuntivo

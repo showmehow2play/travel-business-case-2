@@ -757,9 +757,6 @@ const App = {
 
     // Carica il form dello scenario
     loadScenarioForm(scenario) {
-        console.log('=== loadScenarioForm INIZIO ===');
-        console.log('Scenario ricevuto:', scenario);
-        console.log('Partecipanti nello scenario:', scenario.participants);
         try {
             document.getElementById('scenarioName').value = scenario.name || '';
             document.getElementById('destination').value = scenario.destination || '';
@@ -808,20 +805,18 @@ const App = {
         
         if (participants.length === 0) {
             list.innerHTML = '';
-            list.style.display = 'none';
             if (emptyState) emptyState.style.display = 'block';
             if (clearBtn) clearBtn.style.display = 'none';
         } else {
             list.innerHTML = participants.map(p => {
-                const escapedName = p.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+                // Escape HTML per sicurezza ma mantieni il nome originale nel data attribute
                 return `
                     <div class="participant-tag">
                         <span>${escapedName}</span>
-                        <button type="button" class="remove-participant-btn" data-participant="${p}" title="Rimuovi ${escapedName}">×</button>
+                        <button type="button" class="remove-participant-btn" data-participant="${p}">✕</button>
                     </div>
                 `;
             }).join('');
-            list.style.display = 'grid';
             if (emptyState) emptyState.style.display = 'none';
             if (clearBtn) clearBtn.style.display = 'inline-block';
         }
@@ -858,8 +853,7 @@ const App = {
         const emptyState = document.getElementById('participantsEmptyState');
         const clearBtn = document.getElementById('clearParticipantsBtn');
         
-        // Nascondi lo stato vuoto e mostra la lista e il pulsante azzera
-        list.style.display = 'grid';
+        // Nascondi lo stato vuoto e mostra il pulsante azzera
         if (emptyState) emptyState.style.display = 'none';
         if (clearBtn) clearBtn.style.display = 'inline-block';
         
@@ -870,7 +864,7 @@ const App = {
         tag.className = 'participant-tag';
         tag.innerHTML = `
             <span>${escapedName}</span>
-            <button type="button" class="remove-participant-btn" data-participant="${name}" title="Rimuovi ${escapedName}">×</button>
+            <button type="button" class="remove-participant-btn" data-participant="${name}">✕</button>
         `;
         list.appendChild(tag);
         this.updateTotals();
@@ -953,7 +947,6 @@ const App = {
             const clearBtn = document.getElementById('clearParticipantsBtn');
             
             if (list && list.children.length === 0) {
-                list.style.display = 'none';
                 if (emptyState) emptyState.style.display = 'block';
                 if (clearBtn) clearBtn.style.display = 'none';
             }
@@ -976,7 +969,6 @@ const App = {
             // Rimuovi tutti i tag
             if (list) {
                 list.innerHTML = '';
-                list.style.display = 'none';
             }
             
             // Mostra lo stato vuoto e nascondi il pulsante azzera
@@ -1142,34 +1134,6 @@ const App = {
             view.classList.remove('active');
         });
         document.getElementById(viewId).classList.add('active');
-
-        // Mantieni il tab attivo per le sotto-view
-        if (viewId === 'actualDetailView' || viewId === 'accountsView' || viewId === 'settlementsView') {
-            // Attiva il tab Consuntivi
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.view === 'actuals') {
-                    btn.classList.add('active');
-                }
-            });
-        } else if (viewId === 'scenarioDetailView' || viewId === 'compareView') {
-            // Attiva il tab Preventivi per scenarioDetailView
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.view === 'scenarios') {
-                    btn.classList.add('active');
-                }
-            });
-        } else {
-            // Per le view principali, attiva il tab corrispondente
-            const mainView = viewId.replace('View', ''); // dashboardView -> dashboard
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.view === mainView) {
-                    btn.classList.add('active');
-                }
-            });
-        }
     },
 
     // Mostra il modal di export

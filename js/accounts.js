@@ -38,6 +38,16 @@ const AccountsManager = {
                 this.closeAccountsView();
             });
         }
+
+        const viewSettlementsBtn = document.getElementById('viewSettlementsFromAccountsBtn');
+        if (viewSettlementsBtn) {
+            viewSettlementsBtn.addEventListener('click', () => {
+                if (this.currentActual) {
+                    SettlementsManager.loadActualDirect(this.currentActual);
+                    App.showView('settlementsView');
+                }
+            });
+        }
     },
 
     // Carica statistiche generali
@@ -61,6 +71,13 @@ const AccountsManager = {
         document.getElementById('accountsAvgCost').textContent = this.formatCurrency(avgCost);
         document.getElementById('accountsExpensesCount').textContent = expenses.length;
         document.getElementById('accountsTitle').textContent = `📊 Conti - ${this.currentActual.name || 'Analisi Spese'}`;
+    },
+
+    // Ottiene la foto di un partecipante dall'anagrafica
+    getParticipantPhoto(participantName) {
+        if (typeof participantsRegistry === 'undefined') return null;
+        const participant = participantsRegistry.getByName(participantName);
+        return participant?.photo || null;
     },
 
     // Carica selettore partecipanti
@@ -103,8 +120,14 @@ const AccountsManager = {
         // Calcola bilancio (quanto ha pagato - quanto deve)
         const balance = paidAmount - sharedAmount;
 
-        // Aggiorna UI
-        document.getElementById('participantSummaryTitle').textContent = `Riepilogo Spese - ${participantName}`;
+        // Ottieni foto del partecipante
+        const photo = this.getParticipantPhoto(participantName);
+        const photoHtml = photo
+            ? `<img src="${photo}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-right: 1rem; vertical-align: middle;" />`
+            : '';
+
+        // Aggiorna UI con foto
+        document.getElementById('participantSummaryTitle').innerHTML = `${photoHtml}<span style="vertical-align: middle;">Riepilogo Spese - ${participantName}</span>`;
         document.getElementById('participantPaidAmount').textContent = this.formatCurrency(paidAmount);
         document.getElementById('participantSharedAmount').textContent = this.formatCurrency(sharedAmount);
         

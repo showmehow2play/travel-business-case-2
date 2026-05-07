@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genera PDF dalle Guide</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.0/marked.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .guides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .guide-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .guide-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .guide-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .guide-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .guide-desc {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .info-box ol {
+            margin-left: 1.5rem;
+            margin-top: 1rem;
+            color: #555;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Genera PDF dalle Guide</h1>
+        <p class="description">
+            Clicca su una guida per generare il PDF corrispondente. I file verranno scaricati automaticamente.
+        </p>
+
+        <div class="info-box">
+            <h3>ℹ️ Come Funziona</h3>
+            <p>Questo tool legge i file Markdown (.md) e li converte in PDF formattati e pronti per la stampa.</p>
+            <ol>
+                <li>Clicca sulla guida che vuoi convertire</li>
+                <li>Attendi qualche secondo per la generazione</li>
+                <li>Il PDF verrà scaricato automaticamente</li>
+            </ol>
+        </div>
+
+        <div class="guides-grid">
+            <div class="guide-card" onclick="generatePDF('GUIDA_PUBBLICAZIONE.md', 'Guida Pubblicazione GitHub Pages')">
+                <div class="guide-icon">📤</div>
+                <div class="guide-title">Guida Pubblicazione</div>
+                <div class="guide-desc">Come pubblicare l'app su GitHub Pages con dati di esempio</div>
+            </div>
+
+            <div class="guide-card" onclick="generatePDF('GUIDA_DATABASE_ONLINE.md', 'Guida Database Online')">
+                <div class="guide-icon">🌐</div>
+                <div class="guide-title">Database Online</div>
+                <div class="guide-desc">5 soluzioni per sincronizzare i dati online (Firebase, Supabase, etc.)</div>
+            </div>
+
+            <div class="guide-card" onclick="generatePDF('GUIDA_MIGRAZIONE_MODERNA.md', 'Guida Migrazione Mobile')">
+                <div class="guide-icon">📱</div>
+                <div class="guide-title">Migrazione Mobile</div>
+                <div class="guide-desc">Come creare app iOS/Android con React Native, Flutter o PWA</div>
+            </div>
+
+            <div class="guide-card" onclick="generatePDF('GUIDA_RAPIDA.md', 'Guida Rapida')">
+                <div class="guide-icon">⚡</div>
+                <div class="guide-title">Guida Rapida</div>
+                <div class="guide-desc">Guida introduttiva all'uso dell'applicazione</div>
+            </div>
+
+            <div class="guide-card" onclick="generatePDF('README.md', 'README')">
+                <div class="guide-icon">📖</div>
+                <div class="guide-title">README</div>
+                <div class="guide-desc">Documentazione principale del progetto</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="generateAllPDFs()">
+            📚 Genera Tutti i PDF
+        </button>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status show ' + type;
+        }
+
+        async function generatePDF(filename, title) {
+            showStatus(`⏳ Generazione ${title} in corso...`, 'loading');
+
+            try {
+                // Leggi il file Markdown
+                const response = await fetch(filename);
+                if (!response.ok) {
+                    throw new Error(`File ${filename} non trovato`);
+                }
+                const markdown = await response.text();
+
+                // Converti Markdown in HTML
+                const html = marked.parse(markdown);
+
+                // Crea PDF
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                // Configurazione
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const margin = 20;
+                const maxWidth = pageWidth - (margin * 2);
+                let yPosition = margin;
+
+                // Titolo
+                doc.setFontSize(24);
+                doc.setTextColor(102, 126, 234);
+                doc.text(title, margin, yPosition);
+                yPosition += 15;
+
+                // Data
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Generato il ${new Date().toLocaleDateString('it-IT')}`, margin, yPosition);
+                yPosition += 10;
+
+                // Linea separatrice
+                doc.setDrawColor(102, 126, 234);
+                doc.setLineWidth(0.5);
+                doc.line(margin, yPosition, pageWidth - margin, yPosition);
+                yPosition += 10;
+
+                // Contenuto (versione semplificata)
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+
+                // Rimuovi HTML tags per versione semplice
+                const plainText = html
+                    .replace(/<[^>]*>/g, '')
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&/g, '&')
+                    .replace(/</g, '<')
+                    .replace(/>/g, '>')
+                    .replace(/"/g, '"');
+
+                // Split in righe
+                const lines = doc.splitTextToSize(plainText, maxWidth);
+
+                // Aggiungi testo con paginazione
+                lines.forEach(line => {
+                    if (yPosition > pageHeight - margin) {
+                        doc.addPage();
+                        yPosition = margin;
+                    }
+                    doc.text(line, margin, yPosition);
+                    yPosition += 7;
+                });
+
+                // Footer su ogni pagina
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(9);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(
+                        `Pagina ${i} di ${pageCount}`,
+                        pageWidth / 2,
+                        pageHeight - 10,
+                        { align: 'center' }
+                    );
+                    doc.text(
+                        'Travel Business Case - Fatto con ❤️ da Bob',
+                        pageWidth / 2,
+                        pageHeight - 5,
+                        { align: 'center' }
+                    );
+                }
+
+                // Salva PDF
+                const pdfFilename = filename.replace('.md', '.pdf');
+                doc.save(pdfFilename);
+
+                showStatus(`✅ ${title} generato con successo!`, 'success');
+                setTimeout(() => {
+                    document.getElementById('status').classList.remove('show');
+                }, 3000);
+
+            } catch (error) {
+                console.error('Errore:', error);
+                showStatus(`❌ Errore nella generazione: ${error.message}`, 'error');
+            }
+        }
+
+        async function generateAllPDFs() {
+            const guides = [
+                ['GUIDA_PUBBLICAZIONE.md', 'Guida Pubblicazione GitHub Pages'],
+                ['GUIDA_DATABASE_ONLINE.md', 'Guida Database Online'],
+                ['GUIDA_MIGRAZIONE_MODERNA.md', 'Guida Migrazione Mobile'],
+                ['GUIDA_RAPIDA.md', 'Guida Rapida'],
+                ['README.md', 'README']
+            ];
+
+            showStatus('⏳ Generazione di tutti i PDF in corso...', 'loading');
+
+            for (const [filename, title] of guides) {
+                try {
+                    await generatePDF(filename, title);
+                    // Pausa tra i file
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (error) {
+                    console.error(`Errore con ${filename}:`, error);
+                }
+            }
+
+            showStatus('✅ Tutti i PDF sono stati generati!', 'success');
+        }
+    </script>
+</body>
+</html>

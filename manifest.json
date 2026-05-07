@@ -1,0 +1,42 @@
+{
+  "name": "Travel Business Case",
+  "short_name": "TravelBC",
+  "description": "Gestione preventivi e consuntivi viaggi di gruppo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity", "travel"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nuovo Preventivo",
+      "short_name": "Preventivo",
+      "description": "Crea un nuovo preventivo viaggio",
+      "url": "/?view=scenarios",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Nuovo Consuntivo",
+      "short_name": "Consuntivo",
+      "description": "Crea un nuovo consuntivo spese",
+      "url": "/?view=actuals",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

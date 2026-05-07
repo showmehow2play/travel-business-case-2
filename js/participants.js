@@ -40,6 +40,7 @@ class ParticipantsRegistry {
             email: participantData.email?.trim() || '',
             phone: participantData.phone?.trim() || '',
             idCard: participantData.idCard?.trim() || '',
+            photo: participantData.photo || '', // Base64 encoded image
             notes: participantData.notes?.trim() || '',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
@@ -61,6 +62,7 @@ class ParticipantsRegistry {
             email: participantData.email?.trim() || '',
             phone: participantData.phone?.trim() || '',
             idCard: participantData.idCard?.trim() || '',
+            photo: participantData.photo !== undefined ? participantData.photo : this.participants[index].photo,
             notes: participantData.notes?.trim() || '',
             updatedAt: new Date().toISOString()
         };
@@ -175,7 +177,7 @@ const participantsRegistry = new ParticipantsRegistry();
 // ===== UI Management =====
 
 function renderParticipantsList() {
-    const container = document.getElementById('participantsList');
+    const container = document.getElementById('participantsRegistryList');
     if (!container) return;
 
     const participants = participantsRegistry.getAllSorted();
@@ -196,11 +198,17 @@ function renderParticipantsList() {
 
     container.innerHTML = `
         <div class="participants-grid">
-            ${participants.map(participant => `
+            ${participants.map(participant => {
+                // Usa foto se disponibile, altrimenti iniziale
+                const avatarContent = participant.photo
+                    ? `<img src="${participant.photo}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`
+                    : participant.name.charAt(0).toUpperCase();
+                
+                return `
                 <div class="participant-card" data-id="${participant.id}">
                     <div class="participant-card-header">
                         <div class="participant-avatar">
-                            ${participant.name.charAt(0).toUpperCase()}
+                            ${avatarContent}
                         </div>
                         <div class="participant-info">
                             <h3>${escapeHtml(participant.name)}</h3>
@@ -249,7 +257,8 @@ function renderParticipantsList() {
                         ` : ''}
                     </div>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     `;
 }
@@ -280,6 +289,16 @@ function editParticipant(id) {
     document.getElementById('participantIdCard').value = participant.idCard || '';
     document.getElementById('participantNotes').value = participant.notes || '';
     
+    // Carica foto se presente
+    if (participant.photo) {
+        const photoPreview = document.getElementById('photoPreview');
+        const photoPreviewImg = document.getElementById('photoPreviewImg');
+        photoPreviewImg.src = participant.photo;
+        photoPreview.style.display = 'block';
+        // Salva la foto corrente in un attributo data
+        form.dataset.currentPhoto = participant.photo;
+    }
+    
     form.dataset.mode = 'edit';
     form.dataset.participantId = id;
     
@@ -309,7 +328,8 @@ function saveParticipant(event) {
         email: document.getElementById('participantEmail').value,
         phone: document.getElementById('participantPhone').value,
         idCard: document.getElementById('participantIdCard').value,
-        notes: document.getElementById('participantNotes').value
+        notes: document.getElementById('participantNotes').value,
+        photo: form.dataset.currentPhoto || '' // Usa la foto caricata o stringa vuota
     };
 
     try {
@@ -331,11 +351,93 @@ function saveParticipant(event) {
 function closeParticipantModal() {
     const modal = document.getElementById('participantModal');
     modal.classList.remove('active');
+    
+    // Reset foto preview
+    const photoPreview = document.getElementById('photoPreview');
+    const photoInput = document.getElementById('participantPhoto');
+    const form = document.getElementById('participantForm');
+    
+    if (photoPreview) photoPreview.style.display = 'none';
+    if (photoInput) photoInput.value = '';
+    if (form) delete form.dataset.currentPhoto;
+}
+
+// Gestisce il caricamento della foto
+function handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Verifica che sia un'immagine
+    if (!file.type.startsWith('image/')) {
+        showToast('Per favore seleziona un file immagine', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Verifica dimensione (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        showToast('La foto deve essere inferiore a 2MB', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // Ridimensiona l'immagine se troppo grande
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxSize = 400;
+            
+            if (width > height && width > maxSize) {
+                height = (height * maxSize) / width;
+                width = maxSize;
+            } else if (height > maxSize) {
+                width = (width * maxSize) / height;
+                height = maxSize;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Converti in base64 con qualità ridotta
+            const photoData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Mostra preview
+            const photoPreview = document.getElementById('photoPreview');
+            const photoPreviewImg = document.getElementById('photoPreviewImg');
+            photoPreviewImg.src = photoData;
+            photoPreview.style.display = 'block';
+            
+            // Salva nel form
+            const form = document.getElementById('participantForm');
+            form.dataset.currentPhoto = photoData;
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// Rimuove la foto
+function removePhoto() {
+    const photoPreview = document.getElementById('photoPreview');
+    const photoInput = document.getElementById('participantPhoto');
+    const form = document.getElementById('participantForm');
+    
+    photoPreview.style.display = 'none';
+    photoInput.value = '';
+    form.dataset.currentPhoto = '';
+    
+    showToast('Foto rimossa', 'success');
 }
 
 function searchParticipants(query) {
     const participants = participantsRegistry.search(query);
-    const container = document.getElementById('participantsList');
+    const container = document.getElementById('participantsRegistryList');
     
     // Re-render with filtered results
     if (participants.length === 0) {
@@ -352,11 +454,17 @@ function searchParticipants(query) {
     // Render filtered participants (reuse rendering logic)
     container.innerHTML = `
         <div class="participants-grid">
-            ${participants.map(participant => `
+            ${participants.map(participant => {
+                // Usa foto se disponibile, altrimenti iniziale
+                const avatarContent = participant.photo
+                    ? `<img src="${participant.photo}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`
+                    : participant.name.charAt(0).toUpperCase();
+                
+                return `
                 <div class="participant-card" data-id="${participant.id}">
                     <div class="participant-card-header">
                         <div class="participant-avatar">
-                            ${participant.name.charAt(0).toUpperCase()}
+                            ${avatarContent}
                         </div>
                         <div class="participant-info">
                             <h3>${escapeHtml(participant.name)}</h3>
@@ -400,7 +508,8 @@ function searchParticipants(query) {
                         ` : ''}
                     </div>
                 </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
     `;
 }
