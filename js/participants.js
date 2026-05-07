@@ -5,15 +5,73 @@ class ParticipantsRegistry {
         this.participants = this.loadParticipants();
     }
 
-    // Load participants from localStorage
+    // Load participants from localStorage (sync from Supabase happens in background)
     loadParticipants() {
         const stored = localStorage.getItem('participants_registry');
-        return stored ? JSON.parse(stored) : [];
+        const participants = stored ? JSON.parse(stored) : [];
+        
+        // Sync from Supabase in background if available
+        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+            this.syncFromSupabase();
+        }
+        
+        return participants;
     }
 
-    // Save participants to localStorage
+    // Save participants to localStorage and Supabase
     saveParticipants() {
         localStorage.setItem('participants_registry', JSON.stringify(this.participants));
+        
+        // Save to Supabase if available
+        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+            window.SupabaseStorage.saveParticipants(this.participants).catch(err => {
+                console.warn('Errore salvataggio partecipanti su Supabase:', err);
+            });
+        }
+    }
+    
+    // Sync participants from Supabase
+    async syncFromSupabase() {
+        try {
+            if (!window.supabaseClient) return;
+            
+            const { data, error } = await window.supabaseClient
+                .from('participants')
+                .select('data');
+            
+            if (error) {
+                console.warn('Errore caricamento partecipanti da Supabase:', error);
+                return;
+            }
+            
+            if (data && data.length > 0) {
+                const supabaseParticipants = data.map(p => p.data);
+                
+                // Merge con i partecipanti locali (Supabase ha priorità)
+                const localIds = new Set(this.participants.map(p => p.id));
+                const supabaseIds = new Set(supabaseParticipants.map(p => p.id));
+                
+                // Aggiorna partecipanti esistenti e aggiungi nuovi da Supabase
+                supabaseParticipants.forEach(sp => {
+                    const index = this.participants.findIndex(p => p.id === sp.id);
+                    if (index >= 0) {
+                        // Aggiorna se Supabase è più recente
+                        if (new Date(sp.updatedAt) > new Date(this.participants[index].updatedAt)) {
+                            this.participants[index] = sp;
+                        }
+                    } else {
+                        // Aggiungi nuovo partecipante da Supabase
+                        this.participants.push(sp);
+                    }
+                });
+                
+                // Salva in localStorage
+                localStorage.setItem('participants_registry', JSON.stringify(this.participants));
+                console.log('✅ Partecipanti sincronizzati da Supabase');
+            }
+        } catch (error) {
+            console.warn('Errore sincronizzazione partecipanti da Supabase:', error);
+        }
     }
 
     // Get all participants
