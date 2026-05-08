@@ -106,6 +106,14 @@ const ActualsUI = {
                 this.addExpense();
             });
         }
+
+        // Pulsante aggiorna cambi nei consuntivi
+        const updateExchangeRatesActualBtn = document.getElementById('updateExchangeRatesActualBtn');
+        if (updateExchangeRatesActualBtn) {
+            updateExchangeRatesActualBtn.addEventListener('click', () => {
+                this.updateExchangeRatesAndRefresh();
+            });
+        }
     },
 
     // Carica lista consuntivi
@@ -527,9 +535,34 @@ const ActualsUI = {
     },
 
     // Carica spese raggruppate per categoria
-    loadExpenses(expenses) {
+    loadExpenses(expenses, preserveFocus = false) {
         this.currentExpenses = expenses;
         const container = document.getElementById('expensesActualList');
+        
+        // Converti tutte le spese in EUR se necessario
+        for (let i = 0; i < this.currentExpenses.length; i++) {
+            const expense = this.currentExpenses[i];
+            if (expense.amountEUR === undefined || expense.exchangeRate === undefined) {
+                this.convertExpenseToEUR(i);
+            }
+        }
+        
+        // Salva l'elemento con focus prima del reload
+        let focusedElement = null;
+        let focusedIndex = null;
+        let focusedField = null;
+        let cursorPosition = null;
+        
+        if (preserveFocus && document.activeElement) {
+            focusedElement = document.activeElement;
+            if (focusedElement.dataset && focusedElement.dataset.index) {
+                focusedIndex = parseInt(focusedElement.dataset.index);
+                focusedField = focusedElement.className;
+                if (focusedElement.selectionStart !== undefined) {
+                    cursorPosition = focusedElement.selectionStart;
+                }
+            }
+        }
         
         if (expenses.length === 0) {
             container.innerHTML = `
@@ -542,73 +575,28 @@ const ActualsUI = {
             return;
         }
 
-        // Raggruppa spese per categoria
-        const groupedExpenses = {};
-        expenses.forEach((exp, index) => {
-            const category = exp.category || 'altro';
-            if (!groupedExpenses[category]) {
-                groupedExpenses[category] = [];
-            }
-            groupedExpenses[category].push({ expense: exp, originalIndex: index });
-        });
-
-        // Ordina categorie per importanza (ordine personalizzato)
-        const categoryOrder = ['viaggio', 'hotel', 'casa', 'auto', 'ristorante', 'spesa', 'attivita', 'benzina', 'generali', 'extra', 'altro'];
-        const sortedCategories = Object.keys(groupedExpenses).sort((a, b) => {
-            const indexA = categoryOrder.indexOf(a);
-            const indexB = categoryOrder.indexOf(b);
-            // Se una categoria non è nell'ordine, mettila alla fine
-            if (indexA === -1) return 1;
-            if (indexB === -1) return -1;
-            return indexA - indexB;
-        });
-
-        // Genera HTML con intestazioni di categoria
+        // Non raggruppa le spese, mantieni l'ordine originale
+        // Genera HTML senza raggruppamento per categoria
         let html = '';
-        sortedCategories.forEach(category => {
-            const categoryInfo = ActualsManager.categories.find(cat => cat.value === category) ||
-                                { icon: '📌', label: 'Altro' };
-            
-            // Calcola totale categoria
-            const categoryTotal = groupedExpenses[category].reduce((sum, item) =>
-                sum + (parseFloat(item.expense.amount) || 0), 0
-            );
-
-            html += `
-                <div class="expense-category-group" style="margin-bottom: var(--spacing-lg);">
-                    <div class="expense-category-header" style="
-                        background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-                        color: white;
-                        padding: var(--spacing-sm) var(--spacing-md);
-                        border-radius: var(--radius-md);
-                        margin-bottom: var(--spacing-sm);
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        font-weight: 600;
-                        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-                    ">
-                        <span style="font-size: 1.1rem;">
-                            ${categoryInfo.icon} ${categoryInfo.label}
-                            <span style="font-size: 0.9rem; opacity: 0.9; margin-left: var(--spacing-sm);">
-                                (${groupedExpenses[category].length} ${groupedExpenses[category].length === 1 ? 'spesa' : 'spese'})
-                            </span>
-                        </span>
-                        <span style="font-size: 1.1rem; font-weight: 700;">
-                            ${new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(categoryTotal)}
-                        </span>
-                    </div>
-                    <div class="expense-category-items" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                        ${groupedExpenses[category].map(item =>
-                            this.createExpenseItem(item.expense, item.originalIndex)
-                        ).join('')}
-                    </div>
-                </div>
-            `;
+        expenses.forEach((exp, index) => {
+            html += this.createExpenseItem(exp, index);
         });
 
         container.innerHTML = html;
         this.attachExpenseListeners();
+        
+        // Ripristina il focus se richiesto
+        if (preserveFocus && focusedIndex !== null && focusedField) {
+            setTimeout(() => {
+                const newFocusedElement = container.querySelector(`.${focusedField.split(' ')[0]}[data-index="${focusedIndex}"]`);
+                if (newFocusedElement) {
+                    newFocusedElement.focus();
+                    if (cursorPosition !== null && newFocusedElement.setSelectionRange) {
+                        newFocusedElement.setSelectionRange(cursorPosition, cursorPosition);
+                    }
+                }
+            }, 0);
+        }
     },
 
     // Crea elemento spesa
@@ -649,44 +637,55 @@ const ActualsUI = {
             `;
         }).join('');
 
+        // Calcola costo per persona in EUR
+        const amountEUR = expense.amountEUR !== undefined ? expense.amountEUR : expense.amount;
         const costPerPerson = expense.sharedBy && expense.sharedBy.length > 0
-            ? (expense.amount / expense.sharedBy.length).toFixed(2)
+            ? (amountEUR / expense.sharedBy.length).toFixed(2)
             : '0.00';
 
         // Ottieni simbolo valuta
         const currencySymbol = this.getCurrencySymbol(expense.currency || 'EUR');
 
+        // Genera opzioni valute dinamicamente
+        const currencyOptions = this.generateCurrencyOptions(expense.currency);
+
         const isSaved = expense.saved === true;
         const disabledAttr = isSaved ? 'disabled' : '';
         const opacityStyle = isSaved ? 'opacity: 0.7;' : '';
 
+        // Mostra equivalente EUR se la valuta non è EUR
+        const showEUREquivalent = expense.currency && expense.currency !== 'EUR';
+        const eurEquivalent = showEUREquivalent && expense.amountEUR !== undefined && expense.amountEUR > 0
+            ? `<div style="font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;">≈ €${expense.amountEUR.toFixed(2)} EUR (tasso: ${expense.exchangeRate ? expense.exchangeRate.toFixed(4) : '1.0000'})</div>`
+            : '';
+
         return `
-            <div class="expense-item-wrapper" style="position: relative; margin-bottom: var(--spacing-lg); display: flex; align-items: center; gap: var(--spacing-sm);">
+            <div class="expense-item-wrapper" style="position: relative; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
                 <!-- Pulsanti azione a sinistra del box -->
-                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.3rem;">
                     <!-- Elimina (rosso) - sempre visibile -->
                     <button type="button" class="btn-icon" onclick="ActualsUI.removeExpense(${index})"
                             title="Elimina spesa"
-                            style="background: #ef4444; color: white; width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            style="background: #ef4444; color: white; width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                         🗑️
                     </button>
                     
                     <!-- Salva (verde) - visibile solo se non salvata -->
                     <button type="button" class="btn-icon" onclick="ActualsUI.saveExpense(${index})"
                             title="Salva spesa"
-                            style="background: #10b981; color: white; width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: ${isSaved ? 'none' : 'flex'}; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            style="background: #10b981; color: white; width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer; display: ${isSaved ? 'none' : 'flex'}; align-items: center; justify-content: center; font-size: 0.95rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                         ✓
                     </button>
                     
                     <!-- Modifica (blu) - visibile solo se salvata -->
                     <button type="button" class="btn-icon" onclick="ActualsUI.editExpense(${index})"
                             title="Modifica spesa"
-                            style="background: #3b82f6; color: white; width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer; display: ${isSaved ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            style="background: #3b82f6; color: white; width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer; display: ${isSaved ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: 0.95rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                         ✏️
                     </button>
                 </div>
                 
-                <div class="expense-item expense-item-new" data-index="${index}" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; grid-template-rows: auto auto; gap: var(--spacing-md); padding: var(--spacing-md); ${opacityStyle}">
+                <div class="expense-item expense-item-new" data-index="${index}" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; grid-template-rows: auto auto; gap: 0.5rem; ${opacityStyle}">
                     
                     <!-- Colonna 1: Descrizione (riga 1) e Categoria (riga 2) -->
                     <div class="expense-field" style="grid-column: 1; grid-row: 1;">
@@ -704,24 +703,17 @@ const ActualsUI = {
                     <!-- Colonna 2: Importo (riga 1) e Data (riga 2) -->
                     <div class="expense-field" style="grid-column: 2; grid-row: 1;">
                         <label>Importo</label>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <input type="number" class="expense-amount" data-index="${index}"
-                                   value="${expense.amount || 0}" min="0" step="0.01" required ${disabledAttr}
-                                   style="flex: 1;">
-                            <select class="expense-currency" data-index="${index}" ${disabledAttr}
-                                    style="width: 70px; font-size: 0.9rem;">
-                                <option value="EUR" ${(expense.currency || 'EUR') === 'EUR' ? 'selected' : ''}>€ EUR</option>
-                                <option value="USD" ${expense.currency === 'USD' ? 'selected' : ''}>$ USD</option>
-                                <option value="GBP" ${expense.currency === 'GBP' ? 'selected' : ''}>£ GBP</option>
-                                <option value="CHF" ${expense.currency === 'CHF' ? 'selected' : ''}>₣ CHF</option>
-                                <option value="JPY" ${expense.currency === 'JPY' ? 'selected' : ''}>¥ JPY</option>
-                                <option value="CNY" ${expense.currency === 'CNY' ? 'selected' : ''}>¥ CNY</option>
-                                <option value="CAD" ${expense.currency === 'CAD' ? 'selected' : ''}>$ CAD</option>
-                                <option value="AUD" ${expense.currency === 'AUD' ? 'selected' : ''}>$ AUD</option>
-                                <option value="NOK" ${expense.currency === 'NOK' ? 'selected' : ''}>kr NOK</option>
-                                <option value="SEK" ${expense.currency === 'SEK' ? 'selected' : ''}>kr SEK</option>
-                                <option value="DKK" ${expense.currency === 'DKK' ? 'selected' : ''}>kr DKK</option>
-                            </select>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <input type="number" class="expense-amount" data-index="${index}"
+                                       value="${expense.amount || 0}" min="0" step="0.01" required ${disabledAttr}
+                                       style="flex: 1;">
+                                <select class="expense-currency" data-index="${index}" ${disabledAttr}
+                                        style="width: 80px; font-size: 0.9rem;">
+                                    ${currencyOptions}
+                                </select>
+                            </div>
+                            ${eurEquivalent}
                         </div>
                     </div>
                     <div class="expense-field" style="grid-column: 2; grid-row: 2;">
@@ -749,7 +741,7 @@ const ActualsUI = {
                             <div class="split-summary">
                                 <span class="split-count">${expense.sharedBy ? expense.sharedBy.length : 0} pers.</span>
                                 <span class="split-divider">•</span>
-                                <span class="split-amount">${currencySymbol}${costPerPerson}</span>
+                                <span class="split-amount">€${costPerPerson}</span>
                             </div>
                         </div>
                         <div class="expense-participants-grid" style="flex: 1; overflow-y: auto;">
@@ -773,6 +765,11 @@ const ActualsUI = {
     addExpense() {
         const newExpense = ActualsManager.createEmptyExpense();
         this.currentExpenses.push(newExpense);
+        
+        // Converti in EUR se necessario
+        const index = this.currentExpenses.length - 1;
+        this.convertExpenseToEUR(index);
+        
         this.loadExpenses(this.currentExpenses);
         this.updateTotals();
     },
@@ -846,18 +843,24 @@ const ActualsUI = {
                         this.currentExpenses[index].description = e.target.value;
                     } else if (classList.includes('expense-amount')) {
                         this.currentExpenses[index].amount = parseFloat(e.target.value) || 0;
-                        this.loadExpenses(this.currentExpenses); // Ricarica per aggiornare il costo per persona
+                        // Converti in EUR
+                        this.convertExpenseToEUR(index);
+                        // Aggiorna l'equivalente EUR e il costo per persona
+                        this.updateEUREquivalent(index);
+                        this.updateCostPerPerson(index);
+                        this.updateTotals();
                     } else if (classList.includes('expense-currency')) {
                         this.currentExpenses[index].currency = e.target.value;
-                        this.loadExpenses(this.currentExpenses); // Ricarica per aggiornare il simbolo valuta
+                        // Converti in EUR quando cambia la valuta
+                        this.convertExpenseToEUR(index);
+                        // Aggiorna l'equivalente EUR e il costo per persona
+                        this.updateEUREquivalent(index);
+                        this.updateCostPerPerson(index);
+                        this.updateTotals();
                     } else if (classList.includes('expense-paidby-select')) {
                         this.currentExpenses[index].paidBy = e.target.value;
                     } else if (classList.includes('expense-date')) {
                         this.currentExpenses[index].date = e.target.value;
-                    }
-                    
-                    if (classList.includes('expense-amount')) {
-                        this.updateTotals();
                     }
                 }
             });
@@ -883,10 +886,174 @@ const ActualsUI = {
                         this.currentExpenses[index].sharedBy = this.currentExpenses[index].sharedBy.filter(p => p !== participant);
                     }
                     
-                    this.loadExpenses(this.currentExpenses); // Ricarica per aggiornare il costo per persona
+                    // Aggiorna solo il costo per persona senza ricaricare
+                    this.updateCostPerPerson(index);
                 }
             });
         });
+    },
+
+    // Aggiorna solo il costo per persona di una spesa specifica
+    updateCostPerPerson(index) {
+        const expense = this.currentExpenses[index];
+        if (!expense) return;
+        
+        // Usa amountEUR per il calcolo
+        const amountEUR = expense.amountEUR !== undefined ? expense.amountEUR : expense.amount;
+        const costPerPerson = expense.sharedBy && expense.sharedBy.length > 0
+            ? (amountEUR / expense.sharedBy.length).toFixed(2)
+            : '0.00';
+        
+        // Trova e aggiorna solo l'elemento del costo per persona (sempre in EUR)
+        const expenseItem = document.querySelector(`.expense-item[data-index="${index}"]`);
+        if (expenseItem) {
+            const splitAmount = expenseItem.querySelector('.split-amount');
+            if (splitAmount) {
+                splitAmount.textContent = `€${costPerPerson}`;
+            }
+        }
+    },
+
+    // Aggiorna l'equivalente EUR visualizzato
+    updateEUREquivalent(index) {
+        const expense = this.currentExpenses[index];
+        if (!expense) return;
+
+        // Trova l'elemento della spesa
+        const expenseItem = document.querySelector(`.expense-item[data-index="${index}"]`);
+        if (!expenseItem) return;
+
+        // Trova il campo dell'importo (input con classe expense-amount)
+        const amountInput = expenseItem.querySelector(`.expense-amount[data-index="${index}"]`);
+        if (!amountInput) return;
+
+        // Trova il contenitore parent del campo importo
+        const amountContainer = amountInput.closest('div[style*="flex-direction: column"]');
+        if (!amountContainer) return;
+
+        // Rimuovi l'equivalente EUR esistente se presente
+        const existingEur = amountContainer.querySelector('.eur-equivalent');
+        if (existingEur) {
+            existingEur.remove();
+        }
+
+        // Aggiungi il nuovo equivalente EUR se la valuta non è EUR
+        const showEUREquivalent = expense.currency && expense.currency !== 'EUR';
+        
+        if (showEUREquivalent && expense.amountEUR !== undefined && expense.amountEUR > 0) {
+            const eurDiv = document.createElement('div');
+            eurDiv.className = 'eur-equivalent';
+            eurDiv.style.cssText = 'font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem;';
+            eurDiv.textContent = `≈ €${expense.amountEUR.toFixed(2)} EUR (tasso: ${expense.exchangeRate ? expense.exchangeRate.toFixed(4) : '1.0000'})`;
+            amountContainer.appendChild(eurDiv);
+        }
+    },
+
+    // Converti una spesa in EUR
+    convertExpenseToEUR(index) {
+        const expense = this.currentExpenses[index];
+        if (!expense) return;
+
+        // Se la valuta è EUR, non serve conversione
+        if (!expense.currency || expense.currency === 'EUR') {
+            expense.amountEUR = expense.amount;
+            expense.exchangeRate = 1.0;
+            return;
+        }
+
+        // Converti usando ActualsManager (usa i tassi già in memoria)
+        const conversion = ActualsManager.convertToEUR(expense.amount, expense.currency);
+        expense.amountEUR = conversion.amountEUR;
+        expense.exchangeRate = conversion.exchangeRate;
+    },
+
+    // Aggiorna i tassi di cambio e riconverte tutte le spese
+    async updateExchangeRatesAndRefresh() {
+        const btn = document.getElementById('updateExchangeRatesActualBtn');
+        
+        // Disabilita il pulsante durante l'aggiornamento
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Aggiornamento...';
+        }
+
+        try {
+            // Aggiorna i tassi di cambio
+            if (typeof CurrenciesManager === 'undefined') {
+                throw new Error('CurrenciesManager non disponibile');
+            }
+
+            const result = await CurrenciesManager.updateExchangeRates();
+            
+            if (result.success) {
+                // Riconverti tutte le spese con i nuovi tassi
+                for (let i = 0; i < this.currentExpenses.length; i++) {
+                    this.convertExpenseToEUR(i);
+                }
+
+                // Ricarica la lista per mostrare i nuovi valori
+                this.loadExpenses(this.currentExpenses);
+                this.updateTotals();
+
+                // Mostra messaggio di successo
+                if (typeof showToast !== 'undefined') {
+                    showToast(`✅ Aggiornati ${result.updatedCount} tassi di cambio!`, 'success');
+                } else {
+                    alert(`✅ Aggiornati ${result.updatedCount} tassi di cambio!`);
+                }
+            } else {
+                throw new Error(result.error || 'Errore sconosciuto');
+            }
+        } catch (error) {
+            console.error('Errore aggiornamento tassi:', error);
+            if (typeof showToast !== 'undefined') {
+                showToast(`❌ Errore: ${error.message}`, 'error');
+            } else {
+                alert(`❌ Errore: ${error.message}`);
+            }
+        } finally {
+            // Riabilita il pulsante
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '🔄 Aggiorna Cambi';
+            }
+        }
+    },
+
+    // Genera opzioni valute dinamicamente
+    generateCurrencyOptions(selectedCurrency) {
+        // Ottieni la destinazione dello scenario corrente
+        const destination = document.getElementById('actualDestination')?.value || '';
+        
+        // Ottieni tutte le valute disponibili
+        let currencies = [];
+        if (typeof CurrenciesManager !== 'undefined') {
+            currencies = CurrenciesManager.getCurrencies();
+        }
+
+        // Trova la valuta del paese di destinazione
+        let destinationCurrency = null;
+        if (destination && typeof CurrenciesManager !== 'undefined') {
+            const currencyData = CurrenciesManager.getCurrencyDataByCountry(destination);
+            if (currencyData) {
+                destinationCurrency = currencies.find(c => c.code === currencyData.code);
+            }
+        }
+
+        // Ordina: EUR prima, poi valuta destinazione, poi le altre
+        const sortedCurrencies = currencies.sort((a, b) => {
+            if (a.code === 'EUR') return -1;
+            if (b.code === 'EUR') return 1;
+            if (destinationCurrency && a.code === destinationCurrency.code) return -1;
+            if (destinationCurrency && b.code === destinationCurrency.code) return 1;
+            return a.name.localeCompare(b.name);
+        });
+
+        // Genera le opzioni
+        return sortedCurrencies.map(currency => {
+            const isSelected = currency.code === (selectedCurrency || 'EUR');
+            return `<option value="${currency.code}" ${isSelected ? 'selected' : ''}>${currency.symbol} ${currency.code}</option>`;
+        }).join('');
     },
 
     // Toggle tutti i partecipanti per una spesa

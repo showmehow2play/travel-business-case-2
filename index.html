@@ -56,9 +56,10 @@
                 <div class="max-w-7xl mx-auto px-6 py-3 flex flex-wrap gap-2 justify-center md:justify-start">
                     <button class="nav-btn active px-6 py-3 rounded-full font-semibold transition-all hover:scale-105" data-view="dashboard">📊 Dashboard</button>
                     <button class="nav-btn px-6 py-3 rounded-full font-semibold transition-all hover:scale-105" data-view="scenarios">📋 Preventivi</button>
+                    <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="compare">🔄 Confronta</button>
                     <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="actuals">💰 Consuntivi</button>
                     <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="participants">👥 Anagrafica Partecipanti</button>
-                    <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="compare">🔄 Confronta</button>
+                    <button class="nav-btn px-6 py-3 rounded-full text-white hover:bg-white/20 font-semibold transition-all hover:scale-105" data-view="currencies">💱 Valute</button>
                 </div>
             </nav>
         </header>
@@ -152,9 +153,6 @@
                 <div class="view-header">
                     <h2>Consuntivi di Viaggio</h2>
                     <div class="header-actions">
-                        <button id="viewAccountsFromListBtn" class="btn btn-secondary" title="Analisi Conti">
-                            💰 Conti
-                        </button>
                         <button id="newActualBtn" class="btn btn-primary">+ Nuovo Consuntivo</button>
                     </div>
                 </div>
@@ -181,6 +179,54 @@
                 
                 <div id="participantsRegistryList"></div>
             </div>
+            <!-- Currencies View (Valute) -->
+            <div id="currenciesView" class="view">
+                <div class="view-header max-w-7xl mx-auto px-6 py-8">
+                    <h2 class="text-3xl font-bold text-gray-800">💱 Anagrafica Valute</h2>
+                    <div class="header-actions flex gap-3">
+                        <button id="updateExchangeRatesBtn" class="btn btn-secondary bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all">
+                            🔄 Aggiorna Cambi
+                        </button>
+                        <button id="addCurrencyBtn" class="btn btn-primary bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg transform hover:scale-105 transition-all">
+                            + Aggiungi Valuta
+                        </button>
+                    </div>
+                </div>
+
+                <div class="max-w-7xl mx-auto px-6 pb-8">
+                    <!-- Info Box -->
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-lg">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <span class="text-2xl">ℹ️</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-blue-700">
+                                    <strong>Valuta principale: Euro (EUR)</strong><br>
+                                    I tassi di cambio sono espressi rispetto all'Euro. Ad esempio, se 1 EUR = 1.10 USD, inserisci 1.10 come tasso di cambio per il Dollaro USA.
+                                    Usa il pulsante "🔄 Aggiorna Cambi" per scaricare automaticamente i tassi aggiornati.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Currencies List -->
+                    <div id="currenciesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Le valute verranno inserite qui dinamicamente -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="currenciesEmptyState" class="text-center py-12" style="display: none;">
+                        <div class="text-6xl mb-4">💱</div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">Nessuna valuta aggiunta</h3>
+                        <p class="text-gray-500 mb-6">Inizia aggiungendo le valute che utilizzerai nei tuoi viaggi</p>
+                        <button onclick="document.getElementById('addCurrencyBtn').click()" class="btn btn-primary">
+                            + Aggiungi Prima Valuta
+                        </button>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Actual Detail View (Dettaglio Consuntivo) -->
             <div id="actualDetailView" class="view">
@@ -188,6 +234,7 @@
                     <button id="backActualBtn" class="btn btn-secondary">← Indietro</button>
                     <h2 id="actualTitle">Dettaglio Consuntivo</h2>
                     <div class="header-actions">
+                        <button type="submit" form="actualForm" class="btn btn-primary">💾 Salva consuntivo</button>
                         <button id="viewAccountsBtn" class="btn btn-secondary">📊 Conti</button>
                         <button id="viewSettlementsFromActualBtn" class="btn btn-secondary">🔄 Dare/Avere</button>
                         <button id="deleteActualBtn" class="btn btn-danger">🗑️ Elimina</button>
@@ -234,8 +281,12 @@
                             <div id="expensesActualList" class="expenses-actual-list">
                                 <!-- Le spese verranno aggiunte dinamicamente qui -->
                             </div>
-                            <div class="expenses-actual-footer" style="margin-top: var(--spacing-md); text-align: center;">
+                            <div class="expenses-actual-footer" style="margin-top: var(--spacing-md); text-align: center; display: flex; gap: 1rem; justify-content: center; align-items: center;">
                                 <button type="button" id="addExpenseBtn" class="btn btn-primary">+ Aggiungi Spesa</button>
+                                <button type="submit" form="actualForm" class="btn btn-primary">💾 Salva Consuntivo</button>
+                                <button type="button" id="updateExchangeRatesActualBtn" class="btn btn-secondary" style="background: #10b981; border-color: #10b981;" title="Aggiorna i tassi di cambio">
+                                    🔄 Aggiorna Cambi
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -946,6 +997,59 @@
                 </div>
             </div>
         </div>
+        <!-- Currency Modal -->
+        <div id="currencyModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="currencyModalTitle">Aggiungi Valuta</h3>
+                    <button class="modal-close" onclick="closeCurrencyModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="currencyForm">
+                        <input type="hidden" id="currencyId">
+                        
+                        <div class="form-section">
+                            <h3>💱 Informazioni Valuta</h3>
+                            
+                            <div class="form-group">
+                                <label for="currencyCountry">Paese/Regione *</label>
+                                <input type="text" id="currencyCountry" required placeholder="Inizia a digitare il nome del paese..." list="countriesList" autocomplete="off">
+                                <datalist id="countriesList"></datalist>
+                                <small class="form-help">Seleziona il paese per compilare automaticamente i dati della valuta</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="currencyCode">Codice Valuta (ISO 4217) *</label>
+                                <input type="text" id="currencyCode" required placeholder="es: USD, GBP, JPY" maxlength="3" style="text-transform: uppercase; background-color: #f0f0f0;">
+                                <small class="form-help">Compilato automaticamente in base al paese</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="currencyName">Nome Valuta *</label>
+                                <input type="text" id="currencyName" required placeholder="es: Dollaro Statunitense" style="background-color: #f0f0f0;">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="currencySymbol">Simbolo</label>
+                                <input type="text" id="currencySymbol" placeholder="es: $, £, ¥" maxlength="3" style="background-color: #f0f0f0;">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="exchangeRate">Tasso di Cambio (rispetto a EUR) *</label>
+                                <input type="number" id="exchangeRate" required min="0" step="0.000001" placeholder="Verrà scaricato automaticamente" style="background-color: #f0f0f0;">
+                                <small class="form-help">Verrà scaricato automaticamente al salvataggio</small>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">💾 Salva</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeCurrencyModal()">Annulla</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
 
         <!-- Participant Modal -->
         <div id="participantModal" class="modal">
@@ -1039,6 +1143,7 @@
     <script src="js/sample-data.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/participants.js?v=2"></script>
+    <script src="js/currencies.js"></script>
     <script src="js/scenarios.js"></script>
     <script src="js/actuals.js"></script>
     <script src="js/actuals-ui.js"></script>

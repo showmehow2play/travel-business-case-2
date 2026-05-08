@@ -42,6 +42,8 @@ const ActualsManager = {
             description: '',
             amount: 0,
             currency: 'EUR', // Valuta di default
+            amountEUR: 0, // Importo convertito in EUR
+            exchangeRate: 1.0, // Tasso di cambio utilizzato
             date: new Date().toISOString().split('T')[0], // Data odierna in formato YYYY-MM-DD
             paidBy: '',
             sharedBy: [], // Array di partecipanti che dividono la spesa
@@ -55,10 +57,37 @@ const ActualsManager = {
         return 'expense_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     },
 
-    // Calcola il totale delle spese
+    // Converti importo in EUR
+    convertToEUR(amount, currency) {
+        if (!currency || currency === 'EUR') {
+            return { amountEUR: amount, exchangeRate: 1.0 };
+        }
+
+        // Usa CurrenciesManager per la conversione
+        if (typeof CurrenciesManager !== 'undefined') {
+            const currencyData = CurrenciesManager.getCurrencyByCode(currency);
+            if (currencyData && currencyData.exchangeRate) {
+                const amountEUR = amount / currencyData.exchangeRate;
+                return {
+                    amountEUR: amountEUR,
+                    exchangeRate: currencyData.exchangeRate
+                };
+            }
+        }
+
+        // Fallback: ritorna l'importo originale
+        console.warn(`Tasso di cambio non trovato per ${currency}, uso 1:1`);
+        return { amountEUR: amount, exchangeRate: 1.0 };
+    },
+
+    // Calcola il totale delle spese (in EUR)
     calculateTotal(expenses) {
         if (!Array.isArray(expenses)) return 0;
-        return expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+        return expenses.reduce((sum, exp) => {
+            // Usa amountEUR se disponibile, altrimenti amount
+            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
+            return sum + (parseFloat(amount) || 0);
+        }, 0);
     },
 
     // Calcola il costo per partecipante

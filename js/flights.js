@@ -92,30 +92,36 @@ const FlightSearchManager = {
         }
     },
 
+    // Estrae il nome città da valori tipo "Oslo, Norway"
+    extractCityName(locationValue) {
+        if (!locationValue) return '';
+        return locationValue.split(',')[0].trim();
+    },
+
     // Pre-compila i campi dal scenario corrente
     prefillFromScenario() {
         // Ottieni i dati dai campi del volo
         const flightDeparture = document.getElementById('flightDeparture');
         const flightArrival = document.getElementById('flightArrival');
+        const destinationInput = document.getElementById('destination');
         const startDateInput = document.getElementById('startDate');
         const endDateInput = document.getElementById('endDate');
         const participantsCount = document.querySelectorAll('.participant-tag').length;
+        const departureCityInput = document.getElementById('departureCity');
+        const arrivalCityInput = document.getElementById('arrivalCity');
 
         // Pre-compila partenza e arrivo dai campi dedicati
-        if (flightDeparture && flightDeparture.value) {
-            document.getElementById('departureCity').value = flightDeparture.value;
+        if (flightDeparture && flightDeparture.value && departureCityInput) {
+            departureCityInput.value = this.extractCityName(flightDeparture.value);
         }
 
-        if (flightArrival && flightArrival.value) {
-            document.getElementById('arrivalCity').value = flightArrival.value;
+        if (flightArrival && flightArrival.value && arrivalCityInput) {
+            arrivalCityInput.value = this.extractCityName(flightArrival.value);
         }
 
-        // Se i campi volo sono vuoti, usa la destinazione dello scenario
-        if ((!flightArrival || !flightArrival.value)) {
-            const destinationInput = document.getElementById('destination');
-            if (destinationInput && destinationInput.value) {
-                document.getElementById('arrivalCity').value = destinationInput.value;
-            }
+        // Se il campo arrivo volo è vuoto, usa la destinazione dello scenario
+        if ((!flightArrival || !flightArrival.value) && destinationInput && destinationInput.value && arrivalCityInput) {
+            arrivalCityInput.value = this.extractCityName(destinationInput.value);
         }
 
         if (startDateInput && startDateInput.value) {
@@ -154,20 +160,24 @@ const FlightSearchManager = {
     },
 
     // Ottieni i parametri di ricerca dal form
-    getSearchParams() {
-        const departureCity = document.getElementById('departureCity').value.trim();
-        const arrivalCity = document.getElementById('arrivalCity').value.trim();
+    getSearchParams(showFeedback = true) {
+        const departureCityRaw = document.getElementById('departureCity').value.trim();
+        const arrivalCityRaw = document.getElementById('arrivalCity').value.trim();
+        const departureCity = this.extractCityName(departureCityRaw);
+        const arrivalCity = this.extractCityName(arrivalCityRaw);
         const departureDate = document.getElementById('departureDate').value;
         const returnDate = document.getElementById('returnDate').value;
         const passengers = document.getElementById('passengers').value || 1;
 
         // Validazione base
         if (!departureCity || !arrivalCity) {
-            ExportManager.showError('Inserisci città di partenza e arrivo');
+            if (showFeedback) {
+                ExportManager.showError('Inserisci città di partenza e arrivo');
+            }
             return null;
         }
 
-        // Converti le città in codici aeroportuali (semplificato)
+        // Converti le città in codici aeroportuali/metro code
         const fromCode = this.getCityCode(departureCity);
         const toCode = this.getCityCode(arrivalCity);
 
@@ -186,79 +196,164 @@ const FlightSearchManager = {
         };
     },
 
-    // Converti nome città in codice aeroportuale (semplificato)
+    // Normalizza input città/destinazione
+    normalizeCityName(cityName) {
+        return (cityName || '')
+            .split(',')[0]
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/\s+/g, ' ');
+    },
+
+    // Converti nome città in codice aeroportuale/metro code
     getCityCode(cityName) {
-        const cityLower = cityName.toLowerCase().trim();
+        const cityLower = this.normalizeCityName(cityName);
         
-        // Mappa delle principali città italiane ed europee
         const cityMap = {
             // Italia
             'roma': 'ROM',
             'milano': 'MIL',
             'venezia': 'VCE',
+            'venice': 'VCE',
             'firenze': 'FLR',
+            'florence': 'FLR',
             'napoli': 'NAP',
+            'naples': 'NAP',
             'torino': 'TRN',
+            'turin': 'TRN',
             'bologna': 'BLQ',
             'palermo': 'PMO',
             'catania': 'CTA',
             'bari': 'BRI',
             'genova': 'GOA',
+            'genoa': 'GOA',
             'verona': 'VRN',
             'pisa': 'PSA',
             'cagliari': 'CAG',
             'trieste': 'TRS',
+
             // Europa
             'parigi': 'PAR',
+            'paris': 'PAR',
             'londra': 'LON',
+            'london': 'LON',
             'barcellona': 'BCN',
+            'barcelona': 'BCN',
             'madrid': 'MAD',
             'berlino': 'BER',
+            'berlin': 'BER',
             'amsterdam': 'AMS',
             'vienna': 'VIE',
             'praga': 'PRG',
+            'prague': 'PRG',
             'lisbona': 'LIS',
+            'lisbon': 'LIS',
             'atene': 'ATH',
+            'athens': 'ATH',
             'dublino': 'DUB',
+            'dublin': 'DUB',
             'bruxelles': 'BRU',
+            'brussels': 'BRU',
             'zurigo': 'ZRH',
+            'zurich': 'ZRH',
             'monaco': 'MUC',
+            'munich': 'MUC',
             'copenaghen': 'CPH',
+            'copenhagen': 'CPH',
             'stoccolma': 'STO',
+            'stockholm': 'STO',
             'oslo': 'OSL',
+            'bergen': 'BGO',
+            'trondheim': 'TRD',
+            'stavanger': 'SVG',
+            'tromso': 'TOS',
             'helsinki': 'HEL',
             'varsavia': 'WAW',
+            'warsaw': 'WAW',
             'budapest': 'BUD',
             'istanbul': 'IST',
-            // Altre destinazioni popolari
+            'reykjavik': 'REK',
+            'edimburgo': 'EDI',
+            'edinburgh': 'EDI',
+            'manchester': 'MAN',
+            'liverpool': 'LPL',
+            'porto': 'OPO',
+            'valencia': 'VLC',
+            'siviglia': 'SVQ',
+            'seville': 'SVQ',
+            'bilbao': 'BIO',
+            'lione': 'LYS',
+            'lyon': 'LYS',
+            'marsiglia': 'MRS',
+            'marseille': 'MRS',
+            'nizza': 'NCE',
+            'nice': 'NCE',
+            'bordeaux': 'BOD',
+            'amburgo': 'HAM',
+            'hamburg': 'HAM',
+            'francoforte': 'FRA',
+            'frankfurt': 'FRA',
+            'colonia': 'CGN',
+            'cologne': 'CGN',
+            'ginevra': 'GVA',
+            'geneva': 'GVA',
+            'salisburgo': 'SZG',
+            'salzburg': 'SZG',
+            'cracovia': 'KRK',
+            'krakow': 'KRK',
+            'goteborg': 'GOT',
+            'gothenburg': 'GOT',
+            'bruges': 'OST',
+            'brugge': 'OST',
+
+            // Grecia e isole / extra UE
+            'santorini': 'JTR',
+            'mykonos': 'JMK',
+            'creta': 'HER',
+            'crete': 'HER',
+
+            // America / Asia / ME
             'new york': 'NYC',
             'los angeles': 'LAX',
+            'san francisco': 'SFO',
+            'miami': 'MIA',
+            'toronto': 'YTO',
+            'vancouver': 'YVR',
+            'citta del messico': 'MEX',
+            'mexico city': 'MEX',
+            'rio de janeiro': 'RIO',
+            'buenos aires': 'BUE',
             'tokyo': 'TYO',
+            'kyoto': 'UKY',
+            'osaka': 'OSA',
             'dubai': 'DXB',
             'singapore': 'SIN',
             'bangkok': 'BKK',
-            'hong kong': 'HKG'
+            'hong kong': 'HKG',
+            'bali': 'DPS',
+            'sydney': 'SYD',
+            'melbourne': 'MEL',
+            'auckland': 'AKL'
         };
 
-        // Cerca corrispondenza esatta
         if (cityMap[cityLower]) {
             return cityMap[cityLower];
         }
 
-        // Cerca corrispondenza parziale
         for (const [city, code] of Object.entries(cityMap)) {
             if (cityLower.includes(city) || city.includes(cityLower)) {
                 return code;
             }
         }
 
-        // Se non trovato, usa le prime 3 lettere maiuscole
-        return cityName.substring(0, 3).toUpperCase();
+        return cityName.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase();
     },
 
     // Aggiorna i link di ricerca
-    updateSearchLinks() {
-        const params = this.getSearchParams();
+    updateSearchLinks(showFeedback = false) {
+        const params = this.getSearchParams(showFeedback);
         if (!params) return;
 
         // Aggiorna ogni link
@@ -282,7 +377,25 @@ const FlightSearchManager = {
             }
         });
 
-        ExportManager.showSuccess('Link di ricerca aggiornati! Clicca su un sito per cercare voli.');
+        if (showFeedback) {
+            ExportManager.showSuccess('Link di ricerca aggiornati! Clicca su un sito per cercare voli.');
+        }
+    },
+
+    // Inizializza autocomplete nel modal voli
+    initFlightAutocomplete() {
+        if (!window.destinationAutocomplete) return;
+        
+        const departureCityInput = document.getElementById('departureCity');
+        const arrivalCityInput = document.getElementById('arrivalCity');
+
+        if (departureCityInput) {
+            window.destinationAutocomplete.init(departureCityInput);
+        }
+
+        if (arrivalCityInput) {
+            window.destinationAutocomplete.init(arrivalCityInput);
+        }
     },
 
     // Inizializza il manager
@@ -313,17 +426,20 @@ const FlightSearchManager = {
             });
         }
 
+        // Inizializza autocomplete dei campi volo
+        this.initFlightAutocomplete();
+
         // Aggiorna i link quando cambiano i parametri nel modal
         const searchInputs = ['departureCity', 'arrivalCity', 'departureDate', 'returnDate', 'passengers'];
         searchInputs.forEach(inputId => {
             const input = document.getElementById(inputId);
             if (input) {
                 input.addEventListener('input', () => {
-                    this.updateSearchLinks();
+                    this.updateSearchLinks(false);
                     this.updateRouteDisplay();
                 });
                 input.addEventListener('change', () => {
-                    this.updateSearchLinks();
+                    this.updateSearchLinks(false);
                     this.updateRouteDisplay();
                 });
             }
@@ -337,7 +453,9 @@ const FlightSearchManager = {
             flightDeparture.addEventListener('input', () => {
                 const depCity = document.getElementById('departureCity');
                 if (depCity) {
-                    depCity.value = flightDeparture.value;
+                    depCity.value = this.extractCityName(flightDeparture.value);
+                    this.updateSearchLinks(false);
+                    this.updateRouteDisplay();
                 }
             });
         }
@@ -346,7 +464,9 @@ const FlightSearchManager = {
             flightArrival.addEventListener('input', () => {
                 const arrCity = document.getElementById('arrivalCity');
                 if (arrCity) {
-                    arrCity.value = flightArrival.value;
+                    arrCity.value = this.extractCityName(flightArrival.value);
+                    this.updateSearchLinks(false);
+                    this.updateRouteDisplay();
                 }
             });
         }

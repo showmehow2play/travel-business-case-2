@@ -40,13 +40,22 @@ const AccommodationCarManager = {
         return `${baseUrl}?${params.toString()}`;
     },
 
+    // Normalizza la località per i motori di ricerca esterni
+    buildCarSearchLocation(destination) {
+        return (destination || '').trim();
+    },
+
     // Genera link per RentalCars
     generateRentalCarsLink(destination, startDate, endDate) {
-        const baseUrl = 'https://www.rentalcars.com/it/';
+        const baseUrl = 'https://www.rentalcars.com/SearchResults.do';
         const params = new URLSearchParams();
-        
-        if (destination) params.append('location', destination);
-        
+        const location = this.buildCarSearchLocation(destination);
+
+        if (location) {
+            params.append('location', location);
+            params.append('dropLocation', location);
+        }
+
         if (startDate) {
             const pickUp = new Date(startDate);
             params.append('puYear', pickUp.getFullYear());
@@ -55,7 +64,7 @@ const AccommodationCarManager = {
             params.append('puHour', '10');
             params.append('puMinute', '00');
         }
-        
+
         if (endDate) {
             const dropOff = new Date(endDate);
             params.append('doYear', dropOff.getFullYear());
@@ -64,7 +73,7 @@ const AccommodationCarManager = {
             params.append('doHour', '10');
             params.append('doMinute', '00');
         }
-        
+
         return `${baseUrl}?${params.toString()}`;
     },
 
@@ -72,25 +81,31 @@ const AccommodationCarManager = {
     generateHertzLink(destination, startDate, endDate) {
         const baseUrl = 'https://www.hertz.it/rentacar/reservation/';
         const params = new URLSearchParams();
-        
-        if (destination) params.append('targetPage', 'locationSearch.jsp');
-        
+        const location = this.buildCarSearchLocation(destination);
+
+        params.append('targetPage', 'reservationOnHomepage.jsp');
+        params.append('pickUpLocation', location);
+        params.append('returnLocation', location);
+        params.append('sameAsPickUp', 'true');
+
         if (startDate) {
             const pickUp = new Date(startDate);
+            params.append('pickUpDate', `${String(pickUp.getDate()).padStart(2, '0')}/${String(pickUp.getMonth() + 1).padStart(2, '0')}/${pickUp.getFullYear()}`);
+            params.append('pickUpTime', '10:00');
             params.append('pickUpYear', pickUp.getFullYear());
             params.append('pickUpMonth', String(pickUp.getMonth() + 1).padStart(2, '0'));
             params.append('pickUpDay', String(pickUp.getDate()).padStart(2, '0'));
-            params.append('pickUpTime', '10:00');
         }
-        
+
         if (endDate) {
             const dropOff = new Date(endDate);
+            params.append('returnDate', `${String(dropOff.getDate()).padStart(2, '0')}/${String(dropOff.getMonth() + 1).padStart(2, '0')}/${dropOff.getFullYear()}`);
+            params.append('returnTime', '10:00');
             params.append('returnYear', dropOff.getFullYear());
             params.append('returnMonth', String(dropOff.getMonth() + 1).padStart(2, '0'));
             params.append('returnDay', String(dropOff.getDate()).padStart(2, '0'));
-            params.append('returnTime', '10:00');
         }
-        
+
         return `${baseUrl}?${params.toString()}`;
     },
 

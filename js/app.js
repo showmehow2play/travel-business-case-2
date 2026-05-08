@@ -174,6 +174,41 @@ const App = {
             });
         }
 
+        // Inizializza autocomplete anche sui campi volo della pagina preventivi
+        if (window.destinationAutocomplete) {
+            const destinationInput = document.getElementById('destination');
+            const flightDepartureInput = document.getElementById('flightDeparture');
+            const flightArrivalInput = document.getElementById('flightArrival');
+
+            if (destinationInput) window.destinationAutocomplete.init(destinationInput);
+            if (flightDepartureInput) window.destinationAutocomplete.init(flightDepartureInput);
+            if (flightArrivalInput) window.destinationAutocomplete.init(flightArrivalInput);
+        }
+
+        // Gestione vincoli date scenario
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+
+        if (startDateInput && endDateInput) {
+            startDateInput.addEventListener('change', () => {
+                if (startDateInput.value) {
+                    endDateInput.min = startDateInput.value;
+
+                    if (!endDateInput.value || endDateInput.value < startDateInput.value) {
+                        endDateInput.value = startDateInput.value;
+                    }
+                } else {
+                    endDateInput.min = '';
+                }
+            });
+
+            endDateInput.addEventListener('focus', () => {
+                if (startDateInput.value) {
+                    endDateInput.min = startDateInput.value;
+                }
+            });
+        }
+
         // Update totals when expenses change
         const expenseInputs = ['transport', 'food', 'activities'];
         expenseInputs.forEach(id => {
@@ -252,6 +287,11 @@ const App = {
                 case 'participants':
                     if (typeof renderParticipantsList !== 'undefined') {
                         renderParticipantsList();
+                    }
+                    break;
+                case 'currencies':
+                    if (typeof renderCurrenciesList !== 'undefined') {
+                        renderCurrenciesList();
                     }
                     break;
                 case 'compare':

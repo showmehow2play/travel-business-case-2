@@ -2326,14 +2326,15 @@ body {
     min-width: 200px;
 }
 
-/* ===== Expense Items (Consuntivi) - 3-Row Compact Layout ===== */
+/* ===== Expense Items (Consuntivi) - Ultra Compact Layout ===== */
 .expense-item-new {
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
     transition: all var(--transition-base);
+    font-size: 0.85rem;
 }
 
 .expense-item-new:hover {
@@ -2345,24 +2346,24 @@ body {
 .expense-row-description {
     display: grid;
     grid-template-columns: 1fr auto;
-    gap: var(--spacing-sm);
+    gap: 0.5rem;
     align-items: end;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: 0.4rem;
 }
 
 /* Riga 2: Categoria, Importo, Pagato da */
 .expense-row-details {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: var(--spacing-md);
+    gap: 0.5rem;
     align-items: end;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: 0.4rem;
 }
 
 .expense-field {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.1rem;
     min-width: 0;
 }
 
@@ -2371,21 +2372,34 @@ body {
 }
 
 .expense-field label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 600;
     color: var(--text-secondary);
     white-space: nowrap;
+    line-height: 1;
+    margin-bottom: 0;
 }
 
 .expense-field input,
 .expense-field select {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    padding: 0.25rem 0.4rem;
+    font-size: 0.8rem;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     background: var(--bg-secondary);
     transition: all var(--transition-base);
     width: 100%;
+    line-height: 1;
+    height: 28px;
+    box-sizing: border-box;
+}
+
+.expense-field input[type="number"],
+.expense-field input[type="text"],
+.expense-field input[type="date"] {
+    height: 28px;
+    padding: 0.25rem 0.4rem;
+    line-height: 1;
 }
 
 .expense-field input:focus,
@@ -2402,8 +2416,8 @@ body {
 }
 
 .expense-actions .btn-icon {
-    padding: 0.5rem;
-    font-size: 1.1rem;
+    padding: 0.35rem;
+    font-size: 1rem;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -2418,26 +2432,26 @@ body {
 
 /* Riga 3: Divisione spesa */
 .expense-row-split {
-    padding-top: var(--spacing-sm);
+    padding-top: 0.4rem;
     border-top: 1px solid var(--border-light);
 }
 
 .expense-split-header {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
 }
 
 .split-label {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 600;
     color: var(--text-secondary);
     flex-shrink: 0;
 }
 
 .btn-link-small {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: var(--primary-color);
     background: none;
     border: none;
@@ -2455,12 +2469,12 @@ body {
 .split-summary {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.3rem;
     margin-left: auto;
-    padding: 0.2rem 0.6rem;
+    padding: 0.15rem 0.5rem;
     background: var(--primary-light);
     border-radius: var(--radius-full);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     flex-shrink: 0;
 }
 
@@ -2478,24 +2492,26 @@ body {
     font-weight: 700;
 }
 
-/* Griglia partecipanti compatta */
+/* Griglia partecipanti ultra compatta */
 .expense-participants-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 0.375rem;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 0.3rem;
+    max-height: 120px;
+    overflow-y: auto;
 }
 
 .participant-checkbox-compact {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
+    gap: 0.2rem;
+    padding: 0.2rem 0.4rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all var(--transition-fast);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     user-select: none;
 }
 
@@ -2505,8 +2521,8 @@ body {
 }
 
 .participant-checkbox-compact input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     cursor: pointer;
     accent-color: var(--primary-color);
     margin: 0;
@@ -2519,7 +2535,7 @@ body {
 }
 
 .participant-checkbox-compact span {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -2527,6 +2543,94 @@ body {
 }
 
 .btn-small {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+}
+
+
+/* ===== Currencies View Styles ===== */
+.currency-card {
+    position: relative;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.currency-card:hover {
+    transform: translateY(-4px);
+}
+
+.currency-card .text-4xl {
+    font-size: 2.5rem;
+}
+
+.currency-card h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.currency-card button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+.currency-card button:hover {
+    transform: scale(1.2);
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+#currencyCode {
+    text-transform: uppercase;
+}
+
+/* Modal improvements for currency form */
+#currencyModal .modal-content {
+    max-width: 600px;
+}
+
+#currencyModal .form-section h3 {
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+#currencyModal .form-group {
+    margin-bottom: 1.25rem;
+}
+
+#currencyModal .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#currencyModal .form-group input,
+#currencyModal .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+#currencyModal .form-group input:focus,
+#currencyModal .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+}
+
+#currencyModal .form-group input:disabled {
+    background-color: var(--bg-tertiary);
+    cursor: not-allowed;
 }

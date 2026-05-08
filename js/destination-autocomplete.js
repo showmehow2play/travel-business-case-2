@@ -7,7 +7,7 @@ class DestinationAutocomplete {
     constructor() {
         this.destinations = this.buildDestinationsList();
         this.currentInput = null;
-        this.suggestionsList = null;
+        this.suggestionsLists = new Map();
     }
 
     /**
@@ -147,15 +147,18 @@ class DestinationAutocomplete {
 
         this.currentInput = inputElement;
         
-        // Crea container suggerimenti
-        this.createSuggestionsContainer();
+        // Crea container suggerimenti dedicato all'input
+        this.createSuggestionsContainer(inputElement);
+        
+        // Evita doppia inizializzazione sullo stesso input
+        if (inputElement.dataset.autocompleteInitialized === 'true') return;
+        inputElement.dataset.autocompleteInitialized = 'true';
         
         // Event listeners
         inputElement.addEventListener('input', (e) => this.handleInput(e));
         inputElement.addEventListener('focus', (e) => this.handleInput(e));
         inputElement.addEventListener('blur', () => {
-            // Ritardo per permettere il click sui suggerimenti
-            setTimeout(() => this.hideSuggestions(), 200);
+            setTimeout(() => this.hideSuggestions(inputElement), 200);
         });
         
         // Navigazione con tastiera
@@ -165,34 +168,33 @@ class DestinationAutocomplete {
     /**
      * Crea container per i suggerimenti
      */
-    createSuggestionsContainer() {
-        // Rimuovi container esistente
-        const existing = document.getElementById('destination-suggestions');
-        if (existing) existing.remove();
+    createSuggestionsContainer(inputElement) {
+        if (this.suggestionsLists.has(inputElement.id)) return;
 
-        // Crea nuovo container
-        this.suggestionsList = document.createElement('div');
-        this.suggestionsList.id = 'destination-suggestions';
-        this.suggestionsList.className = 'absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto hidden';
+        const suggestionsList = document.createElement('div');
+        suggestionsList.id = `destination-suggestions-${inputElement.id}`;
+        suggestionsList.className = 'absolute z-50 w-full bg-white border border-gray-300 rounded-lg shadow-xl mt-1 max-h-60 overflow-y-auto hidden';
         
-        // Inserisci dopo l'input
-        this.currentInput.parentNode.style.position = 'relative';
-        this.currentInput.parentNode.appendChild(this.suggestionsList);
+        inputElement.parentNode.style.position = 'relative';
+        inputElement.parentNode.appendChild(suggestionsList);
+        this.suggestionsLists.set(inputElement.id, suggestionsList);
     }
 
     /**
      * Gestisce input utente
      */
     handleInput(e) {
-        const value = e.target.value.trim();
+        const inputElement = e.target;
+        this.currentInput = inputElement;
+        const value = inputElement.value.trim();
         
         if (value.length < 2) {
-            this.hideSuggestions();
+            this.hideSuggestions(inputElement);
             return;
         }
 
         const matches = this.searchDestinations(value);
-        this.showSuggestions(matches);
+        this.showSuggestions(inputElement, matches);
     }
 
     /**
@@ -217,14 +219,17 @@ class DestinationAutocomplete {
     /**
      * Mostra suggerimenti
      */
-    showSuggestions(matches) {
+    showSuggestions(inputElement, matches) {
+        const suggestionsList = this.suggestionsLists.get(inputElement.id);
+        if (!suggestionsList) return;
+
         if (matches.length === 0) {
-            this.hideSuggestions();
+            this.hideSuggestions(inputElement);
             return;
         }
 
-        this.suggestionsList.innerHTML = '';
-        this.suggestionsList.classList.remove('hidden');
+        suggestionsList.innerHTML = '';
+        suggestionsList.classList.remove('hidden');
 
         matches.forEach((dest, index) => {
             const item = document.createElement('div');
@@ -241,31 +246,33 @@ class DestinationAutocomplete {
                 </div>
             `;
             
-            item.addEventListener('click', () => this.selectDestination(dest));
-            this.suggestionsList.appendChild(item);
+            item.addEventListener('click', () => this.selectDestination(inputElement, dest));
+            suggestionsList.appendChild(item);
         });
     }
 
     /**
      * Nascondi suggerimenti
      */
-    hideSuggestions() {
-        if (this.suggestionsList) {
-            this.suggestionsList.classList.add('hidden');
+    hideSuggestions(inputElement = this.currentInput) {
+        if (!inputElement) return;
+        const suggestionsList = this.suggestionsLists.get(inputElement.id);
+        if (suggestionsList) {
+            suggestionsList.classList.add('hidden');
         }
     }
 
     /**
      * Seleziona una destinazione
      */
-    selectDestination(dest) {
-        if (this.currentInput) {
-            this.currentInput.value = dest.display;
-            this.hideSuggestions();
+    selectDestination(inputElement, dest) {
+        if (inputElement) {
+            this.currentInput = inputElement;
+            inputElement.value = dest.display;
+            this.hideSuggestions(inputElement);
             
-            // Trigger change event
             const event = new Event('change', { bubbles: true });
-            this.currentInput.dispatchEvent(event);
+            inputElement.dispatchEvent(event);
         }
     }
 
@@ -273,10 +280,13 @@ class DestinationAutocomplete {
      * Gestisce navigazione con tastiera
      */
     handleKeyboard(e) {
-        const items = this.suggestionsList.querySelectorAll('[data-index]');
+        const suggestionsList = this.suggestionsLists.get(e.target.id);
+        if (!suggestionsList) return;
+
+        const items = suggestionsList.querySelectorAll('[data-index]');
         if (items.length === 0) return;
 
-        const current = this.suggestionsList.querySelector('.bg-indigo-100');
+        const current = suggestionsList.querySelector('.bg-indigo-100');
         let index = current ? parseInt(current.dataset.index) : -1;
 
         if (e.key === 'ArrowDown') {
@@ -290,7 +300,7 @@ class DestinationAutocomplete {
             items[index].click();
             return;
         } else if (e.key === 'Escape') {
-            this.hideSuggestions();
+            this.hideSuggestions(e.target);
             return;
         } else {
             return;

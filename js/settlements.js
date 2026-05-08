@@ -106,20 +106,21 @@ const SettlementsManager = {
         document.getElementById('settlementsEqualShare').textContent = `€${avgShare.toFixed(2)}`;
     },
 
-    // Calcola il totale delle spese
+    // Calcola il totale delle spese (usa amountEUR)
     calculateTotalCost(actual) {
         let total = 0;
         
         if (actual.expenses && Array.isArray(actual.expenses)) {
             actual.expenses.forEach(expense => {
-                total += parseFloat(expense.amount) || 0;
+                const amount = expense.amountEUR !== undefined ? expense.amountEUR : expense.amount;
+                total += parseFloat(amount) || 0;
             });
         }
         
         return total;
     },
 
-    // Calcola i bilanci per ogni partecipante
+    // Calcola i bilanci per ogni partecipante (usa amountEUR)
     calculateBalances(actual) {
         // Inizializza contatori per ogni partecipante
         const paid = {}; // Quanto ha pagato
@@ -133,12 +134,13 @@ const SettlementsManager = {
         // Calcola quanto ha pagato ogni partecipante e quanto deve
         if (actual.expenses && Array.isArray(actual.expenses)) {
             actual.expenses.forEach(expense => {
-                const amount = parseFloat(expense.amount) || 0;
+                // Usa amountEUR se disponibile, altrimenti amount
+                const amount = expense.amountEUR !== undefined ? parseFloat(expense.amountEUR) : parseFloat(expense.amount);
                 const paidBy = expense.paidBy;
                 
                 // Registra chi ha pagato
                 if (paidBy && paid.hasOwnProperty(paidBy)) {
-                    paid[paidBy] += amount;
+                    paid[paidBy] += amount || 0;
                 }
                 
                 // Calcola la quota per ogni partecipante che condivide questa spesa
@@ -150,7 +152,7 @@ const SettlementsManager = {
                 }
                 
                 // Dividi la spesa tra chi la condivide
-                const sharePerPerson = sharedBy.length > 0 ? amount / sharedBy.length : 0;
+                const sharePerPerson = sharedBy.length > 0 ? (amount || 0) / sharedBy.length : 0;
                 
                 sharedBy.forEach(participant => {
                     if (owes.hasOwnProperty(participant)) {

@@ -59,8 +59,11 @@ const AccountsManager = {
         const expenses = this.currentActual.expenses;
         const participants = this.currentActual.participants || [];
 
-        // Calcola totale
-        const totalCost = expenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+        // Calcola totale usando amountEUR (importi convertiti)
+        const totalCost = expenses.reduce((sum, exp) => {
+            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
+            return sum + (parseFloat(amount) || 0);
+        }, 0);
 
         // Costo medio per persona
         const avgCost = participants.length > 0 ? totalCost / participants.length : 0;
@@ -102,17 +105,21 @@ const AccountsManager = {
 
         const expenses = this.currentActual.expenses;
 
-        // Calcola spese pagate dal partecipante
+        // Calcola spese pagate dal partecipante (usa amountEUR)
         const paidExpenses = expenses.filter(exp => exp.paidBy === participantName);
-        const paidAmount = paidExpenses.reduce((sum, exp) => sum + (parseFloat(exp.amount) || 0), 0);
+        const paidAmount = paidExpenses.reduce((sum, exp) => {
+            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
+            return sum + (parseFloat(amount) || 0);
+        }, 0);
 
-        // Calcola quota spese condivise
+        // Calcola quota spese condivise (usa amountEUR)
         let sharedAmount = 0;
         expenses.forEach(exp => {
             if (exp.sharedBy && exp.sharedBy.includes(participantName)) {
                 const shareCount = exp.sharedBy.length;
                 if (shareCount > 0) {
-                    sharedAmount += (parseFloat(exp.amount) || 0) / shareCount;
+                    const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
+                    sharedAmount += (parseFloat(amount) || 0) / shareCount;
                 }
             }
         });
@@ -171,18 +178,24 @@ const AccountsManager = {
         }
 
         tbody.innerHTML = expenses.map(exp => {
-            const amount = parseFloat(exp.amount) || 0;
+            // Usa amountEUR se disponibile, altrimenti amount
+            const amount = exp.amountEUR !== undefined ? parseFloat(exp.amountEUR) : parseFloat(exp.amount);
             const shareCount = exp.sharedBy ? exp.sharedBy.length : 0;
             const quota = shareCount > 0 && exp.sharedBy.includes(participantName) ? amount / shareCount : 0;
             
             const categoryIcon = this.getCategoryIcon(exp.category);
+            
+            // Mostra valuta originale se diversa da EUR
+            const currencyInfo = exp.currency && exp.currency !== 'EUR'
+                ? ` <span style="font-size: 0.85em; color: #6b7280;">(${exp.amount} ${exp.currency})</span>`
+                : '';
             
             return `
                 <tr style="border-bottom: 1px solid var(--border-color);">
                     <td style="padding: var(--spacing-sm);">${exp.date || '-'}</td>
                     <td style="padding: var(--spacing-sm);">${categoryIcon} ${this.getCategoryLabel(exp.category)}</td>
                     <td style="padding: var(--spacing-sm);">${exp.description || '-'}</td>
-                    <td style="padding: var(--spacing-sm); text-align: right; font-weight: 600;">${this.formatCurrency(amount)}</td>
+                    <td style="padding: var(--spacing-sm); text-align: right; font-weight: 600;">${this.formatCurrency(amount)}${currencyInfo}</td>
                     <td style="padding: var(--spacing-sm);">${exp.paidBy || '-'}</td>
                     <td style="padding: var(--spacing-sm); text-align: right; ${exp.sharedBy && exp.sharedBy.includes(participantName) ? 'color: var(--primary-color); font-weight: 600;' : ''}">${quota > 0 ? this.formatCurrency(quota) : '-'}</td>
                 </tr>
@@ -202,16 +215,16 @@ const AccountsManager = {
 
         const expenses = this.currentActual.expenses || [];
 
-        // Raggruppa per categoria (tutte le spese)
+        // Raggruppa per categoria (tutte le spese) - usa amountEUR
         const categoryTotals = {};
         expenses.forEach(exp => {
             const category = exp.category || 'altro';
-            const amount = parseFloat(exp.amount) || 0;
+            const amount = exp.amountEUR !== undefined ? parseFloat(exp.amountEUR) : parseFloat(exp.amount);
             
             if (!categoryTotals[category]) {
                 categoryTotals[category] = 0;
             }
-            categoryTotals[category] += amount;
+            categoryTotals[category] += amount || 0;
         });
 
         // Prepara dati per il grafico
@@ -298,12 +311,13 @@ const AccountsManager = {
             exp.sharedBy && exp.sharedBy.includes(participantName)
         );
 
-        // Raggruppa per categoria
+        // Raggruppa per categoria - usa amountEUR
         const categoryTotals = {};
         expenses.forEach(exp => {
             const category = exp.category || 'altro';
             const shareCount = exp.sharedBy.length;
-            const quota = shareCount > 0 ? (parseFloat(exp.amount) || 0) / shareCount : 0;
+            const amount = exp.amountEUR !== undefined ? parseFloat(exp.amountEUR) : parseFloat(exp.amount);
+            const quota = shareCount > 0 ? (amount || 0) / shareCount : 0;
             
             if (!categoryTotals[category]) {
                 categoryTotals[category] = 0;
