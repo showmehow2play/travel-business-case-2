@@ -608,79 +608,125 @@ const App = {
         
         let html = '<h3>Risultati del Confronto</h3>';
 
-        // Summary
+        // Summary stats
         html += `
-            <div class="stats-grid" style="margin: 1.5rem 0;">
-                <div class="stat-card">
-                    <div class="stat-content">
-                        <div class="stat-label">Costo Minimo</div>
-                        <div class="stat-value">${ScenarioManager.formatCurrency(comparison.summary.minCost)}</div>
-                    </div>
+            <div class="comparison-summary">
+                <div class="comparison-summary-item">
+                    <div class="comparison-summary-label">💰 Costo Minimo</div>
+                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.minCost)}</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-content">
-                        <div class="stat-label">Costo Massimo</div>
-                        <div class="stat-value">${ScenarioManager.formatCurrency(comparison.summary.maxCost)}</div>
-                    </div>
+                <div class="comparison-summary-item">
+                    <div class="comparison-summary-label">💸 Costo Massimo</div>
+                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.maxCost)}</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-content">
-                        <div class="stat-label">Costo Medio</div>
-                        <div class="stat-value">${ScenarioManager.formatCurrency(comparison.summary.avgCost)}</div>
-                    </div>
+                <div class="comparison-summary-item">
+                    <div class="comparison-summary-label">📊 Costo Medio</div>
+                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.avgCost)}</div>
+                </div>
+                <div class="comparison-summary-item">
+                    <div class="comparison-summary-label">👤 Min per Persona</div>
+                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.minCostPerPerson)}</div>
                 </div>
             </div>
         `;
 
-        // Table
-        html += `
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Scenario</th>
-                        <th>Destinazione</th>
-                        <th>Partecipanti</th>
-                        <th>Durata</th>
-                        <th>Totale</th>
-                        <th>Per Persona</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
+        // Find best value scenario
+        const bestValueIndex = comparison.scenarios.findIndex(s => s.total === comparison.summary.minCost);
 
-        comparison.scenarios.forEach(s => {
+        // E-commerce style comparison cards
+        html += '<div class="comparison-cards-container">';
+        
+        comparison.scenarios.forEach((s, index) => {
+            const isBestValue = index === bestValueIndex;
+            const categoryLabels = ScenarioManager.getCategoryLabels();
+            
             html += `
-                <tr>
-                    <td><strong>${s.name}</strong></td>
-                    <td>${s.destination}</td>
-                    <td>${s.participants}</td>
-                    <td>${s.duration} giorni</td>
-                    <td><strong>${ScenarioManager.formatCurrency(s.total)}</strong></td>
-                    <td>${ScenarioManager.formatCurrency(s.costPerPerson)}</td>
-                </tr>
+                <div class="comparison-card ${isBestValue ? 'best-value' : ''}">
+                    <div class="comparison-card-header">
+                        <div class="comparison-card-title">${s.name}</div>
+                        <div class="comparison-card-destination">
+                            📍 ${s.destination}
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-price-section">
+                        <div class="comparison-total-price">${ScenarioManager.formatCurrency(s.total)}</div>
+                        <div class="comparison-per-person">
+                            <span class="comparison-per-person-price">${ScenarioManager.formatCurrency(s.costPerPerson)}</span>
+                            per persona
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-details">
+                        <div class="comparison-detail-row">
+                            <span class="comparison-detail-label">👥 Partecipanti</span>
+                            <span class="comparison-detail-value">${s.participants}</span>
+                        </div>
+                        <div class="comparison-detail-row">
+                            <span class="comparison-detail-label">📅 Durata</span>
+                            <span class="comparison-detail-value">${s.duration} giorni</span>
+                        </div>
+                        <div class="comparison-detail-row">
+                            <span class="comparison-detail-label">💵 Costo/Giorno</span>
+                            <span class="comparison-detail-value">${ScenarioManager.formatCurrency(s.total / s.duration)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-expenses">
+                        <div class="comparison-expenses-title">Dettaglio Spese</div>
+            `;
+            
+            // Add expense breakdown
+            for (const [category, amount] of Object.entries(s.expenses)) {
+                if (amount > 0) {
+                    const perPerson = s.participants > 0 ? amount / s.participants : 0;
+                    html += `
+                        <div class="comparison-expense-item">
+                            <span class="comparison-expense-label">${categoryLabels[category]}</span>
+                            <span class="comparison-expense-value">
+                                ${ScenarioManager.formatCurrency(amount)}
+                                <span class="comparison-expense-per-person">
+                                    (${ScenarioManager.formatCurrency(perPerson)}/p)
+                                </span>
+                            </span>
+                        </div>
+                    `;
+                }
+            }
+            
+            html += `
+                    </div>
+                </div>
             `;
         });
+        
+        html += '</div>';
 
+        // Collapsible charts section
         html += `
-                </tbody>
-            </table>
-        `;
-
-        // Charts
-        html += `
-            <div class="chart-container">
-                <h4>Confronto Costi</h4>
-                <canvas id="comparisonBarChart" height="300"></canvas>
-            </div>
-            <div class="chart-container">
-                <h4>Distribuzione per Categoria</h4>
-                <canvas id="categoryComparisonChart" height="300"></canvas>
+            <div class="comparison-charts-section">
+                <div class="comparison-charts-toggle" onclick="this.classList.toggle('collapsed'); document.getElementById('chartsContent').classList.toggle('hidden');">
+                    <h4>
+                        <span class="comparison-charts-toggle-icon">▼</span>
+                        Grafici di Confronto (clicca per mostrare/nascondere)
+                    </h4>
+                </div>
+                <div id="chartsContent" class="comparison-charts-content hidden">
+                    <div class="chart-container">
+                        <h4>📊 Confronto Costi Totali</h4>
+                        <canvas id="comparisonBarChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h4>🎯 Distribuzione per Categoria</h4>
+                        <canvas id="categoryComparisonChart"></canvas>
+                    </div>
+                </div>
             </div>
         `;
 
         results.innerHTML = html;
 
-        // Create charts
+        // Create charts (they'll be hidden initially)
         const scenarios = comparison.scenarios.map(s => {
             const fullScenario = StorageManager.getScenario(s.id);
             return fullScenario;
@@ -812,7 +858,28 @@ const App = {
             if (emptyState) emptyState.style.display = 'block';
             if (clearBtn) clearBtn.style.display = 'none';
         } else {
-            list.innerHTML = participants.map(p => {
+            // Normalizza i nomi usando l'anagrafica con fuzzy matching
+            const normalizedParticipants = participants.map(p => {
+                if (typeof participantsRegistry !== 'undefined') {
+                    // Prima prova match esatto
+                    let registryParticipant = participantsRegistry.getByName(p);
+                    
+                    // Se non trovato, prova fuzzy match
+                    if (!registryParticipant && participantsRegistry.getByNameFuzzy) {
+                        registryParticipant = participantsRegistry.getByNameFuzzy(p);
+                        if (registryParticipant) {
+                            console.log(`Fuzzy match: "${p}" → "${registryParticipant.name}"`);
+                        }
+                    }
+                    
+                    if (registryParticipant) {
+                        return registryParticipant.name; // Usa il nome dall'anagrafica
+                    }
+                }
+                return p; // Fallback al nome originale se non trovato
+            });
+
+            list.innerHTML = normalizedParticipants.map(p => {
                 const escapedName = p.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
                 return `
                     <div class="participant-tag">

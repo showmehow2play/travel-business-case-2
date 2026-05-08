@@ -90,6 +90,68 @@ class ParticipantsRegistry {
         return this.participants.find(p => p.name.toLowerCase() === normalizedName);
     }
 
+    // Get participant by name with fuzzy matching (for old/similar names)
+    getByNameFuzzy(name) {
+        const normalizedName = name.trim().toLowerCase();
+        
+        // Prima prova corrispondenza esatta
+        let match = this.participants.find(p => p.name.toLowerCase() === normalizedName);
+        if (match) return match;
+        
+        // Poi prova corrispondenza parziale (uno contiene l'altro)
+        match = this.participants.find(p => {
+            const pLower = p.name.toLowerCase();
+            return pLower.includes(normalizedName) || normalizedName.includes(pLower);
+        });
+        if (match) return match;
+        
+        // Infine prova similarità (Levenshtein distance)
+        const candidates = this.participants.filter(p => {
+            const distance = this.levenshteinDistance(p.name.toLowerCase(), normalizedName);
+            return distance <= 3; // Max 3 caratteri di differenza
+        });
+        
+        if (candidates.length > 0) {
+            // Ritorna il più simile
+            return candidates.reduce((best, current) => {
+                const bestDist = this.levenshteinDistance(best.name.toLowerCase(), normalizedName);
+                const currentDist = this.levenshteinDistance(current.name.toLowerCase(), normalizedName);
+                return currentDist < bestDist ? current : best;
+            });
+        }
+        
+        return null;
+    }
+
+    // Calculate Levenshtein distance between two strings
+    levenshteinDistance(str1, str2) {
+        const matrix = [];
+        
+        for (let i = 0; i <= str2.length; i++) {
+            matrix[i] = [i];
+        }
+        
+        for (let j = 0; j <= str1.length; j++) {
+            matrix[0][j] = j;
+        }
+        
+        for (let i = 1; i <= str2.length; i++) {
+            for (let j = 1; j <= str1.length; j++) {
+                if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                    matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                    matrix[i][j] = Math.min(
+                        matrix[i - 1][j - 1] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j] + 1
+                    );
+                }
+            }
+        }
+        
+        return matrix[str2.length][str1.length];
+    }
+
     // Add new participant
     add(participantData) {
         const participant = {
@@ -114,9 +176,12 @@ class ParticipantsRegistry {
         const index = this.participants.findIndex(p => p.id === id);
         if (index === -1) return null;
 
+        const oldName = this.participants[index].name;
+        const newName = participantData.name.trim();
+
         this.participants[index] = {
             ...this.participants[index],
-            name: participantData.name.trim(),
+            name: newName,
             email: participantData.email?.trim() || '',
             phone: participantData.phone?.trim() || '',
             idCard: participantData.idCard?.trim() || '',
@@ -126,7 +191,60 @@ class ParticipantsRegistry {
         };
 
         this.saveParticipants();
+        
+        // Se il nome è cambiato, aggiorna tutti gli scenari e consuntivi
+        if (oldName !== newName) {
+            this.updateParticipantNameInScenarios(oldName, newName);
+            this.updateParticipantNameInActuals(oldName, newName);
+        }
+        
         return this.participants[index];
+    }
+
+    // Update participant name in all scenarios
+    updateParticipantNameInScenarios(oldName, newName) {
+        const scenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+        let updated = false;
+
+        scenarios.forEach(scenario => {
+            if (scenario.participants && Array.isArray(scenario.participants)) {
+                const index = scenario.participants.findIndex(p =>
+                    p.toLowerCase() === oldName.toLowerCase()
+                );
+                if (index !== -1) {
+                    scenario.participants[index] = newName;
+                    updated = true;
+                }
+            }
+        });
+
+        if (updated) {
+            localStorage.setItem('scenarios', JSON.stringify(scenarios));
+            console.log(`✅ Nome partecipante aggiornato negli scenari: ${oldName} → ${newName}`);
+        }
+    }
+
+    // Update participant name in all actuals
+    updateParticipantNameInActuals(oldName, newName) {
+        const actuals = JSON.parse(localStorage.getItem('actuals') || '[]');
+        let updated = false;
+
+        actuals.forEach(actual => {
+            if (actual.participants && Array.isArray(actual.participants)) {
+                const index = actual.participants.findIndex(p =>
+                    p.toLowerCase() === oldName.toLowerCase()
+                );
+                if (index !== -1) {
+                    actual.participants[index] = newName;
+                    updated = true;
+                }
+            }
+        });
+
+        if (updated) {
+            localStorage.setItem('actuals', JSON.stringify(actuals));
+            console.log(`✅ Nome partecipante aggiornato nei consuntivi: ${oldName} → ${newName}`);
+        }
     }
 
     // Delete participant
@@ -392,8 +510,17 @@ function saveParticipant(event) {
 
     try {
         if (mode === 'edit' && participantId) {
+            const oldParticipant = participantsRegistry.getById(participantId);
+            const oldName = oldParticipant ? oldParticipant.name : '';
+            
             participantsRegistry.update(participantId, data);
-            showToast('Partecipante aggiornato con successo', 'success');
+            
+            // Mostra messaggio diverso se il nome è cambiato
+            if (oldName && oldName !== data.name) {
+                showToast(`Partecipante aggiornato! Il nome è stato cambiato anche in tutti gli scenari e consuntivi.`, 'success');
+            } else {
+                showToast('Partecipante aggiornato con successo', 'success');
+            }
         } else {
             participantsRegistry.add(data);
             showToast('Partecipante aggiunto con successo', 'success');
@@ -401,6 +528,18 @@ function saveParticipant(event) {
 
         closeParticipantModal();
         renderParticipantsList();
+        
+        // Ricarica la vista corrente se siamo in uno scenario o consuntivo
+        if (typeof App !== 'undefined' && App.currentView === 'scenarioDetailView') {
+            // Ricarica lo scenario aggiornato dal localStorage
+            if (App.currentScenario && App.currentScenario.id) {
+                const updatedScenario = StorageManager.getScenario(App.currentScenario.id);
+                if (updatedScenario) {
+                    App.currentScenario = updatedScenario;
+                    App.loadScenarioForm(updatedScenario);
+                }
+            }
+        }
     } catch (error) {
         showToast('Errore nel salvataggio: ' + error.message, 'error');
     }

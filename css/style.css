@@ -1311,6 +1311,269 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+/* E-commerce style comparison cards */
+.comparison-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin: var(--spacing-xl) 0;
+}
+
+.comparison-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    border: 2px solid var(--border-light);
+    transition: all var(--transition-base);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.comparison-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.comparison-card.best-value {
+    border-color: var(--success-color);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(16, 185, 129, 0.1) 100%);
+}
+
+.comparison-card.best-value::before {
+    content: "🏆 Miglior Prezzo";
+    position: absolute;
+    top: -12px;
+    right: var(--spacing-md);
+    background: var(--success-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    box-shadow: var(--shadow-md);
+}
+
+.comparison-card-header {
+    text-align: center;
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--border-light);
+    margin-bottom: var(--spacing-md);
+}
+
+.comparison-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.comparison-card-destination {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.comparison-price-section {
+    text-align: center;
+    padding: var(--spacing-lg) 0;
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.comparison-total-price {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.comparison-per-person {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.comparison-per-person-price {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.comparison-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.comparison-detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+
+.comparison-detail-label {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.comparison-detail-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.comparison-expenses {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 2px solid var(--border-light);
+}
+
+.comparison-expenses-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.comparison-expense-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs) 0;
+    font-size: 0.85rem;
+}
+
+.comparison-expense-label {
+    color: var(--text-secondary);
+}
+
+.comparison-expense-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.comparison-expense-per-person {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-left: var(--spacing-xs);
+}
+
+/* Summary stats at top */
+.comparison-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border-light);
+}
+
+.comparison-summary-item {
+    text-align: center;
+    padding: var(--spacing-md);
+}
+
+.comparison-summary-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.comparison-summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Charts section - collapsible */
+.comparison-charts-section {
+    margin-top: var(--spacing-xl);
+    border-top: 2px solid var(--border-light);
+    padding-top: var(--spacing-xl);
+}
+
+.comparison-charts-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    margin-bottom: var(--spacing-md);
+}
+
+.comparison-charts-toggle:hover {
+    background: var(--bg-primary);
+}
+
+.comparison-charts-toggle h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.comparison-charts-toggle-icon {
+    transition: transform var(--transition-base);
+}
+
+.comparison-charts-toggle.collapsed .comparison-charts-toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.comparison-charts-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.comparison-charts-content.hidden {
+    display: none;
+}
+
+.chart-container {
+    background: var(--bg-primary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.chart-container h4 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-secondary);
+}
+
+.chart-container canvas {
+    max-height: 250px !important;
+}
+
+/* Legacy table - hidden by default, can be shown */
+.comparison-table-section {
+    margin-top: var(--spacing-xl);
+    display: none;
+}
+
 .comparison-table {
     width: 100%;
     border-collapse: separate;
@@ -1336,12 +1599,19 @@ body {
     background: var(--bg-secondary);
 }
 
-.chart-container {
-    background: var(--bg-primary);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    margin-top: var(--spacing-xl);
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .comparison-cards-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-charts-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .comparison-summary {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ===== Modals ===== */
