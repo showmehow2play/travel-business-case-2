@@ -79,6 +79,37 @@ const App = {
             }
         });
 
+        // Sync to Supabase button
+        const syncToSupabaseBtn = document.getElementById('syncToSupabaseBtn');
+        if (syncToSupabaseBtn) {
+            syncToSupabaseBtn.addEventListener('click', async () => {
+                if (typeof SupabaseStorage === 'undefined' || !window.isSupabaseEnabled) {
+                    ExportManager.showError('Supabase non configurato o non disponibile');
+                    return;
+                }
+
+                const originalText = syncToSupabaseBtn.innerHTML;
+                syncToSupabaseBtn.disabled = true;
+                syncToSupabaseBtn.innerHTML = '⏳ Sync...';
+
+                try {
+                    const success = await SupabaseStorage.syncToSupabase();
+
+                    if (success) {
+                        ExportManager.showSuccess('Scenari e consuntivi locali esportati su Supabase');
+                    } else {
+                        ExportManager.showError('Errore durante la sincronizzazione verso Supabase');
+                    }
+                } catch (error) {
+                    console.error('Errore sync Supabase:', error);
+                    ExportManager.showError('Errore durante la sincronizzazione verso Supabase');
+                } finally {
+                    syncToSupabaseBtn.disabled = false;
+                    syncToSupabaseBtn.innerHTML = originalText;
+                }
+            });
+        }
+
         // Modal close
         document.querySelectorAll('.modal-close').forEach(btn => {
             btn.addEventListener('click', () => {

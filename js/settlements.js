@@ -2,6 +2,7 @@
 
 const SettlementsManager = {
     currentActual: null,
+    payments: [], // Array per tracciare i pagamenti
 
     // Inizializza la view
     init() {
@@ -12,6 +13,12 @@ const SettlementsManager = {
     // Carica direttamente un consuntivo (senza selettore)
     loadActualDirect(actual) {
         this.currentActual = actual;
+        
+        // Inizializza i pagamenti se non esistono
+        if (!this.currentActual.payments) {
+            this.currentActual.payments = [];
+        }
+        this.payments = this.currentActual.payments;
         
         // Nascondi il selettore e mostra direttamente il contenuto
         const selectSection = document.querySelector('#settlementsView .form-section');
@@ -28,6 +35,9 @@ const SettlementsManager = {
 
         // Calcola e mostra i bilanci
         this.calculateBalances(actual);
+        
+        // Mostra storico pagamenti
+        this.displayPaymentsHistory();
     },
 
     // Setup event listeners
@@ -84,6 +94,12 @@ const SettlementsManager = {
 
         this.currentActual = actual;
         
+        // Inizializza i pagamenti se non esistono
+        if (!this.currentActual.payments) {
+            this.currentActual.payments = [];
+        }
+        this.payments = this.currentActual.payments;
+        
         // Mostra il contenuto
         document.getElementById('settlementsContent').style.display = 'block';
         document.getElementById('optimizedTransfers').style.display = 'none';
@@ -93,6 +109,9 @@ const SettlementsManager = {
 
         // Calcola e mostra i bilanci
         this.calculateBalances(actual);
+        
+        // Mostra storico pagamenti
+        this.displayPaymentsHistory();
     },
 
     // Aggiorna le statistiche generali
@@ -125,10 +144,14 @@ const SettlementsManager = {
         // Inizializza contatori per ogni partecipante
         const paid = {}; // Quanto ha pagato
         const owes = {}; // Quanto deve (la sua quota delle spese condivise)
+        const paymentsReceived = {}; // Pagamenti ricevuti
+        const paymentsMade = {}; // Pagamenti effettuati
         
         actual.participants.forEach(p => {
             paid[p] = 0;
             owes[p] = 0;
+            paymentsReceived[p] = 0;
+            paymentsMade[p] = 0;
         });
 
         // Calcola quanto ha pagato ogni partecipante e quanto deve
@@ -162,10 +185,25 @@ const SettlementsManager = {
             });
         }
 
-        // Calcola il bilancio (quanto ha pagato - quanto deve)
+        // Calcola i pagamenti confermati tra partecipanti
+        if (this.payments && Array.isArray(this.payments)) {
+            this.payments.forEach(payment => {
+                if (payment.confirmed) {
+                    const amount = parseFloat(payment.amount) || 0;
+                    if (paymentsReceived.hasOwnProperty(payment.to)) {
+                        paymentsReceived[payment.to] += amount;
+                    }
+                    if (paymentsMade.hasOwnProperty(payment.from)) {
+                        paymentsMade[payment.from] += amount;
+                    }
+                }
+            });
+        }
+
+        // Calcola il bilancio (quanto ha pagato - quanto deve + pagamenti ricevuti - pagamenti fatti)
         const balances = {};
         actual.participants.forEach(p => {
-            balances[p] = paid[p] - owes[p];
+            balances[p] = paid[p] - owes[p] + paymentsReceived[p] - paymentsMade[p];
         });
 
         // Calcola la quota media per visualizzazione (non più usata per il calcolo)
@@ -173,7 +211,7 @@ const SettlementsManager = {
         const avgShare = actual.participants.length > 0 ? totalCost / actual.participants.length : 0;
 
         // Mostra i bilanci
-        this.displayBalances(balances, paid, owes, avgShare);
+        this.displayBalances(balances, paid, owes, avgShare, paymentsReceived, paymentsMade);
 
         // Salva i bilanci per l'ottimizzazione
         this.balances = balances;
@@ -187,16 +225,29 @@ const SettlementsManager = {
     },
 
     // Mostra i bilanci nell'UI
-    displayBalances(balances, paid, owes, avgShare) {
+    displayBalances(balances, paid, owes, avgShare, paymentsReceived = {}, paymentsMade = {}) {
         const container = document.getElementById('participantBalances');
         if (!container) return;
 
         container.innerHTML = '';
+        
+        // Aggiungi pulsante per nuovo pagamento generico
+        const newPaymentBtn = document.createElement('div');
+        newPaymentBtn.style.cssText = 'grid-column: 1 / -1; margin-bottom: 1rem;';
+        newPaymentBtn.innerHTML = `
+            <button class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 0.75rem;"
+                    onclick="SettlementsManager.showNewPaymentModal()">
+                ➕ Nuovo Pagamento
+            </button>
+        `;
+        container.appendChild(newPaymentBtn);
 
         Object.keys(balances).sort().forEach(participant => {
             const balance = balances[participant];
             const paidAmount = paid[participant];
             const owesAmount = owes[participant];
+            const received = paymentsReceived[participant] || 0;
+            const made = paymentsMade[participant] || 0;
             
             const card = document.createElement('div');
             card.className = 'stat-card';
@@ -211,6 +262,14 @@ const SettlementsManager = {
             const photoHtml = photo
                 ? `<img src="${photo}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${statusColor}; margin-right: 0.75rem;" />`
                 : '';
+            
+            // Mostra info pagamenti se presenti
+            const paymentsInfo = (received > 0 || made > 0) ? `
+                <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: #f8f9fa; border-radius: 6px;">
+                    ${received > 0 ? `<div style="font-size: 0.85rem; color: #28a745;">✅ Ricevuti: €${received.toFixed(2)}</div>` : ''}
+                    ${made > 0 ? `<div style="font-size: 0.85rem; color: #dc3545;">💸 Pagati: €${made.toFixed(2)}</div>` : ''}
+                </div>
+            ` : '';
             
             card.innerHTML = `
                 <div class="stat-content">
@@ -229,12 +288,18 @@ const SettlementsManager = {
                         <div style="font-size: 0.85rem; color: #6c757d;">Sua quota spese:</div>
                         <div style="font-size: 1rem;">€${owesAmount.toFixed(2)}</div>
                     </div>
+                    ${paymentsInfo}
                     <div style="padding-top: 0.75rem; border-top: 2px solid #dee2e6;">
                         <div style="font-size: 0.85rem; color: ${statusColor}; font-weight: 600;">${statusText}</div>
                         <div style="font-size: 1.3rem; font-weight: bold; color: ${statusColor};">
                             €${Math.abs(balance).toFixed(2)}
                         </div>
                     </div>
+                    <button class="btn ${balance !== 0 ? 'btn-primary' : 'btn-secondary'}"
+                            style="width: 100%; margin-top: 0.75rem; font-size: 0.9rem;"
+                            onclick="SettlementsManager.showPaymentModal('${participant}', ${balance})">
+                        💳 ${balance > 0 ? 'Registra Incasso' : balance < 0 ? 'Registra Pagamento' : 'Registra Pagamento'}
+                    </button>
                 </div>
             `;
             
@@ -243,10 +308,15 @@ const SettlementsManager = {
     },
 
     // Ottimizza i trasferimenti (algoritmo greedy)
+    // NOTA: Usa this.balances che è già calcolato considerando:
+    // - Spese pagate da ogni partecipante
+    // - Quote spese dovute
+    // - Pagamenti confermati ricevuti/effettuati
     optimizeTransfers() {
         if (!this.balances) return;
 
         // Crea array di creditori (chi deve ricevere) e debitori (chi deve dare)
+        // basandosi sui bilanci già aggiornati con i pagamenti confermati
         const creditors = [];
         const debtors = [];
 
@@ -417,6 +487,475 @@ const SettlementsManager = {
 
         // Scroll alla sezione dei trasferimenti
         section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
+
+    // ===== Gestione Pagamenti =====
+
+    // Mostra modal per nuovo pagamento generico
+    showNewPaymentModal() {
+        if (!this.currentActual || !this.currentActual.participants || this.currentActual.participants.length < 2) {
+            alert('Servono almeno 2 partecipanti per registrare un pagamento.');
+            return;
+        }
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>➕ Nuovo Pagamento</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Da chi (pagatore)</label>
+                        <select id="paymentFrom" class="form-control">
+                            <option value="">-- Seleziona --</option>
+                            ${this.currentActual.participants.map(p => `<option value="${p}">${p}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>A chi (destinatario)</label>
+                        <select id="paymentTo" class="form-control">
+                            <option value="">-- Seleziona --</option>
+                            ${this.currentActual.participants.map(p => `<option value="${p}">${p}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Importo (€)</label>
+                        <input type="number" id="paymentAmount" class="form-control"
+                               min="0" step="0.01" value=""
+                               placeholder="Inserisci importo">
+                    </div>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="paymentDate" class="form-control"
+                               value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    <div class="form-group">
+                        <label>Note (opzionale)</label>
+                        <textarea id="paymentNotes" class="form-control" rows="2"
+                                  placeholder="Aggiungi note sul pagamento..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="paymentConfirmed" checked>
+                            <span>Conferma pagamento immediatamente</span>
+                        </label>
+                        <small style="color: #6c757d; display: block; margin-top: 0.25rem;">
+                            Se selezionato, il pagamento verrà confermato e scalato subito dai bilanci
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                        Annulla
+                    </button>
+                    <button class="btn btn-primary" onclick="SettlementsManager.saveNewPayment()">
+                        💾 Salva Pagamento
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        setTimeout(() => {
+            document.getElementById('paymentFrom').focus();
+        }, 100);
+    },
+
+    // Mostra modal per registrare un pagamento da una card specifica
+    showPaymentModal(participant, balance) {
+        const isReceiving = balance > 0;
+        const amount = Math.abs(balance);
+        
+        // Ottieni lista degli altri partecipanti
+        const otherParticipants = this.currentActual.participants.filter(p => p !== participant);
+        
+        if (otherParticipants.length === 0) {
+            alert('Non ci sono altri partecipanti per effettuare pagamenti.');
+            return;
+        }
+        
+        // Crea il modal
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>${isReceiving ? '💰 Registra Incasso' : '💸 Registra Pagamento'}</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>${isReceiving ? 'Da chi ricevi?' : 'A chi paghi?'}</label>
+                        <select id="paymentParticipant" class="form-control">
+                            <option value="">-- Seleziona --</option>
+                            ${otherParticipants.map(p => `<option value="${p}">${p}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Importo (€)</label>
+                        <input type="number" id="paymentAmount" class="form-control"
+                               min="0" step="0.01" value="${amount > 0 ? amount.toFixed(2) : ''}"
+                               placeholder="Inserisci importo">
+                    </div>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="paymentDate" class="form-control"
+                               value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    <div class="form-group">
+                        <label>Note (opzionale)</label>
+                        <textarea id="paymentNotes" class="form-control" rows="2"
+                                  placeholder="Aggiungi note sul pagamento..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="paymentConfirmed" checked>
+                            <span>Conferma pagamento immediatamente</span>
+                        </label>
+                        <small style="color: #6c757d; display: block; margin-top: 0.25rem;">
+                            Se selezionato, il pagamento verrà confermato e scalato subito dai bilanci
+                        </small>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #6c757d;">
+                            ${isReceiving
+                                ? `<strong>${participant}</strong> riceverà il pagamento da un altro partecipante.`
+                                : `<strong>${participant}</strong> effettuerà il pagamento verso un altro partecipante.`
+                            }
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                        Annulla
+                    </button>
+                    <button class="btn btn-primary" onclick="SettlementsManager.savePayment('${participant}', ${isReceiving})">
+                        💾 Salva Pagamento
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Focus sul primo campo
+        setTimeout(() => {
+            document.getElementById('paymentParticipant').focus();
+        }, 100);
+    },
+
+    // Salva un nuovo pagamento generico
+    saveNewPayment() {
+        const from = document.getElementById('paymentFrom').value;
+        const to = document.getElementById('paymentTo').value;
+        const amount = parseFloat(document.getElementById('paymentAmount').value);
+        const date = document.getElementById('paymentDate').value;
+        const notes = document.getElementById('paymentNotes').value;
+        const confirmed = document.getElementById('paymentConfirmed').checked;
+        
+        // Validazione
+        if (!from) {
+            alert('Seleziona chi effettua il pagamento.');
+            return;
+        }
+        
+        if (!to) {
+            alert('Seleziona chi riceve il pagamento.');
+            return;
+        }
+        
+        if (from === to) {
+            alert('Il pagatore e il destinatario devono essere diversi.');
+            return;
+        }
+        
+        if (!amount || amount <= 0) {
+            alert('Inserisci un importo valido.');
+            return;
+        }
+        
+        if (!date) {
+            alert('Inserisci una data.');
+            return;
+        }
+        
+        // Crea oggetto pagamento
+        const payment = {
+            id: Date.now().toString(),
+            from: from,
+            to: to,
+            amount: amount,
+            date: date,
+            notes: notes,
+            confirmed: confirmed,
+            createdAt: new Date().toISOString()
+        };
+        
+        // Aggiungi timestamp di conferma se confermato
+        if (confirmed) {
+            payment.confirmedAt = new Date().toISOString();
+        }
+        
+        // Aggiungi al array dei pagamenti
+        this.payments.push(payment);
+        this.currentActual.payments = this.payments;
+        
+        // Salva nel storage
+        StorageManager.updateActual(this.currentActual);
+        
+        // Chiudi tutti i modal aperti
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => modal.remove());
+        
+        // Aggiorna la vista
+        this.calculateBalances(this.currentActual);
+        this.displayPaymentsHistory();
+        
+        // Mostra messaggio di successo
+        const message = confirmed
+            ? '✅ Pagamento registrato e confermato! I bilanci sono stati aggiornati.'
+            : '✅ Pagamento registrato! In attesa di conferma.';
+        this.showNotification(message, 'success');
+    },
+
+    // Salva un nuovo pagamento
+    savePayment(participant, isReceiving) {
+        const otherParticipant = document.getElementById('paymentParticipant').value;
+        const amount = parseFloat(document.getElementById('paymentAmount').value);
+        const date = document.getElementById('paymentDate').value;
+        const notes = document.getElementById('paymentNotes').value;
+        const confirmed = document.getElementById('paymentConfirmed').checked;
+        
+        // Validazione
+        if (!otherParticipant) {
+            alert('Seleziona il partecipante.');
+            return;
+        }
+        
+        if (!amount || amount <= 0) {
+            alert('Inserisci un importo valido.');
+            return;
+        }
+        
+        if (!date) {
+            alert('Inserisci una data.');
+            return;
+        }
+        
+        // Crea oggetto pagamento
+        const payment = {
+            id: Date.now().toString(),
+            from: isReceiving ? otherParticipant : participant,
+            to: isReceiving ? participant : otherParticipant,
+            amount: amount,
+            date: date,
+            notes: notes,
+            confirmed: confirmed,
+            createdAt: new Date().toISOString()
+        };
+        
+        // Aggiungi timestamp di conferma se confermato
+        if (confirmed) {
+            payment.confirmedAt = new Date().toISOString();
+        }
+        
+        // Aggiungi al array dei pagamenti
+        this.payments.push(payment);
+        this.currentActual.payments = this.payments;
+        
+        // Salva nel storage
+        StorageManager.updateActual(this.currentActual);
+        
+        // Chiudi tutti i modal aperti
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => modal.remove());
+        
+        // Aggiorna la vista
+        this.calculateBalances(this.currentActual);
+        this.displayPaymentsHistory();
+        
+        // Mostra messaggio di successo
+        const message = confirmed
+            ? '✅ Pagamento registrato e confermato! I bilanci sono stati aggiornati.'
+            : '✅ Pagamento registrato! In attesa di conferma.';
+        this.showNotification(message, 'success');
+    },
+
+    // Conferma un pagamento
+    confirmPayment(paymentId) {
+        const payment = this.payments.find(p => p.id === paymentId);
+        if (!payment) return;
+        
+        if (confirm(`Confermare il pagamento di €${payment.amount.toFixed(2)} da ${payment.from} a ${payment.to}?`)) {
+            payment.confirmed = true;
+            payment.confirmedAt = new Date().toISOString();
+            
+            // Salva nel storage
+            StorageManager.updateActual(this.currentActual);
+            
+            // Aggiorna la vista
+            this.calculateBalances(this.currentActual);
+            this.displayPaymentsHistory();
+            
+            this.showNotification('✅ Pagamento confermato!', 'success');
+        }
+    },
+
+    // Elimina un pagamento
+    deletePayment(paymentId) {
+        if (confirm('Eliminare questo pagamento?')) {
+            this.payments = this.payments.filter(p => p.id !== paymentId);
+            this.currentActual.payments = this.payments;
+            
+            // Salva nel storage
+            StorageManager.updateActual(this.currentActual);
+            
+            // Aggiorna la vista
+            this.calculateBalances(this.currentActual);
+            this.displayPaymentsHistory();
+            
+            this.showNotification('🗑️ Pagamento eliminato.', 'info');
+        }
+    },
+
+    // Mostra storico pagamenti
+    displayPaymentsHistory() {
+        let container = document.getElementById('paymentsHistory');
+        
+        // Se il container non esiste, crealo
+        if (!container) {
+            const settlementsContent = document.getElementById('settlementsContent');
+            if (!settlementsContent) return;
+            
+            const section = document.createElement('div');
+            section.className = 'form-section';
+            section.style.marginTop = 'var(--spacing-lg)';
+            section.innerHTML = `
+                <h3>📋 Storico Pagamenti</h3>
+                <div id="paymentsHistory"></div>
+            `;
+            
+            // Inserisci prima della sezione trasferimenti ottimizzati
+            const optimizedSection = document.getElementById('optimizedTransfers');
+            if (optimizedSection) {
+                optimizedSection.parentNode.insertBefore(section, optimizedSection);
+            } else {
+                settlementsContent.appendChild(section);
+            }
+            
+            container = document.getElementById('paymentsHistory');
+        }
+        
+        if (!this.payments || this.payments.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #6c757d;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💳</div>
+                    <p>Nessun pagamento registrato</p>
+                    <p style="font-size: 0.9rem;">I pagamenti tra partecipanti appariranno qui</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Ordina per data (più recenti prima)
+        const sortedPayments = [...this.payments].sort((a, b) => 
+            new Date(b.date) - new Date(a.date)
+        );
+        
+        container.innerHTML = sortedPayments.map(payment => {
+            const fromPhoto = this.getParticipantPhoto(payment.from);
+            const toPhoto = this.getParticipantPhoto(payment.to);
+            
+            const fromPhotoHtml = fromPhoto
+                ? `<img src="${fromPhoto}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #dc3545; margin-right: 0.5rem;" />`
+                : '';
+            const toPhotoHtml = toPhoto
+                ? `<img src="${toPhoto}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #28a745; margin-left: 0.5rem;" />`
+                : '';
+            
+            const statusBadge = payment.confirmed
+                ? '<span style="background: #28a745; color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">✓ Confermato</span>'
+                : '<span style="background: #ffc107; color: #000; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">⏳ In attesa</span>';
+            
+            return `
+                <div style="
+                    background: ${payment.confirmed ? 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)' : 'linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%)'};
+                    border: 2px solid ${payment.confirmed ? '#dee2e6' : '#ffc107'};
+                    border-radius: 12px;
+                    padding: 1rem;
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    transition: transform 0.2s;
+                " onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='translateY(0)'">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            ${fromPhotoHtml}
+                            <strong>${payment.from}</strong>
+                            <span style="margin: 0 0.5rem; color: #6c757d;">→</span>
+                            ${toPhotoHtml}
+                            <strong>${payment.to}</strong>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 0.25rem;">
+                            📅 ${new Date(payment.date).toLocaleDateString('it-IT')}
+                        </div>
+                        ${payment.notes ? `<div style="font-size: 0.85rem; color: #6c757d; font-style: italic;">💬 ${payment.notes}</div>` : ''}
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 1.5rem; font-weight: bold; color: #28a745; margin-bottom: 0.5rem;">
+                            €${payment.amount.toFixed(2)}
+                        </div>
+                        <div style="margin-bottom: 0.5rem;">
+                            ${statusBadge}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            ${!payment.confirmed ? `
+                                <button class="btn btn-primary" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;" 
+                                        onclick="SettlementsManager.confirmPayment('${payment.id}')">
+                                    ✓ Conferma
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-danger" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;" 
+                                    onclick="SettlementsManager.deletePayment('${payment.id}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    // Mostra notifica
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 };
 
@@ -426,5 +965,32 @@ if (document.readyState === 'loading') {
 } else {
     SettlementsManager.init();
 }
+
+// Aggiungi animazioni CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
 
 // Made with Bob

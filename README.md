@@ -1,6 +1,6 @@
 # 🧳 Business Case Viaggi
 
-Un'applicazione web moderna e completa per la gestione di business case per viaggi, con funzionalità di confronto scenari, calcoli automatici e esportazione multi-formato.
+Un'applicazione web moderna e completa per la gestione di business case per viaggi, con funzionalità di confronto scenari, calcoli automatici, gestione pagamenti e esportazione multi-formato.
 
 ## 📋 Caratteristiche Principali
 
@@ -10,6 +10,7 @@ Un'applicazione web moderna e completa per la gestione di business case per viag
 - **Gestione Partecipanti**: Aggiungi partecipanti e calcola automaticamente i costi per persona
 - **Confronto Scenari**: Confronta più scenari con tabelle e grafici interattivi
 - **Dashboard Visuale**: Statistiche aggregate e panoramica completa dei tuoi viaggi
+- **💳 Gestione Pagamenti**: Traccia i pagamenti tra partecipanti e aggiorna automaticamente i bilanci Dare/Avere
 
 ### 🔍 Ricerca Voli Integrata
 - **Ricerca Rapida**: Cerca voli direttamente dall'app
@@ -43,6 +44,17 @@ Un'applicazione web moderna e completa per la gestione di business case per viag
 2. Inizia creando il tuo primo scenario di viaggio
 3. Aggiungi destinazione, partecipanti e spese
 4. Confronta diversi scenari per prendere decisioni informate
+
+### 💳 Gestione Pagamenti tra Partecipanti
+- **Registrazione Pagamenti**: Registra i pagamenti effettuati tra partecipanti
+- **Sistema di Conferma**: Conferma i pagamenti per aggiornarli nei bilanci
+- **Storico Completo**: Visualizza tutti i pagamenti con stato e dettagli
+- **Aggiornamento Automatico**: I bilanci Dare/Avere si aggiornano automaticamente
+- **Pagamenti Parziali**: Supporto per pagamenti parziali e multipli
+- **Note e Date**: Aggiungi contesto e traccia quando sono stati effettuati i pagamenti
+
+Per maggiori dettagli, consulta la [Guida ai Pagamenti](GUIDA_PAGAMENTI.md).
+
 
 ## 📖 Guida all'Uso
 
