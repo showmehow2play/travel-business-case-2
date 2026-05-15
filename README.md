@@ -11,6 +11,7 @@ Un'applicazione web moderna e completa per la gestione di business case per viag
 - **Confronto Scenari**: Confronta più scenari con tabelle e grafici interattivi
 - **Dashboard Visuale**: Statistiche aggregate e panoramica completa dei tuoi viaggi
 - **💳 Gestione Pagamenti**: Traccia i pagamenti tra partecipanti e aggiorna automaticamente i bilanci Dare/Avere
+- **🤖 Chatbot Norwy con NLP**: Assistente virtuale intelligente per inserire pagamenti e spese tramite linguaggio naturale
 
 ### 🔍 Ricerca Voli Integrata
 - **Ricerca Rapida**: Cerca voli direttamente dall'app
@@ -45,9 +46,20 @@ Un'applicazione web moderna e completa per la gestione di business case per viag
 3. Aggiungi destinazione, partecipanti e spese
 4. Confronta diversi scenari per prendere decisioni informate
 
+### 🤖 Chatbot Norwy - Assistente Virtuale Intelligente
+- **Interfaccia Conversazionale**: Chatta con Norwy per ottenere aiuto e informazioni
+- **Knowledge Base Completa**: Risposte su scenari, consuntivi, pagamenti, valute e altro
+- **Natural Language Processing (NLP)**: Inserisci pagamenti e spese usando linguaggio naturale
+  - Esempio pagamenti: "Marco ha pagato 50€ a Luca"
+  - Esempio spese: "Aggiungi spesa di 80€ per cena"
+- **Dialoghi Multi-Step**: Norwy ti guida passo-passo se mancano informazioni
+- **Conferma Automatica**: I pagamenti inseriti via chat vengono confermati automaticamente
+- **Storico Conversazioni**: Tutte le chat vengono salvate per riferimento futuro
+
 ### 💳 Gestione Pagamenti tra Partecipanti
-- **Registrazione Pagamenti**: Registra i pagamenti effettuati tra partecipanti
+- **Registrazione Pagamenti**: Registra i pagamenti effettuati tra partecipanti (UI o Chat)
 - **Sistema di Conferma**: Conferma i pagamenti per aggiornarli nei bilanci
+- **Inserimento Rapido via NLP**: Usa Norwy per registrare pagamenti in pochi secondi
 - **Storico Completo**: Visualizza tutti i pagamenti con stato e dettagli
 - **Aggiornamento Automatico**: I bilanci Dare/Avere si aggiornano automaticamente
 - **Pagamenti Parziali**: Supporto per pagamenti parziali e multipli

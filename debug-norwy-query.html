@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Norwy Query</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .section {
+            background: #252526;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid #007acc;
+        }
+        h2 {
+            color: #4ec9b0;
+            margin-top: 0;
+        }
+        pre {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .error {
+            color: #f48771;
+        }
+        .success {
+            color: #4ec9b0;
+        }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Norwy Query System</h1>
+    
+    <div class="section">
+        <h2>1. LocalStorage Keys</h2>
+        <pre id="keys"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>2. Scenarios Data</h2>
+        <pre id="scenarios"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>3. Actuals Data</h2>
+        <pre id="actuals"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>4. Current State</h2>
+        <pre id="state"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>5. Test Query Functions</h2>
+        <button onclick="testGetScenarios()">Test getScenarios()</button>
+        <button onclick="testGetActuals()">Test getActuals()</button>
+        <button onclick="testCurrentScenario()">Test Current Scenario</button>
+        <button onclick="testActualsManager()">Test ActualsManager</button>
+        <pre id="testResults"></pre>
+    </div>
+    
+    <div class="section">
+        <h2>6. Actions</h2>
+        <button onclick="location.reload()">🔄 Refresh</button>
+        <button onclick="window.open('index.html', '_blank')">🚀 Open App</button>
+    </div>
+    
+    <script>
+        // Display all localStorage keys
+        function displayKeys() {
+            const keys = Object.keys(localStorage);
+            document.getElementById('keys').textContent = JSON.stringify(keys, null, 2);
+        }
+        
+        // Display scenarios
+        function displayScenarios() {
+            try {
+                const scenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+                document.getElementById('scenarios').innerHTML = 
+                    `<span class="success">✓ Found ${scenarios.length} scenarios</span>\n` +
+                    JSON.stringify(scenarios, null, 2);
+            } catch (e) {
+                document.getElementById('scenarios').innerHTML = 
+                    `<span class="error">✗ Error: ${e.message}</span>`;
+            }
+        }
+        
+        // Display actuals
+        function displayActuals() {
+            try {
+                const actuals = JSON.parse(localStorage.getItem('actuals') || '[]');
+                document.getElementById('actuals').innerHTML = 
+                    `<span class="success">✓ Found ${actuals.length} actuals</span>\n` +
+                    JSON.stringify(actuals, null, 2);
+            } catch (e) {
+                document.getElementById('actuals').innerHTML = 
+                    `<span class="error">✗ Error: ${e.message}</span>`;
+            }
+        }
+        
+        // Display current state
+        function displayState() {
+            const state = {
+                'window.App exists': typeof window.App !== 'undefined',
+                'window.App.currentScenario': window.App?.currentScenario || null,
+                'window.App.currentView': window.App?.currentView || null,
+                'ActualsManager exists': typeof ActualsManager !== 'undefined',
+                'ActualsManager.currentActualId': typeof ActualsManager !== 'undefined' ? ActualsManager.currentActualId : null,
+                'SettlementsManager exists': typeof SettlementsManager !== 'undefined',
+                'SettlementsManager.currentActual': typeof SettlementsManager !== 'undefined' ? SettlementsManager.currentActual : null
+            };
+            document.getElementById('state').textContent = JSON.stringify(state, null, 2);
+        }
+        
+        // Test functions
+        function testGetScenarios() {
+            try {
+                const scenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+                document.getElementById('testResults').innerHTML = 
+                    `<span class="success">✓ getScenarios() returned ${scenarios.length} items</span>\n` +
+                    JSON.stringify(scenarios.map(s => ({ id: s.id, name: s.name })), null, 2);
+            } catch (e) {
+                document.getElementById('testResults').innerHTML = 
+                    `<span class="error">✗ Error: ${e.message}</span>`;
+            }
+        }
+        
+        function testGetActuals() {
+            try {
+                const actuals = JSON.parse(localStorage.getItem('actuals') || '[]');
+                document.getElementById('testResults').innerHTML = 
+                    `<span class="success">✓ getActuals() returned ${actuals.length} items</span>\n` +
+                    JSON.stringify(actuals.map(a => ({ 
+                        id: a.id, 
+                        name: a.name, 
+                        type: a.type,
+                        expensesCount: a.expenses?.length || 0 
+                    })), null, 2);
+            } catch (e) {
+                document.getElementById('testResults').innerHTML = 
+                    `<span class="error">✗ Error: ${e.message}</span>`;
+            }
+        }
+        
+        function testCurrentScenario() {
+            const result = {
+                'App exists': typeof window.App !== 'undefined',
+                'currentScenario': window.App?.currentScenario || 'null'
+            };
+            document.getElementById('testResults').textContent = JSON.stringify(result, null, 2);
+        }
+        
+        function testActualsManager() {
+            const result = {
+                'ActualsManager exists': typeof ActualsManager !== 'undefined',
+                'currentActualId': typeof ActualsManager !== 'undefined' ? ActualsManager.currentActualId : 'undefined'
+            };
+            document.getElementById('testResults').textContent = JSON.stringify(result, null, 2);
+        }
+        
+        // Initialize
+        displayKeys();
+        displayScenarios();
+        displayActuals();
+        displayState();
+        
+        console.log('🔍 Debug page loaded');
+        console.log('LocalStorage keys:', Object.keys(localStorage));
+        console.log('Scenarios:', localStorage.getItem('scenarios'));
+        console.log('Actuals:', localStorage.getItem('actuals'));
+    </script>
+</body>
+</html>
