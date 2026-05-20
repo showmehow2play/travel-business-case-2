@@ -63,6 +63,8 @@ const AccommodationComparison = {
             this.currentStep = 1;
             this.showStep(1);
             this.loadGroupComposition();
+            // Aggiorna il numero di partecipanti dello scenario
+            this.updateScenarioParticipantsDisplay();
             // Forza aggiornamento summary per mostrare validazione
             this.updateGroupSummary();
         }
@@ -100,11 +102,35 @@ const AccommodationComparison = {
     
     // Ottieni il numero di partecipanti dallo scenario
     getScenarioParticipantsCount() {
-        const participantsInput = document.getElementById('participants');
-        if (participantsInput) {
-            return parseInt(participantsInput.value) || 0;
+        // Prova a ottenere i partecipanti dal form dello scenario corrente
+        const participantTags = document.querySelectorAll('#participantsList .participant-tag');
+        if (participantTags && participantTags.length > 0) {
+            return participantTags.length;
         }
+        
+        // Fallback: prova a ottenere dallo scenario corrente in App
+        if (typeof App !== 'undefined' && App.currentScenario && App.currentScenario.participants) {
+            return Array.isArray(App.currentScenario.participants) ? App.currentScenario.participants.length : 0;
+        }
+        
         return 0;
+    },
+    
+    // Aggiorna la visualizzazione del numero di partecipanti dello scenario
+    updateScenarioParticipantsDisplay() {
+        const scenarioParticipants = this.getScenarioParticipantsCount();
+        const countEl = document.getElementById('scenarioParticipantsCount');
+        if (countEl) {
+            countEl.textContent = scenarioParticipants;
+        }
+        
+        // Aggiorna anche lo stile del box in base al numero
+        const infoBox = document.getElementById('scenarioParticipantsInfo');
+        if (infoBox && scenarioParticipants === 0) {
+            infoBox.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        } else if (infoBox) {
+            infoBox.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        }
     },
     
     // Genera descrizione automatica dal link

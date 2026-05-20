@@ -94,6 +94,7 @@
         <!-- Hidden accommodation options for testing -->
         <div style="display: none;">
             <input type="text" id="destination" value="Roma, Italia">
+            <input type="number" id="participants" value="8">
             <div id="accommodationOptions">
                 <input type="text" class="option-name" data-index="0" value="Appartamento Centro">
                 <input type="number" class="option-price" data-index="0" value="500">
@@ -132,6 +133,22 @@
                 
                 <div class="form-section">
                     <h3>👥 Definisci la Composizione del Gruppo</h3>
+                    
+                    <!-- Scenario Participants Info Box -->
+                    <div id="scenarioParticipantsInfo" class="scenario-participants-info" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span style="font-size: 2rem;">👥</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.25rem;">NUMERO PARTECIPANTI DELLO SCENARIO</div>
+                                <div style="font-size: 1.75rem; font-weight: 700; line-height: 1;">
+                                    <span id="scenarioParticipantsCount">0</span> persone
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.3); font-size: 0.875rem; opacity: 0.95;">
+                            ℹ️ Il totale dei partecipanti che inserisci qui sotto deve corrispondere a questo numero
+                        </div>
+                    </div>
                     
                     <div class="group-counter-grid">
                         <div class="counter-item">
@@ -232,11 +249,11 @@
                             👥 Idoneità per composizione gruppo
                         </label>
                         <label>
-                            <input type="checkbox" class="comparison-criteria" value="distance">
+                            <input type="checkbox" class="comparison-criteria" value="distance" checked>
                             📍 Distanza dalla destinazione
                         </label>
                         <label>
-                            <input type="checkbox" class="comparison-criteria" value="features">
+                            <input type="checkbox" class="comparison-criteria" value="features" checked>
                             🏠 Caratteristiche alloggio
                         </label>
                     </div>
