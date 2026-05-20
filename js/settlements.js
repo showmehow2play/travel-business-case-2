@@ -358,136 +358,203 @@ const SettlementsManager = {
             if (debtor.amount < 0.01) j++;
         }
 
-        // Mostra i trasferimenti
-        this.displayTransfers(transfers);
+        // Salva i trasferimenti e apri il modal
+        this.currentTransfers = transfers;
+        this.showTransfersModal(transfers);
     },
 
-    // Mostra i trasferimenti ottimizzati
-    displayTransfers(transfers) {
-        const container = document.getElementById('transfersList');
-        const section = document.getElementById('optimizedTransfers');
+    // Mostra modal con i trasferimenti ottimizzati
+    showTransfersModal(transfers) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.id = 'transfersModal';
+        modal.style.cssText = 'display: flex; align-items: center; justify-content: center;';
         
-        if (!container || !section) return;
-
-        section.style.display = 'block';
-        container.innerHTML = '';
-
+        const totalTransfers = transfers.reduce((sum, t) => sum + t.amount, 0);
+        
+        let transfersHtml = '';
+        
         if (transfers.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">✅</div>
-                    <h3>Tutti i conti sono in pari!</h3>
-                    <p>Non sono necessari trasferimenti</p>
+            transfersHtml = `
+                <div class="empty-state" style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+                    <h3 style="margin-bottom: 0.25rem;">Tutti i conti sono in pari!</h3>
+                    <p style="color: #6c757d; font-size: 0.9rem;">Non sono necessari trasferimenti</p>
                 </div>
             `;
+        } else {
+            transfersHtml = transfers.map((transfer, index) => {
+                const fromPhoto = this.getParticipantPhoto(transfer.from);
+                const toPhoto = this.getParticipantPhoto(transfer.to);
+                
+                const fromPhotoHtml = fromPhoto
+                    ? `<img src="${fromPhoto}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #dc3545; margin-right: 0.4rem;" />`
+                    : '';
+                const toPhotoHtml = toPhoto
+                    ? `<img src="${toPhoto}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #28a745; margin-left: 0.4rem;" />`
+                    : '';
+                
+                return `
+                    <div class="transfer-card" style="
+                        background: #f8f9fa;
+                        border: 1px solid #dee2e6;
+                        border-radius: 8px;
+                        padding: 0.75rem;
+                        margin-bottom: 0.5rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.75rem;
+                    ">
+                        <div style="
+                            background: #007bff;
+                            color: white;
+                            width: 28px;
+                            height: 28px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-weight: bold;
+                            font-size: 0.85rem;
+                            flex-shrink: 0;
+                        ">
+                            ${index + 1}
+                        </div>
+                        <div style="flex: 1; display: flex; align-items: center; font-size: 0.95rem;">
+                            ${fromPhotoHtml}
+                            <strong>${transfer.from}</strong>
+                            <span style="color: #6c757d; margin: 0 0.4rem;">→</span>
+                            ${toPhotoHtml}
+                            <strong>${transfer.to}</strong>
+                        </div>
+                        <div style="
+                            background: #28a745;
+                            color: white;
+                            padding: 0.4rem 1rem;
+                            border-radius: 20px;
+                            font-size: 1.1rem;
+                            font-weight: bold;
+                            flex-shrink: 0;
+                        ">
+                            €${transfer.amount.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Aggiungi riepilogo compatto
+            transfersHtml += `
+                <div style="
+                    margin-top: 1rem;
+                    padding: 0.75rem;
+                    background: #e3f2fd;
+                    border-radius: 6px;
+                    text-align: center;
+                ">
+                    <div style="font-size: 0.85rem; color: #1976d2; margin-bottom: 0.25rem;">
+                        Totale: <strong style="font-size: 1.2rem; color: #0d47a1;">€${totalTransfers.toFixed(2)}</strong>
+                        <span style="margin-left: 0.5rem;">in ${transfers.length} trasferiment${transfers.length === 1 ? 'o' : 'i'}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+                <div class="modal-header" style="padding: 1rem 1.5rem;">
+                    <h3 style="font-size: 1.3rem; margin: 0;">🔄 Trasferimenti Ottimizzati</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 1rem 1.5rem;">
+                    <div style="background: #e7f3ff; border-left: 3px solid #007bff; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem;">
+                        <strong style="color: #0056b3;">ℹ️</strong>
+                        <span style="color: #004085;">Trasferimenti minimi per pareggiare i conti</span>
+                    </div>
+                    ${transfersHtml}
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end; padding: 1rem 1.5rem;">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                        Chiudi
+                    </button>
+                    ${transfers.length > 0 ? `
+                        <button class="btn btn-success" onclick="SettlementsManager.exportTransfersToExcel()">
+                            📊 Esporta Excel
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    },
+
+    // Esporta i trasferimenti in Excel (formato XLSX)
+    exportTransfersToExcel() {
+        if (!this.currentTransfers || this.currentTransfers.length === 0) {
+            alert('Nessun trasferimento da esportare.');
             return;
         }
-
-        transfers.forEach((transfer, index) => {
-            const card = document.createElement('div');
-            card.className = 'transfer-card';
-            card.style.cssText = `
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                border: 2px solid #dee2e6;
-                border-radius: 12px;
-                padding: 1.5rem;
-                margin-bottom: 1rem;
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                transition: transform 0.2s;
-            `;
-            
-            // Ottieni foto dei partecipanti
-            const fromPhoto = this.getParticipantPhoto(transfer.from);
-            const toPhoto = this.getParticipantPhoto(transfer.to);
-            
-            const fromPhotoHtml = fromPhoto
-                ? `<img src="${fromPhoto}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #dc3545; margin-right: 0.5rem;" />`
-                : '';
-            const toPhotoHtml = toPhoto
-                ? `<img src="${toPhoto}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #28a745; margin-left: 0.5rem;" />`
-                : '';
-            
-            card.innerHTML = `
-                <div style="
-                    background: linear-gradient(135deg, #007bff, #0056b3);
-                    color: white;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: bold;
-                    flex-shrink: 0;
-                ">
-                    ${index + 1}
-                </div>
-                <div style="flex: 1;">
-                    <div style="font-size: 1.1rem; margin-bottom: 0.25rem; display: flex; align-items: center;">
-                        ${fromPhotoHtml}
-                        <strong>${transfer.from}</strong>
-                        <span style="color: #6c757d; margin: 0 0.5rem;">→</span>
-                        ${toPhotoHtml}
-                        <strong>${transfer.to}</strong>
-                    </div>
-                    <div style="font-size: 0.9rem; color: #6c757d;">
-                        Trasferimento
-                    </div>
-                </div>
-                <div style="
-                    background: linear-gradient(135deg, #28a745, #1e7e34);
-                    color: white;
-                    padding: 0.75rem 1.5rem;
-                    border-radius: 50px;
-                    font-size: 1.3rem;
-                    font-weight: bold;
-                    flex-shrink: 0;
-                ">
-                    €${transfer.amount.toFixed(2)}
-                </div>
-            `;
-            
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-2px)';
-                card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-            });
-            
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-                card.style.boxShadow = 'none';
-            });
-            
-            container.appendChild(card);
+        
+        // Verifica che la libreria XLSX sia disponibile
+        if (typeof XLSX === 'undefined') {
+            alert('Libreria XLSX non disponibile. Impossibile esportare.');
+            return;
+        }
+        
+        // Prepara i dati per Excel
+        const data = [];
+        
+        // Header con stile
+        data.push(['#', 'Da', 'A', 'Importo (€)', 'Data Suggerita', 'Note']);
+        
+        // Dati trasferimenti
+        this.currentTransfers.forEach((transfer, index) => {
+            data.push([
+                index + 1,
+                transfer.from,
+                transfer.to,
+                parseFloat(transfer.amount.toFixed(2)),
+                new Date().toLocaleDateString('it-IT'),
+                'Trasferimento ottimizzato'
+            ]);
         });
-
-        // Aggiungi riepilogo
-        const totalTransfers = transfers.reduce((sum, t) => sum + t.amount, 0);
-        const summary = document.createElement('div');
-        summary.style.cssText = `
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-radius: 8px;
-            text-align: center;
-        `;
-        summary.innerHTML = `
-            <div style="font-size: 0.9rem; color: #1976d2; margin-bottom: 0.25rem;">
-                Totale da trasferire
-            </div>
-            <div style="font-size: 1.5rem; font-weight: bold; color: #0d47a1;">
-                €${totalTransfers.toFixed(2)}
-            </div>
-            <div style="font-size: 0.85rem; color: #1976d2; margin-top: 0.5rem;">
-                in ${transfers.length} trasferiment${transfers.length === 1 ? 'o' : 'i'}
-            </div>
-        `;
-        container.appendChild(summary);
-
-        // Scroll alla sezione dei trasferimenti
-        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Aggiungi riga vuota
+        data.push([]);
+        
+        // Aggiungi riga totale
+        const total = this.currentTransfers.reduce((sum, t) => sum + t.amount, 0);
+        data.push(['', '', 'TOTALE', parseFloat(total.toFixed(2)), '', '']);
+        
+        // Crea il workbook
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        
+        // Imposta larghezza colonne
+        ws['!cols'] = [
+            { wch: 5 },   // #
+            { wch: 20 },  // Da
+            { wch: 20 },  // A
+            { wch: 12 },  // Importo
+            { wch: 15 },  // Data
+            { wch: 25 }   // Note
+        ];
+        
+        // Aggiungi il worksheet al workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Trasferimenti');
+        
+        // Nome file con data e nome consuntivo
+        const actualName = this.currentActual ? this.currentActual.name.replace(/[^a-z0-9]/gi, '_') : 'consuntivo';
+        const date = new Date().toISOString().split('T')[0];
+        const filename = `trasferimenti_${actualName}_${date}.xlsx`;
+        
+        // Scarica il file
+        XLSX.writeFile(wb, filename);
+        
+        // Mostra notifica
+        this.showNotification('📊 File Excel esportato con successo!', 'success');
     },
+
 
     // ===== Gestione Pagamenti =====
 
