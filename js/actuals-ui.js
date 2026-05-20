@@ -215,6 +215,13 @@ const ActualsUI = {
                             <span class="info-label">💰 Per persona:</span>
                             <span class="info-value">${ActualsManager.formatCurrency(costPerPerson)}</span>
                         </div>
+                        ${actual.notes ? `
+                            <div class="info-row" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                                <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.5;">
+                                    ${typeof linkifyText !== 'undefined' ? linkifyText(actual.notes) : actual.notes.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                     <div class="scenario-total">
                         <span class="total-label">Totale:</span>
@@ -685,7 +692,7 @@ const ActualsUI = {
                     </button>
                 </div>
                 
-                <div class="expense-item expense-item-new" data-index="${index}" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; grid-template-rows: auto auto; gap: 0.5rem; ${opacityStyle}">
+                <div class="expense-item expense-item-new" data-index="${index}" style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr 2fr; grid-template-rows: auto auto auto; gap: 0.5rem; ${opacityStyle}">
                     
                     <!-- Colonna 1: Descrizione (riga 1) e Categoria (riga 2) -->
                     <div class="expense-field" style="grid-column: 1; grid-row: 1;">
@@ -756,6 +763,16 @@ const ActualsUI = {
                             }).join('')}
                         </div>
                     </div>
+                    
+                    <!-- Riga 3: Note (span tutte le colonne) -->
+                    ${expense.notes ? `
+                        <div class="expense-field" style="grid-column: 1 / 5; grid-row: 3;">
+                            <label>📝 Note</label>
+                            <div style="padding: 0.5rem; background: #f9fafb; border-radius: 0.375rem; font-size: 0.875rem; line-height: 1.5; color: #374151;">
+                                ${typeof linkifyText !== 'undefined' ? linkifyText(expense.notes) : expense.notes.replace(/\n/g, '<br>')}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;

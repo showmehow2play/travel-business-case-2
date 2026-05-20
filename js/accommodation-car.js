@@ -1,5 +1,66 @@
 // ===== Accommodation and Car Manager =====
 // Gestisce le opzioni di alloggio e auto con link di ricerca
+// Inizializza i listener per i pulsanti di apertura link
+document.addEventListener('DOMContentLoaded', function() {
+    // Listener per i campi link per mostrare/nascondere i pulsanti
+    document.querySelectorAll('.option-link').forEach(input => {
+        input.addEventListener('input', function() {
+            updateLinkButton(this);
+        });
+        
+        // Controlla inizialmente se c'è un link
+        updateLinkButton(input);
+    });
+    
+    // Listener per i pulsanti di apertura link
+    document.querySelectorAll('.btn-link-open').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openOptionLink(this);
+        });
+    });
+});
+
+// Aggiorna la visibilità del pulsante link
+function updateLinkButton(linkInput) {
+    const index = linkInput.dataset.index;
+    const type = linkInput.closest('#accommodationOptions') ? 'accommodation' : 
+                 linkInput.closest('#carOptions') ? 'car' : 'other';
+    const button = document.querySelector(`.btn-link-open[data-link-index="${index}"][data-link-type="${type}"]`);
+    
+    if (button) {
+        const url = linkInput.value.trim();
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            button.style.display = 'block';
+        } else {
+            button.style.display = 'none';
+        }
+    }
+}
+
+// Apre il link in una nuova finestra
+function openOptionLink(button) {
+    const index = button.dataset.linkIndex;
+    const type = button.dataset.linkType;
+    
+    let linkInput;
+    if (type === 'accommodation') {
+        linkInput = document.querySelector(`#accommodationOptions .option-link[data-index="${index}"]`);
+    } else if (type === 'car') {
+        linkInput = document.querySelector(`#carOptions .option-link[data-index="${index}"]`);
+    } else if (type === 'other') {
+        linkInput = document.querySelector(`#otherOptions .option-link[data-index="${index}"]`);
+    }
+    
+    if (linkInput) {
+        const url = linkInput.value.trim();
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    }
+}
+
 
 const AccommodationCarManager = {
     // Genera link per Airbnb
@@ -236,7 +297,13 @@ const AccommodationCarManager = {
             
             if (nameInput) nameInput.value = option.name || '';
             if (priceInput) priceInput.value = option.price || 0;
-            if (linkInput) linkInput.value = option.link || '';
+            if (linkInput) {
+                linkInput.value = option.link || '';
+                // Aggiorna la visibilità del pulsante link
+                if (typeof updateLinkButton !== 'undefined') {
+                    updateLinkButton(linkInput);
+                }
+            }
         });
     },
 
@@ -256,7 +323,13 @@ const AccommodationCarManager = {
             if (checkbox) checkbox.checked = option.selected || false;
             if (nameInput) nameInput.value = option.name || '';
             if (priceInput) priceInput.value = option.price || 0;
-            if (linkInput) linkInput.value = option.link || '';
+            if (linkInput) {
+                linkInput.value = option.link || '';
+                // Aggiorna la visibilità del pulsante link
+                if (typeof updateLinkButton !== 'undefined') {
+                    updateLinkButton(linkInput);
+                }
+            }
         });
     },
 

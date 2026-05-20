@@ -462,6 +462,13 @@ const App = {
                             <span class="info-label">💰 Per persona:</span>
                             <span class="info-value">${ScenarioManager.formatCurrency(costPerPerson)}</span>
                         </div>
+                        ${scenario.notes ? `
+                            <div class="info-row" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                                <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.5;">
+                                    ${typeof linkifyText !== 'undefined' ? linkifyText(scenario.notes) : scenario.notes.replace(/\n/g, '<br>')}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                     <div class="scenario-total">
                         <span class="total-label">Totale:</span>
@@ -551,6 +558,13 @@ const App = {
                                 <span class="info-label">💰 Per persona:</span>
                                 <span class="info-value">${ScenarioManager.formatCurrency(costPerPerson)}</span>
                             </div>
+                            ${safeScenario.notes ? `
+                                <div class="info-row" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                                    <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.5;">
+                                        ${typeof linkifyText !== 'undefined' ? linkifyText(safeScenario.notes) : safeScenario.notes.replace(/\n/g, '<br>')}
+                                    </div>
+                                </div>
+                            ` : ''}
                         </div>
                         <div class="scenario-total">
                             <span class="total-label">Totale:</span>

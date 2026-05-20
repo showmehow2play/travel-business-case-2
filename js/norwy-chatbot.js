@@ -297,19 +297,19 @@ const NorwyChatbot = {
             return this.handlePendingAction(message);
         }
         
-        // Controlla se è una query sui dati
-        if (this.isDataQuery(lowerMessage)) {
-            return this.handleDataQuery(message);
-        }
-        
-        // Controlla se è un comando per inserire spesa
+        // Controlla PRIMA se è un comando per inserire spesa o pagamento
+        // (devono essere controllati prima delle query per evitare falsi positivi)
         if (this.isExpenseCommand(lowerMessage)) {
             return this.handleExpenseCommand(message);
         }
         
-        // Controlla se è un comando per inserire pagamento
         if (this.isPaymentCommand(lowerMessage)) {
             return this.handlePaymentCommand(message);
+        }
+        
+        // Poi controlla se è una query sui dati
+        if (this.isDataQuery(lowerMessage)) {
+            return this.handleDataQuery(message);
         }
         
         // Cerca nella knowledge base
@@ -820,8 +820,27 @@ const NorwyChatbot = {
     // Helper: ottieni scenari
     getScenarios() {
         try {
-            return JSON.parse(localStorage.getItem('scenarios') || '[]');
-        } catch {
+            // Prova prima con StorageManager se disponibile
+            if (typeof StorageManager !== 'undefined') {
+                const data = StorageManager.getData();
+                console.log('🔍 Norwy getScenarios - StorageManager data:', data);
+                if (data && data.scenarios) {
+                    console.log('🔍 Norwy getScenarios - found:', data.scenarios.length, 'items');
+                    return data.scenarios;
+                }
+            }
+            
+            // Fallback: prova chiave diretta 'scenarios'
+            const directData = localStorage.getItem('scenarios');
+            if (directData) {
+                console.log('🔍 Norwy getScenarios - direct key found');
+                return JSON.parse(directData);
+            }
+            
+            console.log('🔍 Norwy getScenarios - no data found');
+            return [];
+        } catch (e) {
+            console.error('❌ Norwy getScenarios error:', e);
             return [];
         }
     },
@@ -829,8 +848,27 @@ const NorwyChatbot = {
     // Helper: ottieni consuntivi
     getActuals() {
         try {
-            return JSON.parse(localStorage.getItem('actuals') || '[]');
-        } catch {
+            // Prova prima con StorageManager se disponibile
+            if (typeof StorageManager !== 'undefined') {
+                const data = StorageManager.getData();
+                console.log('🔍 Norwy getActuals - StorageManager data:', data);
+                if (data && data.actuals) {
+                    console.log('🔍 Norwy getActuals - found:', data.actuals.length, 'items');
+                    return data.actuals;
+                }
+            }
+            
+            // Fallback: prova chiave diretta 'actuals'
+            const directData = localStorage.getItem('actuals');
+            if (directData) {
+                console.log('🔍 Norwy getActuals - direct key found');
+                return JSON.parse(directData);
+            }
+            
+            console.log('🔍 Norwy getActuals - no data found');
+            return [];
+        } catch (e) {
+            console.error('❌ Norwy getActuals error:', e);
             return [];
         }
     },
@@ -859,8 +897,15 @@ const NorwyChatbot = {
     
     // Verifica se è un comando per inserire pagamento
     isPaymentCommand(message) {
-        const paymentKeywords = ['ha pagato', 'pagamento da', 'trasferimento da', 'paga a', 'registra pagamento'];
-        return paymentKeywords.some(keyword => message.includes(keyword));
+        // Usa regex per essere più precisi ed evitare falsi positivi come "pagando"
+        const paymentPatterns = [
+            /\b(ha pagato|hanno pagato)\b/i,           // "ha pagato" o "hanno pagato"
+            /\bpagamento\s+da\b/i,                      // "pagamento da"
+            /\btrasferimento\s+da\b/i,                  // "trasferimento da"
+            /\b\w+\s+paga\s+\d+/i,                      // "Marco paga 50" (nome + paga + numero)
+            /\bregistra\s+pagamento\b/i                 // "registra pagamento"
+        ];
+        return paymentPatterns.some(pattern => pattern.test(message));
     },
     
     // Gestisce comando per inserire spesa
@@ -939,22 +984,36 @@ const NorwyChatbot = {
     parsePaymentCommand(message) {
         const result = { from: null, to: null, amount: null };
         
-        // Pattern: "X ha pagato Y€ a Z" o "pagamento da X a Z di Y€"
+        // Pattern supportati:
+        // 1. "X ha pagato Y€ a Z"
+        // 2. "pagamento da X a Z di Y€"
+        // 3. "X paga Y€ a Z" (NUOVO!)
         const pattern1 = /(\w+)\s+ha\s+pagato\s+(\d+(?:[.,]\d+)?)\s*(?:€|euro|eur)?\s+a\s+(\w+)/i;
         const pattern2 = /pagamento\s+da\s+(\w+)\s+a\s+(\w+)\s+(?:di\s+)?(\d+(?:[.,]\d+)?)\s*(?:€|euro|eur)?/i;
+        const pattern3 = /(\w+)\s+paga\s+(\d+(?:[.,]\d+)?)\s*(?:€|euro|eur)?\s+a\s+(\w+)/i;
         
         let match = message.match(pattern1);
         if (match) {
             result.from = match[1];
             result.amount = parseFloat(match[2].replace(',', '.'));
             result.to = match[3];
-        } else {
-            match = message.match(pattern2);
-            if (match) {
-                result.from = match[1];
-                result.to = match[2];
-                result.amount = parseFloat(match[3].replace(',', '.'));
-            }
+            return result;
+        }
+        
+        match = message.match(pattern2);
+        if (match) {
+            result.from = match[1];
+            result.to = match[2];
+            result.amount = parseFloat(match[3].replace(',', '.'));
+            return result;
+        }
+        
+        match = message.match(pattern3);
+        if (match) {
+            result.from = match[1];
+            result.amount = parseFloat(match[2].replace(',', '.'));
+            result.to = match[3];
+            return result;
         }
         
         return result;
@@ -962,8 +1021,26 @@ const NorwyChatbot = {
     
     // Gestisce azioni pendenti (dialogo multi-step)
     handlePendingAction(message) {
+        const lowerMessage = message.toLowerCase();
         const action = this.pendingAction;
         
+        // Permetti all'utente di uscire dal dialogo con parole chiave o domande
+        const exitKeywords = ['annulla', 'cancella', 'stop', 'esci', 'basta', 'no grazie'];
+        const questionKeywords = ['come', 'cosa', 'quando', 'dove', 'perché', 'chi', 'quale', 'quanto'];
+        
+        // Se l'utente vuole annullare esplicitamente
+        if (exitKeywords.some(keyword => lowerMessage.includes(keyword))) {
+            this.pendingAction = null;
+            return "❌ Operazione annullata. Come posso aiutarti?";
+        }
+        
+        // Se l'utente fa una domanda (inizia con parola interrogativa), annulla il dialogo e rispondi
+        if (questionKeywords.some(keyword => lowerMessage.startsWith(keyword))) {
+            this.pendingAction = null;
+            return this.generateResponse(message); // Processa la nuova domanda
+        }
+        
+        // Altrimenti continua con il dialogo pendente
         if (action.type === 'expense') {
             return this.handlePendingExpense(message, action.data);
         } else if (action.type === 'payment') {
@@ -975,14 +1052,6 @@ const NorwyChatbot = {
     
     // Gestisce spesa pendente
     handlePendingExpense(message, data) {
-        const lowerMessage = message.toLowerCase();
-        
-        // Se l'utente annulla
-        if (lowerMessage === 'annulla' || lowerMessage === 'cancella') {
-            this.pendingAction = null;
-            return "❌ Operazione annullata.";
-        }
-        
         // Se manca l'importo
         if (!data.amount) {
             const amountMatch = message.match(/(\d+(?:[.,]\d+)?)/);
@@ -1007,14 +1076,6 @@ const NorwyChatbot = {
     
     // Gestisce pagamento pendente
     handlePendingPayment(message, data) {
-        const lowerMessage = message.toLowerCase();
-        
-        // Se l'utente annulla
-        if (lowerMessage === 'annulla' || lowerMessage === 'cancella') {
-            this.pendingAction = null;
-            return "❌ Operazione annullata.";
-        }
-        
         // Se manca il mittente
         if (!data.from) {
             data.from = message.trim();
