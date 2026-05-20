@@ -2634,3 +2634,524 @@ body {
     background-color: var(--bg-tertiary);
     cursor: not-allowed;
 }
+
+
+/* ===== Accommodation Comparison Styles ===== */
+
+/* Comparison Modal */
+#accommodationComparisonModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.comparison-modal-content {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    max-width: 1200px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    z-index: 10;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.75rem;
+}
+
+.btn-close {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: var(--transition-base);
+}
+
+.btn-close:hover {
+    background: #DC2626;
+    transform: scale(1.05);
+}
+
+.comparison-step {
+    padding: 2rem;
+}
+
+.step-indicator {
+    background: var(--bg-gradient);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-full);
+    display: inline-block;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-colored);
+}
+
+/* Group Counter Grid */
+.group-counter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.counter-item {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.counter-item label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.counter-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.counter-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.counter-btn:hover {
+    background: var(--primary-hover);
+    transform: scale(1.1);
+}
+
+.counter-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    min-width: 3rem;
+    text-align: center;
+}
+
+/* Group Summary Box */
+.group-summary-box {
+    background: linear-gradient(135deg, #E0E7FF 0%, #F3E8FF 100%);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--primary-color);
+    margin-bottom: 2rem;
+}
+
+.group-summary-box h4 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-color);
+}
+
+#groupSummary {
+    color: var(--text-primary);
+    line-height: 1.8;
+}
+
+/* Characteristics Section */
+.characteristics-section {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+}
+
+.characteristics-section h4 {
+    margin: 0 0 1rem 0;
+    color: var(--text-primary);
+}
+
+.characteristics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.characteristics-grid label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+}
+
+.characteristics-grid label:hover {
+    background: var(--primary-light);
+    transform: translateX(5px);
+}
+
+.characteristics-grid input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+
+/* Options Checkboxes */
+.options-checkboxes {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.comparison-option-item label:hover {
+    background: var(--primary-light);
+    transform: translateX(5px);
+}
+
+/* Criteria Grid */
+.criteria-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.criteria-grid label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+    font-weight: 500;
+}
+
+.criteria-grid label:hover {
+    background: var(--primary-light);
+    transform: translateX(5px);
+}
+
+.criteria-grid input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+
+/* Comparison Table */
+.table-container {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.comparison-table thead {
+    background: var(--bg-gradient);
+    color: white;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comparison-table th {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.comparison-table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.comparison-table .best-option {
+    background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.btn-link-small {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition-base);
+    font-size: 0.9rem;
+}
+
+.btn-link-small:hover {
+    background: var(--primary-hover);
+    transform: scale(1.05);
+}
+
+/* Pros and Cons */
+.pros-cons-container {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.pros-cons-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid var(--primary-color);
+}
+
+.pros-cons-card h4 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.pros-section,
+.cons-section {
+    margin-bottom: 1rem;
+}
+
+.pros-section strong {
+    color: var(--success-color);
+    font-size: 1.1rem;
+}
+
+.cons-section strong {
+    color: var(--danger-color);
+    font-size: 1.1rem;
+}
+
+.pros-cons-card ul {
+    margin: 0.5rem 0 0 1.5rem;
+    padding: 0;
+}
+
+.pros-cons-card li {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+}
+
+/* Recommendation */
+.recommendation-card {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border: 3px solid var(--warning-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.recommended-option {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-align: center;
+    margin: 1rem 0;
+    box-shadow: var(--shadow-md);
+}
+
+.recommendation-card ul {
+    margin: 0.5rem 0 0 1.5rem;
+}
+
+.recommendation-card li {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+}
+
+/* WhatsApp Survey */
+.whatsapp-text {
+    background: #E8F5E9;
+    border: 2px solid #4CAF50;
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 500px;
+    overflow-y: auto;
+    color: #1B5E20;
+}
+
+/* Modal Actions */
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    padding: 1.5rem;
+    border-top: 2px solid var(--border-color);
+    background: var(--bg-secondary);
+    position: sticky;
+    bottom: 0;
+}
+
+.modal-actions .btn {
+    min-width: 150px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .comparison-modal-content {
+        max-height: 95vh;
+        margin: 0.5rem;
+    }
+    
+    .comparison-step {
+        padding: 1rem;
+    }
+    
+    .group-counter-grid,
+    .characteristics-grid,
+    .criteria-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions .btn {
+        width: 100%;
+    }
+    
+    .comparison-table {
+        font-size: 0.85rem;
+    }
+    
+    .comparison-table th,
+    .comparison-table td {
+        padding: 0.5rem;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.comparison-step {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Made with Bob */
+
+
+/* Option Summary */
+.option-summary {
+    background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+    border: 2px solid #0EA5E9;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.summary-value {
+    font-size: 1rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Option Description Box */
+.option-description-box {
+    background: #FFF9E6;
+    border-left: 4px solid #F59E0B;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 0.375rem;
+}
+
+.option-description-box strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #92400E;
+}
+
+.option-description-box p {
+    margin: 0;
+    color: #78350F;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}

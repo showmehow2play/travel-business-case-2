@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Confronto Appartamenti</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: var(--bg-secondary);
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 0.75rem;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+        .status {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        .status.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 2px solid #10B981;
+        }
+        .status.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 2px solid #EF4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Confronto Appartamenti</h1>
+        <p>Questa pagina permette di testare la funzionalità di confronto appartamenti.</p>
+
+        <!-- Test Section 1: Setup -->
+        <div class="test-section">
+            <h3>1️⃣ Setup Dati di Test</h3>
+            <p>Crea dati di test per simulare un preventivo con opzioni di alloggio.</p>
+            <button onclick="setupTestData()" class="test-button">📝 Crea Dati di Test</button>
+            <div id="setupStatus" class="status"></div>
+        </div>
+
+        <!-- Test Section 2: Open Modal -->
+        <div class="test-section">
+            <h3>2️⃣ Apri Modal di Confronto</h3>
+            <p>Clicca per aprire il modal di confronto appartamenti.</p>
+            <button id="openComparisonBtn" class="test-button">🔄 Apri Confronto</button>
+            <div id="modalStatus" class="status"></div>
+        </div>
+
+        <!-- Test Section 3: Verification -->
+        <div class="test-section">
+            <h3>3️⃣ Verifica Componenti</h3>
+            <p>Verifica che tutti i componenti siano caricati correttamente.</p>
+            <button onclick="verifyComponents()" class="test-button">✅ Verifica</button>
+            <div id="verifyStatus" class="status"></div>
+        </div>
+
+        <!-- Hidden accommodation options for testing -->
+        <div style="display: none;">
+            <input type="text" id="destination" value="Roma, Italia">
+            <div id="accommodationOptions">
+                <input type="text" class="option-name" data-index="0" value="Appartamento Centro">
+                <input type="number" class="option-price" data-index="0" value="500">
+                <input type="url" class="option-link" data-index="0" value="https://www.airbnb.it/rooms/12345">
+                
+                <input type="text" class="option-name" data-index="1" value="Appartamento Periferia">
+                <input type="number" class="option-price" data-index="1" value="650">
+                <input type="url" class="option-link" data-index="1" value="https://www.airbnb.it/rooms/67890">
+                
+                <input type="text" class="option-name" data-index="2" value="Casa Vacanze">
+                <input type="number" class="option-price" data-index="2" value="550">
+                <input type="url" class="option-link" data-index="2" value="https://www.booking.com/hotel/it/casa-vacanze.html">
+                
+                <input type="text" class="option-name" data-index="3" value="Villa con Piscina">
+                <input type="number" class="option-price" data-index="3" value="800">
+                <input type="url" class="option-link" data-index="3" value="https://www.airbnb.it/rooms/11111">
+                
+                <input type="text" class="option-name" data-index="4" value="Loft Moderno">
+                <input type="number" class="option-price" data-index="4" value="450">
+                <input type="url" class="option-link" data-index="4" value="https://www.booking.com/hotel/it/loft-moderno.html">
+            </div>
+        </div>
+    </div>
+
+    <!-- Accommodation Comparison Modal (from index.html) -->
+    <div id="accommodationComparisonModal" class="modal" style="display: none;">
+        <div class="modal-content comparison-modal-content">
+            <div class="modal-header">
+                <h2>🏠 Confronta Appartamenti</h2>
+                <button id="closeComparisonModal" class="btn-close">✖️</button>
+            </div>
+
+            <!-- Step 1: Group Composition -->
+            <div id="comparisonStep1" class="comparison-step">
+                <div class="step-indicator">Step 1/3: Composizione Gruppo</div>
+                
+                <div class="form-section">
+                    <h3>👥 Definisci la Composizione del Gruppo</h3>
+                    
+                    <div class="group-counter-grid">
+                        <div class="counter-item">
+                            <label>💑 Numero di Coppie</label>
+                            <div class="counter-controls">
+                                <button type="button" id="couplesMinus" class="counter-btn">−</button>
+                                <span id="couplesCount" class="counter-value">0</span>
+                                <button type="button" id="couplesPlus" class="counter-btn">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="counter-item">
+                            <label>👨 Numero di Single Uomini</label>
+                            <div class="counter-controls">
+                                <button type="button" id="singleMenMinus" class="counter-btn">−</button>
+                                <span id="singleMenCount" class="counter-value">0</span>
+                                <button type="button" id="singleMenPlus" class="counter-btn">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="counter-item">
+                            <label>👩 Numero di Single Donne</label>
+                            <div class="counter-controls">
+                                <button type="button" id="singleWomenMinus" class="counter-btn">−</button>
+                                <span id="singleWomenCount" class="counter-value">0</span>
+                                <button type="button" id="singleWomenPlus" class="counter-btn">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="group-summary-box">
+                        <h4>📊 Riepilogo Gruppo</h4>
+                        <div id="groupSummary">
+                            • Totale partecipanti: <strong>0 persone</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="characteristics-section">
+                        <h4>🎯 Caratteristiche da Considerare</h4>
+                        <div class="characteristics-grid">
+                            <label>
+                                <input type="checkbox" class="group-characteristic" value="separate_rooms">
+                                Necessità di camere separate per single
+                            </label>
+                            <label>
+                                <input type="checkbox" class="group-characteristic" value="double_beds">
+                                Preferenza per camere matrimoniali per coppie
+                            </label>
+                            <label>
+                                <input type="checkbox" class="group-characteristic" value="children">
+                                Presenza di bambini/neonati
+                            </label>
+                            <label>
+                                <input type="checkbox" class="group-characteristic" value="accessibility">
+                                Necessità di accessibilità (disabili)
+                            </label>
+                            <label>
+                                <input type="checkbox" class="group-characteristic" value="pets">
+                                Animali domestici
+                            </label>
+                            <label>
+                                <input type="checkbox" class="group-characteristic" value="special_needs">
+                                Esigenze particolari (allergie, diete, ecc.)
+                            </label>
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label>📝 Note aggiuntive (opzionale):</label>
+                            <textarea id="groupNotes" rows="3" placeholder="Es: Gruppo giovane, preferisce zona centrale..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="comparisonNextStep1" class="btn btn-primary">➡️ Avanti: Seleziona Opzioni</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Options and Criteria -->
+            <div id="comparisonStep2" class="comparison-step" style="display: none;">
+                <div class="step-indicator">Step 2/3: Selezione Opzioni</div>
+                
+                <div class="form-section">
+                    <h3>🏠 Seleziona gli appartamenti da confrontare</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">⚠️ Seleziona almeno 2 appartamenti</p>
+                    <div id="accommodationOptionsCheckboxes" class="options-checkboxes"></div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>📋 Seleziona i criteri di confronto</h3>
+                    <div class="criteria-grid">
+                        <label>
+                            <input type="checkbox" class="comparison-criteria" value="price" checked>
+                            💰 Prezzo (totale e per persona)
+                        </label>
+                        <label>
+                            <input type="checkbox" class="comparison-criteria" value="composition" checked>
+                            👥 Idoneità per composizione gruppo
+                        </label>
+                        <label>
+                            <input type="checkbox" class="comparison-criteria" value="distance">
+                            📍 Distanza dalla destinazione
+                        </label>
+                        <label>
+                            <input type="checkbox" class="comparison-criteria" value="features">
+                            🏠 Caratteristiche alloggio
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="comparisonBackStep2" class="btn btn-secondary">⬅️ Indietro</button>
+                    <button type="button" id="comparisonNextStep2" class="btn btn-primary">➡️ Genera Confronto</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Results -->
+            <div id="comparisonStep3" class="comparison-step" style="display: none;">
+                <div class="step-indicator">Step 3/3: Risultati</div>
+                
+                <div class="form-section">
+                    <h3>📊 Tabella Comparativa</h3>
+                    <div id="comparisonTableContainer" class="table-container"></div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>✅ PRO e ❌ CONTRO</h3>
+                    <div id="prosConsContainer" class="pros-cons-container"></div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>💡 Raccomandazione</h3>
+                    <div id="recommendationContainer"></div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>📱 Sondaggio WhatsApp</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Copia il testo qui sotto e incollalo nel gruppo WhatsApp per far votare i partecipanti
+                    </p>
+                    <div id="whatsappSurveyContainer"></div>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <button type="button" id="copyWhatsAppBtn" class="btn btn-primary">
+                            📋 Copia Testo per WhatsApp
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="comparisonBackStep3" class="btn btn-secondary">⬅️ Indietro</button>
+                    <button type="button" id="closeComparisonModal2" class="btn btn-secondary">✖️ Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/accommodation-comparison.js"></script>
+    <script>
+        function setupTestData() {
+            const status = document.getElementById('setupStatus');
+            status.className = 'status success';
+            status.style.display = 'block';
+            status.innerHTML = '✅ Dati di test creati con successo!<br>5 appartamenti disponibili per il confronto.';
+        }
+
+        function verifyComponents() {
+            const status = document.getElementById('verifyStatus');
+            const checks = [];
+            
+            // Verifica modal
+            const modal = document.getElementById('accommodationComparisonModal');
+            checks.push({ name: 'Modal HTML', ok: !!modal });
+            
+            // Verifica steps
+            checks.push({ name: 'Step 1', ok: !!document.getElementById('comparisonStep1') });
+            checks.push({ name: 'Step 2', ok: !!document.getElementById('comparisonStep2') });
+            checks.push({ name: 'Step 3', ok: !!document.getElementById('comparisonStep3') });
+            
+            // Verifica modulo JS
+            checks.push({ name: 'AccommodationComparison', ok: typeof AccommodationComparison !== 'undefined' });
+            
+            // Verifica dati test
+            const options = document.querySelectorAll('#accommodationOptions .option-name');
+            checks.push({ name: 'Opzioni alloggio', ok: options.length === 5 });
+            
+            const allOk = checks.every(c => c.ok);
+            
+            status.className = allOk ? 'status success' : 'status error';
+            status.style.display = 'block';
+            
+            let html = allOk ? '✅ Tutti i componenti verificati con successo!<br><br>' : '❌ Alcuni componenti mancano:<br><br>';
+            checks.forEach(check => {
+                html += `${check.ok ? '✅' : '❌'} ${check.name}<br>`;
+            });
+            
+            status.innerHTML = html;
+        }
+
+        // Auto-setup on load
+        window.addEventListener('load', () => {
+            setupTestData();
+            console.log('🧪 Test page loaded');
+            console.log('📦 AccommodationComparison:', typeof AccommodationComparison !== 'undefined' ? 'Loaded' : 'Not loaded');
+        });
+    </script>
+</body>
+</html>
