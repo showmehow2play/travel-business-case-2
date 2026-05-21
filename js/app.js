@@ -937,8 +937,10 @@ const App = {
         const emptyState = document.getElementById('participantsEmptyState');
         const clearBtn = document.getElementById('clearParticipantsBtn');
         
+        // SEMPRE pulisci la lista prima di caricare i partecipanti
+        list.innerHTML = '';
+        
         if (participants.length === 0) {
-            list.innerHTML = '';
             list.style.display = 'none';
             if (emptyState) emptyState.style.display = 'block';
             if (clearBtn) clearBtn.style.display = 'none';
