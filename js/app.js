@@ -918,13 +918,24 @@ const App = {
             // Carica le opzioni "Altro"
             AccommodationCarManager.loadOtherOptions(scenario.otherOptions || []);
 
+            // IMPORTANTE: Prima pulisci completamente la lista partecipanti
+            const list = document.getElementById('participantsList');
+            if (list) {
+                list.innerHTML = '';
+            }
+            
+            // Poi carica i partecipanti dello scenario
             this.loadParticipants(scenario.participants || []);
-            this.loadParticipantSelector(); // Carica il selettore dall'anagrafica
+            
+            // Infine carica il selettore dall'anagrafica
+            this.loadParticipantSelector();
             
             // Inizializza l'autocomplete per la destinazione
             this.initDestinationAutocomplete();
             
             this.updateTotals();
+            
+            console.log('=== loadScenarioForm FINE ===');
         } catch (error) {
             console.error('Errore nel caricamento del form:', error);
             ExportManager.showError('Errore nel caricamento dello scenario');
@@ -1169,6 +1180,14 @@ const App = {
     // Salva lo scenario
     saveScenario() {
         const participants = Array.from(document.querySelectorAll('.participant-tag span')).map(span => span.textContent);
+        
+        // Rimuovi duplicati dai partecipanti (protezione aggiuntiva)
+        const uniqueParticipants = [...new Set(participants)];
+        
+        if (participants.length !== uniqueParticipants.length) {
+            console.warn('Trovati partecipanti duplicati, rimossi automaticamente');
+        }
+        
         const selectedAccommodation = AccommodationCarManager.getSelectedAccommodation();
         const carTotal = AccommodationCarManager.calculateCarTotal();
         const otherTotal = AccommodationCarManager.calculateOtherTotal();
@@ -1180,7 +1199,7 @@ const App = {
             endDate: document.getElementById('endDate').value,
             flightDeparture: document.getElementById('flightDeparture').value,
             flightArrival: document.getElementById('flightArrival').value,
-            participants: participants,
+            participants: uniqueParticipants,
             expenses: {
                 transport: parseFloat(document.getElementById('transport').value) || 0,
                 accommodation: selectedAccommodation.price,
@@ -1230,6 +1249,14 @@ const App = {
     // Salva come nuovo scenario
     saveAsNewScenario() {
         const participants = Array.from(document.querySelectorAll('.participant-tag span')).map(span => span.textContent);
+        
+        // Rimuovi duplicati dai partecipanti (protezione aggiuntiva)
+        const uniqueParticipants = [...new Set(participants)];
+        
+        if (participants.length !== uniqueParticipants.length) {
+            console.warn('Trovati partecipanti duplicati, rimossi automaticamente');
+        }
+        
         const selectedAccommodation = AccommodationCarManager.getSelectedAccommodation();
         const carTotal = AccommodationCarManager.calculateCarTotal();
         const otherTotal = AccommodationCarManager.calculateOtherTotal();
@@ -1241,7 +1268,7 @@ const App = {
             endDate: document.getElementById('endDate').value,
             flightDeparture: document.getElementById('flightDeparture').value,
             flightArrival: document.getElementById('flightArrival').value,
-            participants: participants,
+            participants: uniqueParticipants,
             expenses: {
                 transport: parseFloat(document.getElementById('transport').value) || 0,
                 accommodation: selectedAccommodation.price,
