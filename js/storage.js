@@ -6,16 +6,35 @@ const StorageManager = {
     BACKUP_KEY: 'travelBusinessCase_backup',
 
     // Inizializza lo storage
-    init() {
+    async init() {
+        console.log('🔄 Inizializzazione StorageManager...');
+        
+        // Se Supabase è disponibile, prova a sincronizzare i dati
+        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+            console.log('☁️ Supabase disponibile, sincronizzazione dati...');
+            try {
+                const synced = await window.SupabaseStorage.syncFromSupabase();
+                if (synced) {
+                    console.log('✅ Dati sincronizzati da Supabase');
+                    // Backup automatico ogni 5 minuti
+                    setInterval(() => this.createBackup(), 5 * 60 * 1000);
+                    return;
+                }
+            } catch (error) {
+                console.warn('⚠️ Errore sincronizzazione da Supabase, uso localStorage:', error);
+            }
+        }
+        
+        // Fallback: usa localStorage
         const existingData = this.getData();
         
         // Se non ci sono dati, carica i dati di esempio
         if (!existingData || (existingData.scenarios.length === 0 && existingData.actuals.length === 0)) {
-            console.log('Caricamento dati di esempio...');
+            console.log('📦 Caricamento dati di esempio...');
             
             // Verifica se SampleData è disponibile
             if (typeof SampleData !== 'undefined') {
-                this.saveData({
+                await this.saveData({
                     scenarios: SampleData.scenarios || [],
                     actuals: SampleData.actuals || []
                 });
@@ -25,10 +44,10 @@ const StorageManager = {
                     localStorage.setItem('participants_registry', JSON.stringify(SampleData.participants));
                 }
                 
-                console.log('Dati di esempio caricati con successo!');
+                console.log('✅ Dati di esempio caricati con successo!');
             } else {
                 // Se SampleData non è disponibile, inizializza con dati vuoti
-                this.saveData({ scenarios: [], actuals: [] });
+                await this.saveData({ scenarios: [], actuals: [] });
             }
         }
         
@@ -426,7 +445,14 @@ const StorageManager = {
 
 // Inizializza lo storage al caricamento
 if (typeof window !== 'undefined') {
-    StorageManager.init();
+    // Aspetta che Supabase sia caricato prima di inizializzare
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            StorageManager.init();
+        });
+    } else {
+        StorageManager.init();
+    }
 }
 
 // Made with Bob
