@@ -1389,8 +1389,19 @@ const App = {
 };
 
 // Inizializza l'app quando il DOM è pronto
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 Inizializzazione app...');
+    
+    // Aspetta che StorageManager abbia completato la sincronizzazione
+    if (typeof StorageManager !== 'undefined' && StorageManager.init) {
+        console.log('⏳ Attendo sincronizzazione StorageManager...');
+        await StorageManager.init();
+        console.log('✅ StorageManager pronto');
+    }
+    
+    // Ora inizializza l'interfaccia
     App.init();
+    console.log('✅ App inizializzata');
 });
 
 // Made with Bob

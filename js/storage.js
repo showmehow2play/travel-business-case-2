@@ -443,16 +443,7 @@ const StorageManager = {
     }
 };
 
-// Inizializza lo storage al caricamento
-if (typeof window !== 'undefined') {
-    // Aspetta che Supabase sia caricato prima di inizializzare
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            StorageManager.init();
-        });
-    } else {
-        StorageManager.init();
-    }
-}
+// NOTA: L'inizializzazione viene gestita da app.js per garantire
+// che la sincronizzazione Supabase sia completata prima di caricare l'interfaccia
 
 // Made with Bob
