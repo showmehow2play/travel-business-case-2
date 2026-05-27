@@ -139,6 +139,16 @@ const ActualsUI = {
 
         list.innerHTML = actuals.map(actual => this.createActualCard(actual)).join('');
 
+        // Applica temi alle card
+        if (typeof destinationThemes !== 'undefined') {
+            list.querySelectorAll('.scenario-card').forEach(card => {
+                const destination = card.dataset.destination;
+                if (destination) {
+                    destinationThemes.applyThemeToCard(card, destination);
+                }
+            });
+        }
+
         // Aggiungi event listeners
         list.querySelectorAll('.scenario-card').forEach(card => {
             const cardId = card.dataset.id;
@@ -178,7 +188,7 @@ const ActualsUI = {
         const duration = ActualsManager.calculateDuration(actual.startDate, actual.endDate);
 
         return `
-            <div class="scenario-card" data-id="${actual.id}">
+            <div class="scenario-card" data-id="${actual.id}" data-destination="${actual.destination || ''}">
                 <div class="scenario-card-actions">
                     <button class="scenario-action-btn edit-btn" data-action="edit" data-id="${actual.id}" title="Modifica consuntivo">
                         ✏️
@@ -188,7 +198,7 @@ const ActualsUI = {
                     </button>
                 </div>
                 <div class="scenario-card-header">
-                    <h3>${actual.name}</h3>
+                    <h3 class="scenario-title">${actual.name}</h3>
                     <div class="destination">📍 ${actual.destination}</div>
                 </div>
                 <div class="scenario-card-body">

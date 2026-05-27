@@ -70,9 +70,16 @@ const StorageManager = {
     },
 
     // Salva i dati
-    saveData(data) {
+    async saveData(data) {
         try {
+            // Salva sempre in localStorage
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+            
+            // Se Supabase è disponibile, salva anche lì
+            if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+                await window.SupabaseStorage.setItem(this.STORAGE_KEY, data);
+            }
+            
             return true;
         } catch (error) {
             console.error('Errore nel salvataggio dei dati:', error);
@@ -99,7 +106,7 @@ const StorageManager = {
     },
 
     // Aggiungi uno scenario
-    addScenario(scenario) {
+    async addScenario(scenario) {
         const scenarios = this.getScenarios();
         const newScenario = {
             ...scenario,
@@ -109,11 +116,16 @@ const StorageManager = {
         };
 
         scenarios.push(newScenario);
-        const saved = this.saveScenarios(scenarios);
+        const saved = await this.saveScenarios(scenarios);
 
         if (!saved) {
             console.error('Errore nel salvataggio del nuovo scenario');
             return null;
+        }
+
+        // Salva anche su Supabase se disponibile
+        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+            await window.SupabaseStorage.saveScenario(newScenario);
         }
 
         console.log('Scenario salvato correttamente:', newScenario);
@@ -121,7 +133,7 @@ const StorageManager = {
     },
 
     // Aggiorna uno scenario
-    updateScenario(id, updates) {
+    async updateScenario(id, updates) {
         const scenarios = this.getScenarios();
         const index = scenarios.findIndex(s => s.id === id);
         if (index !== -1) {
@@ -130,17 +142,29 @@ const StorageManager = {
                 ...updates,
                 updatedAt: new Date().toISOString()
             };
-            this.saveScenarios(scenarios);
+            await this.saveScenarios(scenarios);
+            
+            // Salva anche su Supabase se disponibile
+            if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+                await window.SupabaseStorage.saveScenario(scenarios[index]);
+            }
+            
             return scenarios[index];
         }
         return null;
     },
 
     // Elimina uno scenario
-    deleteScenario(id) {
+    async deleteScenario(id) {
         const scenarios = this.getScenarios();
         const filtered = scenarios.filter(s => s.id !== id);
-        this.saveScenarios(filtered);
+        await this.saveScenarios(filtered);
+        
+        // Elimina anche da Supabase se disponibile
+        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+            await window.SupabaseStorage.deleteScenario(id);
+        }
+        
         return filtered.length < scenarios.length;
     },
 
@@ -187,7 +211,7 @@ const StorageManager = {
     },
 
     // Aggiungi un consuntivo
-    addActual(actual) {
+    async addActual(actual) {
         const actuals = this.getActuals();
         const newActual = {
             ...actual,
@@ -198,11 +222,16 @@ const StorageManager = {
         };
 
         actuals.push(newActual);
-        const saved = this.saveActuals(actuals);
+        const saved = await this.saveActuals(actuals);
 
         if (!saved) {
             console.error('Errore nel salvataggio del nuovo consuntivo');
             return null;
+        }
+
+        // Salva anche su Supabase se disponibile
+        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+            await window.SupabaseStorage.saveActual(newActual);
         }
 
         console.log('Consuntivo salvato correttamente:', newActual);
@@ -210,7 +239,7 @@ const StorageManager = {
     },
 
     // Aggiorna un consuntivo
-    updateActual(id, updates) {
+    async updateActual(id, updates) {
         const actuals = this.getActuals();
         const index = actuals.findIndex(a => a.id === id);
         if (index !== -1) {
@@ -219,17 +248,29 @@ const StorageManager = {
                 ...updates,
                 updatedAt: new Date().toISOString()
             };
-            this.saveActuals(actuals);
+            await this.saveActuals(actuals);
+            
+            // Salva anche su Supabase se disponibile
+            if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+                await window.SupabaseStorage.saveActual(actuals[index]);
+            }
+            
             return actuals[index];
         }
         return null;
     },
 
     // Elimina un consuntivo
-    deleteActual(id) {
+    async deleteActual(id) {
         const actuals = this.getActuals();
         const filtered = actuals.filter(a => a.id !== id);
-        this.saveActuals(filtered);
+        await this.saveActuals(filtered);
+        
+        // Elimina anche da Supabase se disponibile
+        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+            await window.SupabaseStorage.deleteActual(id);
+        }
+        
         return filtered.length < actuals.length;
     },
 

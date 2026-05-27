@@ -452,6 +452,16 @@ class DestinationThemes {
             }
         });
     }
+    
+    /**
+     * Ottieni solo la bandiera per una destinazione (metodo veloce)
+     */
+    getFlag(destination) {
+        if (!destination) return '';
+        
+        const theme = this.getTheme(destination);
+        return theme && theme.flag ? theme.flag + ' ' : '';
+    }
 }
 
 // Inizializza il sistema di temi
