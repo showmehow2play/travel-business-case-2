@@ -118,10 +118,30 @@ const StorageManager = {
         try {
             // Salva sempre in localStorage
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+            console.log('💾 Dati salvati in localStorage');
             
             // Se Supabase è disponibile, salva anche lì
             if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+                console.log('☁️ Salvataggio su Supabase...');
+                
+                // Salva il blob completo nella tabella app_data
                 await window.SupabaseStorage.setItem(this.STORAGE_KEY, data);
+                
+                // Salva anche i singoli consuntivi nella tabella actuals
+                if (data.actuals && Array.isArray(data.actuals)) {
+                    for (const actual of data.actuals) {
+                        await window.SupabaseStorage.saveActual(actual);
+                    }
+                    console.log(`✅ ${data.actuals.length} consuntivi salvati su Supabase`);
+                }
+                
+                // Salva anche i singoli scenari nella tabella scenarios
+                if (data.scenarios && Array.isArray(data.scenarios)) {
+                    for (const scenario of data.scenarios) {
+                        await window.SupabaseStorage.saveScenario(scenario);
+                    }
+                    console.log(`✅ ${data.scenarios.length} scenari salvati su Supabase`);
+                }
             }
             
             return true;
