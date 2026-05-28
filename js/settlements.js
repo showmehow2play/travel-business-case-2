@@ -186,13 +186,18 @@ const SettlementsManager = {
         }
 
         // Calcola i pagamenti confermati tra partecipanti
+        // IMPORTANTE: I pagamenti tra partecipanti sono TRASFERIMENTI che saldano i debiti
+        // - Chi paga: il pagamento RIDUCE il suo debito (quindi si AGGIUNGE al bilancio)
+        // - Chi riceve: il pagamento RIDUCE il suo credito (quindi si SOTTRAE dal bilancio)
         if (this.payments && Array.isArray(this.payments)) {
             this.payments.forEach(payment => {
                 if (payment.confirmed) {
                     const amount = parseFloat(payment.amount) || 0;
+                    // Chi riceve: sottrai dal bilancio (riduce il credito)
                     if (paymentsReceived.hasOwnProperty(payment.to)) {
                         paymentsReceived[payment.to] += amount;
                     }
+                    // Chi paga: aggiungi al bilancio (riduce il debito)
                     if (paymentsMade.hasOwnProperty(payment.from)) {
                         paymentsMade[payment.from] += amount;
                     }
@@ -200,10 +205,15 @@ const SettlementsManager = {
             });
         }
 
-        // Calcola il bilancio (quanto ha pagato - quanto deve + pagamenti ricevuti - pagamenti fatti)
+        // Calcola il bilancio finale
+        // Formula corretta: paid - owes + paymentsMade - paymentsReceived
+        // - paid: quanto ha pagato per le spese
+        // - owes: quanto deve per le spese condivise
+        // - paymentsMade: pagamenti fatti ad altri (RIDUCONO il debito, quindi +)
+        // - paymentsReceived: pagamenti ricevuti da altri (RIDUCONO il credito, quindi -)
         const balances = {};
         actual.participants.forEach(p => {
-            balances[p] = paid[p] - owes[p] + paymentsReceived[p] - paymentsMade[p];
+            balances[p] = paid[p] - owes[p] + paymentsMade[p] - paymentsReceived[p];
         });
 
         // Calcola la quota media per visualizzazione (non più usata per il calcolo)
@@ -313,6 +323,12 @@ const SettlementsManager = {
     // - Quote spese dovute
     // - Pagamenti confermati ricevuti/effettuati
     optimizeTransfers() {
+        // IMPORTANTE: Ricalcola sempre i bilanci prima di ottimizzare
+        // per assicurarsi che i pagamenti confermati siano considerati
+        if (!this.currentActual) return;
+        
+        this.calculateBalances(this.currentActual);
+        
         if (!this.balances) return;
 
         // Crea array di creditori (chi deve ricevere) e debitori (chi deve dare)

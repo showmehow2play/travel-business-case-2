@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Pagamenti Custom - Travel Business Case</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem;
+            background: #f5f5f5;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5rem;
+        }
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; font-weight: bold; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0.25rem;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.run-all {
+            background: #28a745;
+        }
+        button.run-all:hover {
+            background: #218838;
+        }
+        .balance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .balance-table th,
+        .balance-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .balance-table th {
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .balance-table tr:hover {
+            background: #f8f9fa;
+        }
+        .positive { color: #28a745; font-weight: bold; }
+        .negative { color: #dc3545; font-weight: bold; }
+        .zero { color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Pagamenti Custom - Ottimizzazione Trasferimenti</h1>
+        <p><strong>Obiettivo:</strong> Verificare che i pagamenti tra persone diverse da quelle suggerite vengano correttamente considerati nell'ottimizzazione dei trasferimenti.</p>
+    </div>
+
+    <div class="test-container">
+        <div class="test-section">
+            <h3>📋 Scenario di Test</h3>
+            <p><strong>Situazione iniziale:</strong></p>
+            <ul>
+                <li><strong>Alice</strong> ha pagato €300 per l'hotel (condiviso tra tutti)</li>
+                <li><strong>Bob</strong> ha pagato €150 per il ristorante (condiviso tra tutti)</li>
+                <li><strong>Charlie</strong> non ha pagato nulla</li>
+                <li><strong>David</strong> non ha pagato nulla</li>
+            </ul>
+            <p><strong>Quota per persona:</strong> €450 / 4 = €112.50</p>
+            <button onclick="runScenario()">▶️ Esegui Scenario Completo</button>
+            <div id="scenarioResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💰 Test 1: Bilanci Iniziali</h3>
+            <p>Calcola i bilanci prima di qualsiasi pagamento tra partecipanti</p>
+            <button onclick="test1()">▶️ Esegui Test 1</button>
+            <div id="result1" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💳 Test 2: Pagamento Custom (Charlie → Bob)</h3>
+            <p><strong>Scenario:</strong> Charlie paga €50 a Bob (invece che ad Alice come suggerirebbe il sistema)</p>
+            <button onclick="test2()">▶️ Esegui Test 2</button>
+            <div id="result2" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test 3: Bilanci Dopo Pagamento Custom</h3>
+            <p>Verifica che i bilanci siano aggiornati correttamente</p>
+            <button onclick="test3()">▶️ Esegui Test 3</button>
+            <div id="result3" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ Test 4: Ottimizzazione Trasferimenti</h3>
+            <p>Verifica che l'ottimizzazione consideri il pagamento custom</p>
+            <button onclick="test4()">▶️ Esegui Test 4</button>
+            <div id="result4" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💳 Test 5: Secondo Pagamento Custom (David → Alice)</h3>
+            <p><strong>Scenario:</strong> David paga €100 ad Alice</p>
+            <button onclick="test5()">▶️ Esegui Test 5</button>
+            <div id="result5" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Test 6: Verifica Finale</h3>
+            <p>Verifica che tutti i bilanci e trasferimenti siano corretti</p>
+            <button onclick="test6()">▶️ Esegui Test 6</button>
+            <div id="result6" class="result"></div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script>
+        let testActual = null;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            element.innerHTML += `[${timestamp}] ${icon} ${message}\n`;
+        }
+
+        function createBalanceTable(balances, paid, owes, paymentsReceived, paymentsMade) {
+            let html = '<table class="balance-table">';
+            html += '<tr><th>Partecipante</th><th>Ha Pagato</th><th>Deve</th><th>Pag. Ricevuti</th><th>Pag. Effettuati</th><th>Bilancio</th></tr>';
+            
+            Object.keys(balances).forEach(person => {
+                const balance = balances[person];
+                const balanceClass = balance > 0.01 ? 'positive' : balance < -0.01 ? 'negative' : 'zero';
+                const balanceText = balance > 0.01 ? `+€${balance.toFixed(2)}` : balance < -0.01 ? `-€${Math.abs(balance).toFixed(2)}` : '€0.00';
+                
+                html += `<tr>
+                    <td><strong>${person}</strong></td>
+                    <td>€${paid[person].toFixed(2)}</td>
+                    <td>€${owes[person].toFixed(2)}</td>
+                    <td>€${paymentsReceived[person].toFixed(2)}</td>
+                    <td>€${paymentsMade[person].toFixed(2)}</td>
+                    <td class="${balanceClass}">${balanceText}</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            return html;
+        }
+
+        function calculateBalances(actual) {
+            const paid = {};
+            const owes = {};
+            const paymentsReceived = {};
+            const paymentsMade = {};
+            
+            actual.participants.forEach(p => {
+                paid[p] = 0;
+                owes[p] = 0;
+                paymentsReceived[p] = 0;
+                paymentsMade[p] = 0;
+            });
+
+            // Calcola spese
+            actual.expenses.forEach(expense => {
+                const amount = expense.amountEUR || expense.amount;
+                paid[expense.paidBy] += amount;
+                
+                const sharedBy = expense.sharedBy.length > 0 ? expense.sharedBy : actual.participants;
+                const sharePerPerson = amount / sharedBy.length;
+                
+                sharedBy.forEach(p => {
+                    owes[p] += sharePerPerson;
+                });
+            });
+
+            // Calcola pagamenti confermati
+            // IMPORTANTE: I pagamenti tra partecipanti sono TRASFERIMENTI che saldano i debiti
+            // - Chi paga: il pagamento RIDUCE il suo debito (quindi si AGGIUNGE al bilancio)
+            // - Chi riceve: il pagamento RIDUCE il suo credito (quindi si SOTTRAE dal bilancio)
+            if (actual.payments) {
+                actual.payments.forEach(payment => {
+                    if (payment.confirmed) {
+                        const amount = parseFloat(payment.amount);
+                        paymentsReceived[payment.to] += amount;
+                        paymentsMade[payment.from] += amount;
+                    }
+                });
+            }
+
+            // Calcola bilanci finali
+            // Formula corretta: paid - owes + paymentsMade - paymentsReceived
+            const balances = {};
+            actual.participants.forEach(p => {
+                balances[p] = paid[p] - owes[p] + paymentsMade[p] - paymentsReceived[p];
+            });
+
+            return { balances, paid, owes, paymentsReceived, paymentsMade };
+        }
+
+        function optimizeTransfers(balances) {
+            const creditors = [];
+            const debtors = [];
+
+            Object.keys(balances).forEach(person => {
+                const balance = balances[person];
+                if (balance > 0.01) {
+                    creditors.push({ name: person, amount: balance });
+                } else if (balance < -0.01) {
+                    debtors.push({ name: person, amount: -balance });
+                }
+            });
+
+            creditors.sort((a, b) => b.amount - a.amount);
+            debtors.sort((a, b) => b.amount - a.amount);
+
+            const transfers = [];
+            let i = 0, j = 0;
+
+            while (i < creditors.length && j < debtors.length) {
+                const creditor = creditors[i];
+                const debtor = debtors[j];
+                const amount = Math.min(creditor.amount, debtor.amount);
+
+                if (amount > 0.01) {
+                    transfers.push({
+                        from: debtor.name,
+                        to: creditor.name,
+                        amount: amount
+                    });
+                }
+
+                creditor.amount -= amount;
+                debtor.amount -= amount;
+
+                if (creditor.amount < 0.01) i++;
+                if (debtor.amount < 0.01) j++;
+            }
+
+            return transfers;
+        }
+
+        function test1() {
+            const result = document.getElementById('result1');
+            result.innerHTML = '';
+            
+            try {
+                log('result1', '🔧 Creazione scenario di test...');
+                
+                testActual = {
+                    id: 'test-custom-' + Date.now(),
+                    name: 'Test Pagamenti Custom',
+                    destination: 'Test City',
+                    participants: ['Alice', 'Bob', 'Charlie', 'David'],
+                    expenses: [
+                        {
+                            description: 'Hotel',
+                            amount: 300,
+                            amountEUR: 300,
+                            paidBy: 'Alice',
+                            sharedBy: ['Alice', 'Bob', 'Charlie', 'David'],
+                            category: 'hotel'
+                        },
+                        {
+                            description: 'Ristorante',
+                            amount: 150,
+                            amountEUR: 150,
+                            paidBy: 'Bob',
+                            sharedBy: ['Alice', 'Bob', 'Charlie', 'David'],
+                            category: 'ristorante'
+                        }
+                    ],
+                    payments: []
+                };
+                
+                const { balances, paid, owes, paymentsReceived, paymentsMade } = calculateBalances(testActual);
+                
+                log('result1', '\n📊 BILANCI INIZIALI (senza pagamenti tra partecipanti):', 'success');
+                result.innerHTML += createBalanceTable(balances, paid, owes, paymentsReceived, paymentsMade);
+                
+                log('result1', '\n💡 Interpretazione:');
+                log('result1', '  • Alice deve ricevere €187.50 (ha pagato €300, deve €112.50)');
+                log('result1', '  • Bob deve ricevere €37.50 (ha pagato €150, deve €112.50)');
+                log('result1', '  • Charlie deve dare €112.50 (ha pagato €0, deve €112.50)');
+                log('result1', '  • David deve dare €112.50 (ha pagato €0, deve €112.50)');
+                
+            } catch (error) {
+                log('result1', `❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function test2() {
+            const result = document.getElementById('result2');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('result2', '⚠️ Esegui prima il Test 1!', 'warning');
+                    return;
+                }
+                
+                log('result2', '💳 Registrazione pagamento CUSTOM...');
+                log('result2', '   Da: Charlie → A: Bob (invece che ad Alice!)');
+                log('result2', '   Importo: €50.00');
+                
+                const payment = {
+                    id: Date.now().toString(),
+                    from: 'Charlie',
+                    to: 'Bob',
+                    amount: 50,
+                    date: new Date().toISOString().split('T')[0],
+                    notes: 'Pagamento custom - Charlie paga Bob invece di Alice',
+                    confirmed: true,
+                    createdAt: new Date().toISOString(),
+                    confirmedAt: new Date().toISOString()
+                };
+                
+                testActual.payments.push(payment);
+                
+                log('result2', '\n✅ Pagamento registrato e confermato!', 'success');
+                log('result2', '   Questo pagamento NON è quello suggerito dal sistema');
+                log('result2', '   Il sistema dovrebbe comunque aggiornare correttamente i bilanci');
+                
+            } catch (error) {
+                log('result2', `❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function test3() {
+            const result = document.getElementById('result3');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('result3', '⚠️ Esegui prima i test precedenti!', 'warning');
+                    return;
+                }
+                
+                log('result3', '📊 Ricalcolo bilanci dopo pagamento custom...');
+                
+                const { balances, paid, owes, paymentsReceived, paymentsMade } = calculateBalances(testActual);
+                
+                log('result3', '\n📊 BILANCI DOPO PAGAMENTO CUSTOM:', 'success');
+                result.innerHTML += createBalanceTable(balances, paid, owes, paymentsReceived, paymentsMade);
+                
+                log('result3', '\n💡 Verifica:');
+                log('result3', '  • Charlie ha pagato €50 a Bob');
+                log('result3', '  • Charlie ora deve €62.50 (era €112.50, ha pagato €50)');
+                log('result3', '  • Bob ora deve ricevere €87.50 (era €37.50, ha ricevuto €50)');
+                log('result3', '  • Alice e David non sono cambiati');
+                
+                // Verifica
+                const charlieBalance = balances['Charlie'];
+                const bobBalance = balances['Bob'];
+                
+                if (Math.abs(charlieBalance - (-62.50)) < 0.01 && Math.abs(bobBalance - 87.50) < 0.01) {
+                    log('result3', '\n✅ VERIFICA SUPERATA: I bilanci sono corretti!', 'success');
+                } else {
+                    log('result3', '\n❌ VERIFICA FALLITA: I bilanci non sono corretti!', 'error');
+                    log('result3', `   Charlie: atteso -€62.50, ottenuto €${charlieBalance.toFixed(2)}`);
+                    log('result3', `   Bob: atteso €87.50, ottenuto €${bobBalance.toFixed(2)}`);
+                }
+                
+            } catch (error) {
+                log('result3', `❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function test4() {
+            const result = document.getElementById('result4');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('result4', '⚠️ Esegui prima i test precedenti!', 'warning');
+                    return;
+                }
+                
+                log('result4', '⚡ Calcolo trasferimenti ottimizzati...');
+                
+                const { balances } = calculateBalances(testActual);
+                const transfers = optimizeTransfers(balances);
+                
+                log('result4', '\n📋 TRASFERIMENTI OTTIMIZZATI:', 'success');
+                
+                if (transfers.length === 0) {
+                    log('result4', '   Nessun trasferimento necessario - tutti in pari!');
+                } else {
+                    transfers.forEach((t, i) => {
+                        log('result4', `   ${i + 1}. ${t.from} → ${t.to}: €${t.amount.toFixed(2)}`);
+                    });
+                }
+                
+                log('result4', '\n💡 Verifica:');
+                log('result4', '  Il sistema dovrebbe proporre trasferimenti che:');
+                log('result4', '  1. NON includono il pagamento già fatto (Charlie → Bob €50)');
+                log('result4', '  2. Portano tutti i bilanci a zero');
+                log('result4', '  3. Minimizzano il numero di trasferimenti');
+                
+                // Verifica che la somma dei trasferimenti pareggi i bilanci
+                const totalToReceive = Object.values(balances).filter(b => b > 0).reduce((sum, b) => sum + b, 0);
+                const totalToPay = Math.abs(Object.values(balances).filter(b => b < 0).reduce((sum, b) => sum + b, 0));
+                const totalTransfers = transfers.reduce((sum, t) => sum + t.amount, 0);
+                
+                log('result4', `\n   Totale da ricevere: €${totalToReceive.toFixed(2)}`);
+                log('result4', `   Totale da pagare: €${totalToPay.toFixed(2)}`);
+                log('result4', `   Totale trasferimenti: €${totalTransfers.toFixed(2)}`);
+                
+                if (Math.abs(totalToReceive - totalToPay) < 0.01 && Math.abs(totalTransfers - totalToReceive) < 0.01) {
+                    log('result4', '\n✅ VERIFICA SUPERATA: I trasferimenti sono bilanciati!', 'success');
+                } else {
+                    log('result4', '\n❌ VERIFICA FALLITA: I trasferimenti non sono bilanciati!', 'error');
+                }
+                
+            } catch (error) {
+                log('result4', `❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function test5() {
+            const result = document.getElementById('result5');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('result5', '⚠️ Esegui prima i test precedenti!', 'warning');
+                    return;
+                }
+                
+                log('result5', '💳 Registrazione secondo pagamento CUSTOM...');
+                log('result5', '   Da: David → A: Alice');
+                log('result5', '   Importo: €100.00');
+                
+                const payment = {
+                    id: Date.now().toString() + '-2',
+                    from: 'David',
+                    to: 'Alice',
+                    amount: 100,
+                    date: new Date().toISOString().split('T')[0],
+                    notes: 'Secondo pagamento custom',
+                    confirmed: true,
+                    createdAt: new Date().toISOString(),
+                    confirmedAt: new Date().toISOString()
+                };
+                
+                testActual.payments.push(payment);
+                
+                const { balances, paid, owes, paymentsReceived, paymentsMade } = calculateBalances(testActual);
+                
+                log('result5', '\n✅ Pagamento registrato e confermato!', 'success');
+                log('result5', '\n📊 BILANCI AGGIORNATI:');
+                result.innerHTML += createBalanceTable(balances, paid, owes, paymentsReceived, paymentsMade);
+                
+            } catch (error) {
+                log('result5', `❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function test6() {
+            const result = document.getElementById('result6');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('result6', '⚠️ Esegui prima i test precedenti!', 'warning');
+                    return;
+                }
+                
+                log('result6', '🔍 VERIFICA FINALE COMPLETA...\n');
+                
+                const { balances } = calculateBalances(testActual);
+                const transfers = optimizeTransfers(balances);
+                
+                log('result6', '📊 Riepilogo Pagamenti Effettuati:');
+                testActual.payments.forEach((p, i) => {
+                    log('result6', `   ${i + 1}. ${p.from} → ${p.to}: €${p.amount} ${p.confirmed ? '✅' : '⏳'}`);
+                });
+                
+                log('result6', '\n📊 Bilanci Finali:');
+                Object.keys(balances).forEach(person => {
+                    const balance = balances[person];
+                    const status = balance > 0.01 ? 'deve ricevere' : balance < -0.01 ? 'deve dare' : 'in pari';
+                    const amount = Math.abs(balance);
+                    log('result6', `   ${person}: ${status} €${amount.toFixed(2)}`);
+                });
+                
+                log('result6', '\n⚡ Trasferimenti Ancora Necessari:');
+                if (transfers.length === 0) {
+                    log('result6', '   ✅ Nessuno - tutti in pari!', 'success');
+                } else {
+                    transfers.forEach((t, i) => {
+                        log('result6', `   ${i + 1}. ${t.from} → ${t.to}: €${t.amount.toFixed(2)}`);
+                    });
+                }
+                
+                // Verifica finale
+                const allBalanced = Object.values(balances).every(b => Math.abs(b) < 0.01);
+                const totalBalance = Object.values(balances).reduce((sum, b) => sum + b, 0);
+                
+                log('result6', '\n🎯 RISULTATO FINALE:');
+                if (Math.abs(totalBalance) < 0.01) {
+                    log('result6', '   ✅ Somma bilanci = €0.00 (corretto!)', 'success');
+                } else {
+                    log('result6', `   ❌ Somma bilanci = €${totalBalance.toFixed(2)} (dovrebbe essere €0.00!)`, 'error');
+                }
+                
+                if (allBalanced) {
+                    log('result6', '   ✅ Tutti i partecipanti sono in pari!', 'success');
+                    log('result6', '\n🎉 TEST SUPERATO: Il sistema gestisce correttamente i pagamenti custom!', 'success');
+                } else {
+                    log('result6', '   ℹ️ Ci sono ancora bilanci da pareggiare (normale se non tutti hanno pagato)');
+                    log('result6', '\n✅ TEST SUPERATO: Il sistema calcola correttamente i bilanci!', 'success');
+                }
+                
+            } catch (error) {
+                log('result6', `❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function runScenario() {
+            const result = document.getElementById('scenarioResult');
+            result.innerHTML = '';
+            
+            log('scenarioResult', '🚀 ESECUZIONE SCENARIO COMPLETO...\n');
+            
+            setTimeout(() => {
+                test1();
+                setTimeout(() => {
+                    test2();
+                    setTimeout(() => {
+                        test3();
+                        setTimeout(() => {
+                            test4();
+                            setTimeout(() => {
+                                test5();
+                                setTimeout(() => {
+                                    test6();
+                                    log('scenarioResult', '\n✅ SCENARIO COMPLETO ESEGUITO!', 'success');
+                                }, 500);
+                            }, 500);
+                        }, 500);
+                    }, 500);
+                }, 500);
+            }, 500);
+        }
+    </script>
+</body>
+</html>

@@ -146,7 +146,38 @@ L'algoritmo considera automaticamente:
 
 Quindi i trasferimenti ottimizzati mostrano **solo i pagamenti ancora necessari** per chiudere definitivamente tutti i conti, escludendo ciò che è già stato pagato e confermato.
 
-### Esempio
+### 🎯 Pagamenti Custom (Tra Persone Diverse)
+
+**IMPORTANTE**: Il sistema gestisce correttamente i pagamenti tra **qualsiasi coppia di partecipanti**, anche se diversi da quelli suggeriti dall'ottimizzazione.
+
+#### Come Funziona
+Quando inserisci un pagamento tra due persone:
+1. Il pagamento viene **sottratto** dal bilancio di chi paga
+2. Il pagamento viene **aggiunto** al bilancio di chi riceve
+3. L'ottimizzazione **ricalcola automaticamente** i trasferimenti necessari
+
+#### Esempio Pratico
+**Situazione iniziale:**
+- Alice deve ricevere €100
+- Bob deve ricevere €50
+- Charlie deve dare €150
+
+**Sistema suggerisce:**
+- Charlie → Alice: €100
+- Charlie → Bob: €50
+
+**Ma tu inserisci un pagamento custom:**
+- Charlie → Bob: €50 (confermato)
+
+**Bilanci aggiornati:**
+- Alice deve ricevere €100 (invariato)
+- Bob in pari (€50 - €50 = €0)
+- Charlie deve dare €100 (€150 - €50 = €100)
+
+**Nuovi trasferimenti ottimizzati:**
+- Charlie → Alice: €100 (il pagamento a Bob è già stato fatto!)
+
+### Esempio Standard
 **Prima dei pagamenti:**
 - Alice deve ricevere €100
 - Bob in pari
@@ -181,8 +212,12 @@ Ogni pagamento è salvato con:
 ### Calcolo Bilanci
 Il bilancio finale di ogni partecipante è:
 ```
-Bilancio = (Spese Pagate) - (Quota Spese) + (Pagamenti Ricevuti) - (Pagamenti Effettuati)
+Bilancio = (Spese Pagate) - (Quota Spese) + (Pagamenti Effettuati) - (Pagamenti Ricevuti)
 ```
+
+**IMPORTANTE:** I pagamenti tra partecipanti sono trasferimenti che saldano i debiti:
+- **Chi paga**: il pagamento riduce il suo debito (+paymentsMade)
+- **Chi riceve**: il pagamento riduce il suo credito (-paymentsReceived)
 
 Solo i pagamenti con `confirmed: true` vengono considerati nel calcolo.
 
