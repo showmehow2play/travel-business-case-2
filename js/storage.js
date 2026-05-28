@@ -80,14 +80,31 @@ const StorageManager = {
         setInterval(() => this.createBackup(), 5 * 60 * 1000);
     },
 
-    // Ottieni tutti i dati
-    getData() {
+    // Ottieni tutti i dati (ora da Supabase, localStorage solo come cache)
+    async getData() {
         try {
+            // Se Supabase è disponibile, usa quello come fonte di verità
+            if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+                console.log('📥 Caricamento dati da Supabase...');
+                const synced = await window.SupabaseStorage.syncFromSupabase();
+                if (synced) {
+                    // Leggi da localStorage (appena aggiornato da Supabase)
+                    const data = localStorage.getItem(this.STORAGE_KEY);
+                    const parsed = data ? JSON.parse(data) : null;
+                    
+                    if (parsed) {
+                        console.log(`✅ Dati caricati: ${parsed.scenarios?.length || 0} scenari, ${parsed.actuals?.length || 0} consuntivi`);
+                        return parsed;
+                    }
+                }
+            }
+            
+            // Fallback a localStorage
             const data = localStorage.getItem(this.STORAGE_KEY);
             const parsed = data ? JSON.parse(data) : null;
 
             if (!parsed) {
-                return null;
+                return { scenarios: [], actuals: [] };
             }
 
             // Assicura che esistano entrambi gli array
@@ -101,15 +118,7 @@ const StorageManager = {
             return parsed;
         } catch (error) {
             console.error('Errore nel recupero dei dati:', error);
-
-            try {
-                const normalized = { scenarios: [], actuals: [] };
-                this.saveData(normalized);
-                return normalized;
-            } catch (saveError) {
-                console.error('Errore nel ripristino automatico dello storage:', saveError);
-                return null;
-            }
+            return { scenarios: [], actuals: [] };
         }
     },
 
@@ -151,9 +160,9 @@ const StorageManager = {
         }
     },
 
-    // Ottieni tutti gli scenari
-    getScenarios() {
-        const data = this.getData();
+    // Ottieni tutti gli scenari (sempre da Supabase)
+    async getScenarios() {
+        const data = await this.getData();
         return data ? data.scenarios : [];
     },
 
@@ -233,8 +242,8 @@ const StorageManager = {
     },
 
     // Ottieni uno scenario per ID
-    getScenario(id) {
-        const scenarios = this.getScenarios();
+    async getScenario(id) {
+        const scenarios = await this.getScenarios();
         return scenarios.find(s => s.id === id);
     },
 
@@ -256,9 +265,9 @@ const StorageManager = {
 
     // ===== Gestione Consuntivi (Actuals) =====
 
-    // Ottieni tutti i consuntivi
-    getActuals() {
-        const data = this.getData();
+    // Ottieni tutti i consuntivi (sempre da Supabase)
+    async getActuals() {
+        const data = await this.getData();
         return data ? (data.actuals || []) : [];
     },
 
@@ -339,8 +348,8 @@ const StorageManager = {
     },
 
     // Ottieni un consuntivo per ID
-    getActual(id) {
-        const actuals = this.getActuals();
+    async getActual(id) {
+        const actuals = await this.getActuals();
         return actuals.find(a => a.id === id);
     },
 
