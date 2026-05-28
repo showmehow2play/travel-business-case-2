@@ -734,7 +734,7 @@ const SettlementsManager = {
     },
 
     // Salva un nuovo pagamento generico
-    saveNewPayment() {
+    async saveNewPayment() {
         const from = document.getElementById('paymentFrom').value;
         const to = document.getElementById('paymentTo').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
@@ -789,8 +789,13 @@ const SettlementsManager = {
         this.payments.push(payment);
         this.currentActual.payments = this.payments;
         
-        // Salva nel storage
-        StorageManager.updateActual(this.currentActual);
+        // Salva nel storage e invalida cache
+        await StorageManager.updateActual(this.currentActual.id, {
+            payments: this.payments
+        });
+        
+        // Invalida la cache per forzare ricaricamento da Supabase
+        await StorageManager.invalidateCache();
         
         // Chiudi tutti i modal aperti
         const modals = document.querySelectorAll('.modal');
@@ -802,13 +807,13 @@ const SettlementsManager = {
         
         // Mostra messaggio di successo
         const message = confirmed
-            ? '✅ Pagamento registrato e confermato! I bilanci sono stati aggiornati.'
-            : '✅ Pagamento registrato! In attesa di conferma.';
+            ? '✅ Pagamento registrato, confermato e sincronizzato su Supabase!'
+            : '✅ Pagamento registrato e sincronizzato su Supabase!';
         this.showNotification(message, 'success');
     },
 
     // Salva un nuovo pagamento
-    savePayment(participant, isReceiving) {
+    async savePayment(participant, isReceiving) {
         const otherParticipant = document.getElementById('paymentParticipant').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
         const date = document.getElementById('paymentDate').value;
@@ -852,8 +857,13 @@ const SettlementsManager = {
         this.payments.push(payment);
         this.currentActual.payments = this.payments;
         
-        // Salva nel storage
-        StorageManager.updateActual(this.currentActual);
+        // Salva nel storage e invalida cache
+        await StorageManager.updateActual(this.currentActual.id, {
+            payments: this.payments
+        });
+        
+        // Invalida la cache per forzare ricaricamento da Supabase
+        await StorageManager.invalidateCache();
         
         // Chiudi tutti i modal aperti
         const modals = document.querySelectorAll('.modal');
@@ -865,13 +875,13 @@ const SettlementsManager = {
         
         // Mostra messaggio di successo
         const message = confirmed
-            ? '✅ Pagamento registrato e confermato! I bilanci sono stati aggiornati.'
-            : '✅ Pagamento registrato! In attesa di conferma.';
+            ? '✅ Pagamento registrato, confermato e sincronizzato su Supabase!'
+            : '✅ Pagamento registrato e sincronizzato su Supabase!';
         this.showNotification(message, 'success');
     },
 
     // Conferma un pagamento
-    confirmPayment(paymentId) {
+    async confirmPayment(paymentId) {
         const payment = this.payments.find(p => p.id === paymentId);
         if (!payment) return;
         
@@ -879,31 +889,45 @@ const SettlementsManager = {
             payment.confirmed = true;
             payment.confirmedAt = new Date().toISOString();
             
-            // Salva nel storage
-            StorageManager.updateActual(this.currentActual);
+            // Salva nel storage e invalida cache
+            await StorageManager.updateActual(this.currentActual.id, {
+                payments: this.payments
+            });
+            
+            // Invalida la cache per forzare ricaricamento da Supabase
+            await StorageManager.invalidateCache();
             
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
             this.displayPaymentsHistory();
             
-            this.showNotification('✅ Pagamento confermato!', 'success');
+            this.showNotification('✅ Pagamento confermato e sincronizzato su Supabase!', 'success');
         }
     },
 
     // Elimina un pagamento
-    deletePayment(paymentId) {
+    async deletePayment(paymentId) {
         if (confirm('Eliminare questo pagamento?')) {
             this.payments = this.payments.filter(p => p.id !== paymentId);
             this.currentActual.payments = this.payments;
             
-            // Salva nel storage
-            StorageManager.updateActual(this.currentActual);
+            // Salva nel storage e invalida cache
+            await StorageManager.updateActual(this.currentActual.id, {
+                payments: this.payments
+            });
+            
+            // Invalida la cache per forzare ricaricamento da Supabase
+            await StorageManager.invalidateCache();
+            
+            // Ricarica il consuntivo da Supabase
+            this.currentActual = await StorageManager.getActual(this.currentActual.id);
+            this.payments = this.currentActual.payments || [];
             
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
             this.displayPaymentsHistory();
             
-            this.showNotification('🗑️ Pagamento eliminato.', 'info');
+            this.showNotification('🗑️ Pagamento eliminato e sincronizzato su Supabase.', 'success');
         }
     },
 
