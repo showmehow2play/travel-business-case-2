@@ -140,12 +140,20 @@ const SupabaseStorage = {
                     });
 
                 if (error) {
-                    console.error('Errore salvataggio scenario su Supabase:', error);
+                    console.error('❌ Errore salvataggio scenario su Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Scenario salvato su Supabase:', scenario.id);
+                return true;
             } catch (error) {
-                console.error('Errore salvataggio scenario su Supabase:', error);
+                console.error('❌ Errore salvataggio scenario su Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque salvato (in localStorage)
+        return true;
     },
 
     // Elimina uno scenario
@@ -164,12 +172,20 @@ const SupabaseStorage = {
                     .eq('id', scenarioId);
 
                 if (error) {
-                    console.error('Errore eliminazione scenario da Supabase:', error);
+                    console.error('❌ Errore eliminazione scenario da Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Scenario eliminato da Supabase:', scenarioId);
+                return true;
             } catch (error) {
-                console.error('Errore eliminazione scenario da Supabase:', error);
+                console.error('❌ Errore eliminazione scenario da Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque eliminato (da localStorage)
+        return true;
     },
 
     // Salva un consuntivo (actual)
@@ -200,12 +216,20 @@ const SupabaseStorage = {
                     });
 
                 if (error) {
-                    console.error('Errore salvataggio consuntivo su Supabase:', error);
+                    console.error('❌ Errore salvataggio consuntivo su Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Consuntivo salvato su Supabase:', actual.id);
+                return true;
             } catch (error) {
-                console.error('Errore salvataggio consuntivo su Supabase:', error);
+                console.error('❌ Errore salvataggio consuntivo su Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque salvato (in localStorage)
+        return true;
     },
 
     // Elimina un consuntivo
@@ -224,12 +248,20 @@ const SupabaseStorage = {
                     .eq('id', actualId);
 
                 if (error) {
-                    console.error('Errore eliminazione consuntivo da Supabase:', error);
+                    console.error('❌ Errore eliminazione consuntivo da Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Consuntivo eliminato da Supabase:', actualId);
+                return true;
             } catch (error) {
-                console.error('Errore eliminazione consuntivo da Supabase:', error);
+                console.error('❌ Errore eliminazione consuntivo da Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque eliminato (da localStorage)
+        return true;
     },
 
     // Salva l'anagrafica partecipanti

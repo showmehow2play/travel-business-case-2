@@ -783,6 +783,8 @@ const SettlementsManager = {
 
     // Salva un nuovo pagamento generico
     async saveNewPayment() {
+        console.log('💾 Inizio salvataggio nuovo pagamento...');
+        
         const from = document.getElementById('paymentFrom').value;
         const to = document.getElementById('paymentTo').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
@@ -793,28 +795,30 @@ const SettlementsManager = {
         // Validazione
         if (!from) {
             alert('Seleziona chi effettua il pagamento.');
-            return;
+            throw new Error('Pagatore non selezionato');
         }
         
         if (!to) {
             alert('Seleziona chi riceve il pagamento.');
-            return;
+            throw new Error('Destinatario non selezionato');
         }
         
         if (from === to) {
             alert('Il pagatore e il destinatario devono essere diversi.');
-            return;
+            throw new Error('Pagatore e destinatario uguali');
         }
         
         if (!amount || amount <= 0) {
             alert('Inserisci un importo valido.');
-            return;
+            throw new Error('Importo non valido');
         }
         
         if (!date) {
             alert('Inserisci una data.');
-            return;
+            throw new Error('Data non inserita');
         }
+        
+        console.log('✅ Validazione completata');
         
         // Crea oggetto pagamento
         const payment = {
@@ -833,25 +837,39 @@ const SettlementsManager = {
             payment.confirmedAt = new Date().toISOString();
         }
         
+        console.log('📝 Pagamento creato:', payment);
+        
         // Aggiungi al array dei pagamenti
         this.payments.push(payment);
         this.currentActual.payments = this.payments;
         
-        // Salva nel storage e invalida cache
-        await StorageManager.updateActual(this.currentActual.id, {
-            payments: this.payments
-        });
+        console.log('💾 Salvataggio su Supabase...');
+        
+        // Aggiorna l'oggetto completo
+        this.currentActual.payments = this.payments;
+        this.currentActual.updatedAt = new Date().toISOString();
+        
+        // Salva l'intero consuntivo
+        await StorageManager.updateActual(this.currentActual.id, this.currentActual);
+        
+        console.log('🔄 Invalidazione cache...');
         
         // Invalida la cache per forzare ricaricamento da Supabase
         await StorageManager.invalidateCache();
+        
+        console.log('🗑️ Chiusura modal...');
         
         // Chiudi tutti i modal aperti
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => modal.remove());
         
+        console.log('🔄 Aggiornamento vista...');
+        
         // Aggiorna la vista
         this.calculateBalances(this.currentActual);
         this.displayPaymentsHistory();
+        
+        console.log('✅ Salvataggio completato');
         
         // Mostra messaggio di successo
         const message = confirmed
@@ -905,10 +923,11 @@ const SettlementsManager = {
         this.payments.push(payment);
         this.currentActual.payments = this.payments;
         
-        // Salva nel storage e invalida cache
-        await StorageManager.updateActual(this.currentActual.id, {
-            payments: this.payments
-        });
+        // Aggiorna l'oggetto completo
+        this.currentActual.updatedAt = new Date().toISOString();
+        
+        // Salva l'intero consuntivo
+        await StorageManager.updateActual(this.currentActual.id, this.currentActual);
         
         // Invalida la cache per forzare ricaricamento da Supabase
         await StorageManager.invalidateCache();
@@ -937,13 +956,19 @@ const SettlementsManager = {
             payment.confirmed = true;
             payment.confirmedAt = new Date().toISOString();
             
-            // Salva nel storage e invalida cache
-            await StorageManager.updateActual(this.currentActual.id, {
-                payments: this.payments
-            });
+            // Aggiorna l'oggetto completo del consuntivo
+            this.currentActual.payments = this.payments;
+            this.currentActual.updatedAt = new Date().toISOString();
+            
+            console.log('💾 Confermando pagamento e salvando su Supabase...');
+            
+            // Salva l'intero consuntivo su Supabase
+            await StorageManager.updateActual(this.currentActual.id, this.currentActual);
             
             // Invalida la cache per forzare ricaricamento da Supabase
             await StorageManager.invalidateCache();
+            
+            console.log('✅ Pagamento confermato e cache invalidata');
             
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
@@ -955,27 +980,50 @@ const SettlementsManager = {
 
     // Elimina un pagamento
     async deletePayment(paymentId) {
-        if (confirm('Eliminare questo pagamento?')) {
+        if (!confirm('Eliminare questo pagamento?')) {
+            return;
+        }
+        
+        try {
+            console.log('🗑️ Eliminazione pagamento:', paymentId);
+            
+            // Rimuovi il pagamento dall'array
             this.payments = this.payments.filter(p => p.id !== paymentId);
             this.currentActual.payments = this.payments;
             
-            // Salva nel storage e invalida cache
-            await StorageManager.updateActual(this.currentActual.id, {
-                payments: this.payments
-            });
+            console.log('💾 Salvataggio su Supabase...');
+            
+            // Aggiorna l'oggetto completo
+            this.currentActual.payments = this.payments;
+            this.currentActual.updatedAt = new Date().toISOString();
+            
+            // Salva l'intero consuntivo
+            await StorageManager.updateActual(this.currentActual.id, this.currentActual);
+            
+            console.log('🔄 Invalidazione cache...');
             
             // Invalida la cache per forzare ricaricamento da Supabase
             await StorageManager.invalidateCache();
+            
+            console.log('📥 Ricaricamento da Supabase...');
             
             // Ricarica il consuntivo da Supabase
             this.currentActual = await StorageManager.getActual(this.currentActual.id);
             this.payments = this.currentActual.payments || [];
             
+            console.log('🔄 Aggiornamento vista...');
+            
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
             this.displayPaymentsHistory();
             
+            console.log('✅ Pagamento eliminato con successo');
+            
             this.showNotification('🗑️ Pagamento eliminato e sincronizzato su Supabase.', 'success');
+        } catch (error) {
+            console.error('❌ Errore eliminazione pagamento:', error);
+            alert('Errore durante l\'eliminazione del pagamento: ' + error.message);
+            this.showNotification('❌ Errore eliminazione pagamento', 'error');
         }
     },
 
@@ -1072,13 +1120,13 @@ const SettlementsManager = {
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
                             ${!payment.confirmed ? `
-                                <button class="btn btn-primary" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;" 
-                                        onclick="SettlementsManager.confirmPayment('${payment.id}')">
+                                <button class="btn btn-primary payment-confirm-btn" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;"
+                                        data-payment-id="${payment.id}">
                                     ✓ Conferma
                                 </button>
                             ` : ''}
-                            <button class="btn btn-danger" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;" 
-                                    onclick="SettlementsManager.deletePayment('${payment.id}')">
+                            <button class="btn btn-danger payment-delete-btn" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;"
+                                    data-payment-id="${payment.id}">
                                 🗑️
                             </button>
                         </div>
@@ -1086,6 +1134,41 @@ const SettlementsManager = {
                 </div>
             `;
         }).join('');
+        
+        // Aggiungi event listeners ai bottoni dopo aver creato l'HTML
+        container.querySelectorAll('.payment-confirm-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const paymentId = e.target.dataset.paymentId;
+                const originalText = e.target.innerHTML;
+                try {
+                    e.target.disabled = true;
+                    e.target.innerHTML = '⏳';
+                    await this.confirmPayment(paymentId);
+                } catch (error) {
+                    console.error('❌ Errore conferma:', error);
+                    alert('Errore: ' + error.message);
+                    e.target.disabled = false;
+                    e.target.innerHTML = originalText;
+                }
+            });
+        });
+        
+        container.querySelectorAll('.payment-delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const paymentId = e.target.dataset.paymentId;
+                const originalText = e.target.innerHTML;
+                try {
+                    e.target.disabled = true;
+                    e.target.innerHTML = '⏳';
+                    await this.deletePayment(paymentId);
+                } catch (error) {
+                    console.error('❌ Errore eliminazione:', error);
+                    alert('Errore: ' + error.message);
+                    e.target.disabled = false;
+                    e.target.innerHTML = originalText;
+                }
+            });
+        });
     },
 
     // Mostra notifica
