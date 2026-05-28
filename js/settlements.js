@@ -645,8 +645,27 @@ const SettlementsManager = {
         document.body.appendChild(modal);
         
         // Aggiungi event listener per il pulsante salva
-        document.getElementById('saveNewPaymentBtn').addEventListener('click', async () => {
-            await this.saveNewPayment();
+        document.getElementById('saveNewPaymentBtn').addEventListener('click', async (e) => {
+            const btn = e.target;
+            const originalText = btn.innerHTML;
+            
+            try {
+                // Disabilita il pulsante durante il salvataggio
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Salvataggio...';
+                
+                await this.saveNewPayment();
+                
+                // Chiudi il modal dopo il salvataggio
+                modal.remove();
+            } catch (error) {
+                console.error('Errore salvataggio pagamento:', error);
+                alert('Errore durante il salvataggio del pagamento: ' + error.message);
+                
+                // Riabilita il pulsante in caso di errore
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         });
         
         setTimeout(() => {
@@ -733,8 +752,27 @@ const SettlementsManager = {
         document.body.appendChild(modal);
         
         // Aggiungi event listener per il pulsante salva
-        document.getElementById('savePaymentBtn').addEventListener('click', async () => {
-            await this.savePayment(participant, isReceiving);
+        document.getElementById('savePaymentBtn').addEventListener('click', async (e) => {
+            const btn = e.target;
+            const originalText = btn.innerHTML;
+            
+            try {
+                // Disabilita il pulsante durante il salvataggio
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Salvataggio...';
+                
+                await this.savePayment(participant, isReceiving);
+                
+                // Chiudi il modal dopo il salvataggio
+                modal.remove();
+            } catch (error) {
+                console.error('Errore salvataggio pagamento:', error);
+                alert('Errore durante il salvataggio del pagamento: ' + error.message);
+                
+                // Riabilita il pulsante in caso di errore
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         });
         
         // Focus sul primo campo
