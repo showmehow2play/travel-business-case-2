@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Formula Bilanci</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .test {
+            background: white;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        h2 { margin-top: 0; }
+        .result { margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Formula Bilanci</h1>
+    
+    <div class="test">
+        <h2>Test 1: Situazione Base</h2>
+        <p><strong>Scenario:</strong></p>
+        <ul>
+            <li>Lorenzo ha pagato €0 per spese</li>
+            <li>Lorenzo deve €423.01 (sua quota)</li>
+            <li>Lorenzo NON ha fatto pagamenti</li>
+            <li>Lorenzo NON ha ricevuto pagamenti</li>
+        </ul>
+        <div class="result" id="test1"></div>
+    </div>
+
+    <div class="test">
+        <h2>Test 2: Dopo Pagamento</h2>
+        <p><strong>Scenario:</strong></p>
+        <ul>
+            <li>Lorenzo ha pagato €0 per spese</li>
+            <li>Lorenzo deve €423.01 (sua quota)</li>
+            <li>Lorenzo HA PAGATO €423.01 a Ilaria</li>
+            <li>Lorenzo NON ha ricevuto pagamenti</li>
+        </ul>
+        <div class="result" id="test2"></div>
+    </div>
+
+    <div class="test">
+        <h2>Test 3: Ilaria Dopo Pagamento</h2>
+        <p><strong>Scenario:</strong></p>
+        <ul>
+            <li>Ilaria ha pagato €2030.45 per spese</li>
+            <li>Ilaria deve €423.01 (sua quota)</li>
+            <li>Ilaria NON ha fatto pagamenti</li>
+            <li>Ilaria HA RICEVUTO €423.01 da Lorenzo</li>
+        </ul>
+        <div class="result" id="test3"></div>
+    </div>
+
+    <script>
+        function testFormula(paid, owes, paymentsMade, paymentsReceived, testId, expectedBalance) {
+            const balance = paid - owes + paymentsMade - paymentsReceived;
+            const result = document.getElementById(testId);
+            
+            result.innerHTML = `
+                <strong>Calcolo:</strong><br>
+                Bilancio = paid - owes + paymentsMade - paymentsReceived<br>
+                Bilancio = ${paid} - ${owes} + ${paymentsMade} - ${paymentsReceived}<br>
+                Bilancio = <strong>${balance.toFixed(2)}</strong><br>
+                <br>
+                <strong>Atteso:</strong> €${expectedBalance.toFixed(2)}<br>
+                <strong>Risultato:</strong> ${Math.abs(balance - expectedBalance) < 0.01 ? '✅ CORRETTO' : '❌ ERRATO'}
+            `;
+            
+            const testDiv = result.closest('.test');
+            if (Math.abs(balance - expectedBalance) < 0.01) {
+                testDiv.classList.add('success');
+            } else {
+                testDiv.classList.add('error');
+            }
+        }
+
+        // Test 1: Lorenzo prima del pagamento
+        testFormula(
+            0,      // paid
+            423.01, // owes
+            0,      // paymentsMade
+            0,      // paymentsReceived
+            'test1',
+            -423.01 // expected: deve dare €423.01
+        );
+
+        // Test 2: Lorenzo dopo aver pagato €423.01
+        testFormula(
+            0,      // paid
+            423.01, // owes
+            423.01, // paymentsMade (ha pagato €423.01)
+            0,      // paymentsReceived
+            'test2',
+            0       // expected: in pari
+        );
+
+        // Test 3: Ilaria dopo aver ricevuto €423.01
+        testFormula(
+            2030.45, // paid
+            423.01,  // owes
+            0,       // paymentsMade
+            423.01,  // paymentsReceived (ha ricevuto €423.01)
+            'test3',
+            1184.43  // expected: 2030.45 - 423.01 - 423.01 = 1184.43
+        );
+    </script>
+</body>
+</html>
