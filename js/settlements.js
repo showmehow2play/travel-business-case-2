@@ -88,8 +88,8 @@ const SettlementsManager = {
     },
 
     // Carica un consuntivo specifico
-    async loadActual(actualId) {
-        const actual = await StorageManager.getActual(actualId);
+    loadActual(actualId) {
+        const actual = StorageManager.getActual(actualId);
         if (!actual) return;
 
         this.currentActual = actual;
