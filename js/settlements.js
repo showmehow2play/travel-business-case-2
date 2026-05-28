@@ -635,7 +635,7 @@ const SettlementsManager = {
                     <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
                         Annulla
                     </button>
-                    <button class="btn btn-primary" onclick="SettlementsManager.saveNewPayment()">
+                    <button class="btn btn-primary" id="saveNewPaymentBtn">
                         💾 Salva Pagamento
                     </button>
                 </div>
@@ -643,6 +643,11 @@ const SettlementsManager = {
         `;
         
         document.body.appendChild(modal);
+        
+        // Aggiungi event listener per il pulsante salva
+        document.getElementById('saveNewPaymentBtn').addEventListener('click', async () => {
+            await this.saveNewPayment();
+        });
         
         setTimeout(() => {
             document.getElementById('paymentFrom').focus();
@@ -718,7 +723,7 @@ const SettlementsManager = {
                     <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
                         Annulla
                     </button>
-                    <button class="btn btn-primary" onclick="SettlementsManager.savePayment('${participant}', ${isReceiving})">
+                    <button class="btn btn-primary" id="savePaymentBtn">
                         💾 Salva Pagamento
                     </button>
                 </div>
@@ -726,6 +731,11 @@ const SettlementsManager = {
         `;
         
         document.body.appendChild(modal);
+        
+        // Aggiungi event listener per il pulsante salva
+        document.getElementById('savePaymentBtn').addEventListener('click', async () => {
+            await this.savePayment(participant, isReceiving);
+        });
         
         // Focus sul primo campo
         setTimeout(() => {
