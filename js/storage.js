@@ -16,6 +16,31 @@ const StorageManager = {
                 const synced = await window.SupabaseStorage.syncFromSupabase();
                 if (synced) {
                     console.log('✅ Dati sincronizzati da Supabase');
+                    
+                    // Verifica se ci sono dati dopo la sincronizzazione
+                    const existingData = this.getData();
+                    
+                    // Se ancora non ci sono dati, carica i dati di esempio
+                    if (!existingData || (existingData.scenarios.length === 0 && existingData.actuals.length === 0)) {
+                        console.log('📦 Nessun dato su Supabase, caricamento dati di esempio...');
+                        
+                        if (typeof SampleData !== 'undefined') {
+                            await this.saveData({
+                                scenarios: SampleData.scenarios || [],
+                                actuals: SampleData.actuals || []
+                            });
+                            
+                            // Carica anche i partecipanti di esempio nell'anagrafica
+                            if (typeof participantsRegistry !== 'undefined' && SampleData.participants) {
+                                localStorage.setItem('participants_registry', JSON.stringify(SampleData.participants));
+                            }
+                            
+                            console.log('✅ Dati di esempio caricati con successo!');
+                        }
+                    } else {
+                        console.log(`✅ Dati caricati: ${existingData.scenarios.length} scenari, ${existingData.actuals.length} consuntivi`);
+                    }
+                    
                     // Backup automatico ogni 5 minuti
                     setInterval(() => this.createBackup(), 5 * 60 * 1000);
                     return;

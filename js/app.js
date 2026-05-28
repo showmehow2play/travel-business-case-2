@@ -6,30 +6,13 @@ const App = {
     currentScenario: null,
 
     // Inizializza l'applicazione
-    async init() {
-        // Sincronizza automaticamente da Supabase all'avvio
-        if (typeof SupabaseStorage !== 'undefined' && window.isSupabaseEnabled) {
-            console.log('🔄 Sincronizzazione automatica da Supabase all\'avvio...');
-            try {
-                const synced = await SupabaseStorage.syncFromSupabase();
-                if (synced) {
-                    console.log('✅ Dati sincronizzati da Supabase');
-                    console.log('📊 Dati aggiornati da Supabase, ricaricamento interfaccia...');
-                }
-            } catch (error) {
-                console.warn('⚠️ Errore sincronizzazione automatica:', error);
-            }
-        }
+    init() {
+        // La sincronizzazione è già stata fatta da StorageManager.init()
+        // Non serve duplicarla qui
         
         this.setupEventListeners();
         this.loadDashboard();
         this.loadScenariosList();
-        
-        // Se siamo nella vista settlements, ricarica il consuntivo corrente
-        if (this.currentView === 'settlements' && typeof SettlementsManager !== 'undefined' && SettlementsManager.currentActual) {
-            console.log('🔄 Ricaricamento vista Dare/Avere con dati aggiornati...');
-            SettlementsManager.loadActual(SettlementsManager.currentActual.id);
-        }
     },
 
     // Configura gli event listeners
