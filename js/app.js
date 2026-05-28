@@ -7,6 +7,9 @@ const App = {
 
     // Inizializza l'applicazione
     init() {
+        // La sincronizzazione è già stata fatta da StorageManager.init()
+        // Non serve duplicarla qui
+        
         this.setupEventListeners();
         this.loadDashboard();
         this.loadScenariosList();
@@ -333,9 +336,9 @@ const App = {
     },
 
     // Carica la dashboard
-    loadDashboard() {
-        const stats = StorageManager.getStats();
-        const scenarios = StorageManager.getScenarios() || [];
+    async loadDashboard() {
+        const stats = await StorageManager.getStats();
+        const scenarios = await StorageManager.getScenarios() || [];
 
         // Update stats
         document.getElementById('totalScenarios').textContent = stats.totalScenarios;
@@ -407,12 +410,12 @@ const App = {
     },
 
     // Elimina uno scenario dalla dashboard
-    deleteScenarioFromDashboard(id) {
-        const scenario = StorageManager.getScenario(id);
+    async deleteScenarioFromDashboard(id) {
+        const scenario = await StorageManager.getScenario(id);
         if (!scenario) return;
 
         if (confirm(`Sei sicuro di voler eliminare lo scenario "${scenario.name}"?\n\nQuesta operazione non può essere annullata.`)) {
-            const deleted = StorageManager.deleteScenario(id);
+            const deleted = await StorageManager.deleteScenario(id);
             if (deleted) {
                 ExportManager.showSuccess('Scenario eliminato con successo');
                 this.loadDashboard(); // Ricarica la dashboard
@@ -480,8 +483,8 @@ const App = {
     },
 
     // Carica la lista degli scenari
-    loadScenariosList() {
-        const scenarios = StorageManager.getScenarios() || [];
+    async loadScenariosList() {
+        const scenarios = await StorageManager.getScenarios() || [];
         const list = document.getElementById('scenariosList');
 
         console.log('loadScenariosList - scenari trovati:', scenarios.length, scenarios);
@@ -636,12 +639,12 @@ const App = {
     },
 
     // Elimina uno scenario dalla lista scenari
-    deleteScenarioFromList(id) {
-        const scenario = StorageManager.getScenario(id);
+    async deleteScenarioFromList(id) {
+        const scenario = await StorageManager.getScenario(id);
         if (!scenario) return;
 
         if (confirm(`Sei sicuro di voler eliminare lo scenario "${scenario.name}"?\n\nQuesta operazione non può essere annullata.`)) {
-            const deleted = StorageManager.deleteScenario(id);
+            const deleted = await StorageManager.deleteScenario(id);
             if (deleted) {
                 ExportManager.showSuccess('Scenario eliminato con successo');
                 this.loadScenariosList(); // Ricarica la lista
@@ -652,8 +655,8 @@ const App = {
     },
 
     // Carica la vista di confronto
-    loadCompareView() {
-        const scenarios = StorageManager.getScenarios();
+    async loadCompareView() {
+        const scenarios = await StorageManager.getScenarios();
         const checkboxes = document.getElementById('compareCheckboxes');
 
         if (scenarios.length === 0) {
@@ -688,7 +691,7 @@ const App = {
     },
 
     // Visualizza il confronto
-    displayComparison(comparison) {
+    async displayComparison(comparison) {
         const results = document.getElementById('compareResults');
         
         let html = '<h3>Risultati del Confronto</h3>';
@@ -812,10 +815,10 @@ const App = {
         results.innerHTML = html;
 
         // Create charts (they'll be hidden initially)
-        const scenarios = comparison.scenarios.map(s => {
-            const fullScenario = StorageManager.getScenario(s.id);
+        const scenarios = await Promise.all(comparison.scenarios.map(async s => {
+            const fullScenario = await StorageManager.getScenario(s.id);
             return fullScenario;
-        });
+        }));
 
         setTimeout(() => {
             ChartsManager.createComparisonBarChart('comparisonBarChart', scenarios);
@@ -845,9 +848,9 @@ const App = {
     },
 
     // Modifica uno scenario esistente
-    editScenario(id) {
+    async editScenario(id) {
         try {
-            const scenario = StorageManager.getScenario(id);
+            const scenario = await StorageManager.getScenario(id);
 
             if (scenario) {
                 this.currentScenario = scenario;

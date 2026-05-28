@@ -117,8 +117,8 @@ const ActualsUI = {
     },
 
     // Carica lista consuntivi
-    loadActualsList() {
-        const actuals = StorageManager.getActuals() || [];
+    async loadActualsList() {
+        const actuals = await StorageManager.getActuals() || [];
         const list = document.getElementById('actualsList');
 
         if (!list) return;
@@ -243,12 +243,12 @@ const ActualsUI = {
     },
 
     // Crea nuovo consuntivo
-    createNewActual() {
+    async createNewActual() {
         this.currentActualId = null;
         this.currentExpenses = [];
         
         // Chiedi se vuole partire da un preventivo
-        const scenarios = StorageManager.getScenarios();
+        const scenarios = await StorageManager.getScenarios();
         
         if (scenarios.length > 0) {
             this.showScenarioSelectionModal();
@@ -263,8 +263,8 @@ const ActualsUI = {
     },
 
     // Mostra modal per selezione preventivo
-    showScenarioSelectionModal() {
-        const scenarios = StorageManager.getScenarios();
+    async showScenarioSelectionModal() {
+        const scenarios = await StorageManager.getScenarios();
         
         const modalHTML = `
             <div id="scenarioSelectionModal" class="modal active">
@@ -315,10 +315,10 @@ const ActualsUI = {
     },
 
     // Carica da preventivo
-    loadFromScenario(scenarioId) {
+    async loadFromScenario(scenarioId) {
         this.closeScenarioSelectionModal();
         
-        const scenario = StorageManager.getScenario(scenarioId);
+        const scenario = await StorageManager.getScenario(scenarioId);
         if (!scenario) {
             this.startFromScratch();
             return;
@@ -481,8 +481,8 @@ const ActualsUI = {
     },
 
     // Modifica consuntivo
-    editActual(id) {
-        const actual = StorageManager.getActual(id);
+    async editActual(id) {
+        const actual = await StorageManager.getActual(id);
         if (actual) {
             this.currentActualId = id;
             this.currentExpenses = actual.expenses || [];
@@ -1159,8 +1159,8 @@ const ActualsUI = {
     },
 
     // Visualizza pagina Conti dalla lista principale
-    viewAccountsFromList() {
-        const actuals = StorageManager.getActuals() || [];
+    async viewAccountsFromList() {
+        const actuals = await StorageManager.getActuals() || [];
         
         if (actuals.length === 0) {
             App.showToast('Crea prima un consuntivo per visualizzare i conti', 'warning');
@@ -1180,8 +1180,8 @@ const ActualsUI = {
     },
 
     // Visualizza pagina Dare/Avere per un consuntivo specifico
-    viewSettlements(actualId) {
-        const actual = StorageManager.getActual(actualId);
+    async viewSettlements(actualId) {
+        const actual = await StorageManager.getActual(actualId);
         if (!actual) {
             App.showToast('Consuntivo non trovato', 'error');
             return;
@@ -1193,10 +1193,10 @@ const ActualsUI = {
     },
 
     // Visualizza pagina Conti dal dettaglio consuntivo
-    viewAccounts() {
+    async viewAccounts() {
         if (!this.currentActualId) return;
 
-        const actual = StorageManager.getActual(this.currentActualId);
+        const actual = await StorageManager.getActual(this.currentActualId);
         if (!actual) return;
 
         // Inizializza AccountsManager con il consuntivo corrente
@@ -1207,12 +1207,12 @@ const ActualsUI = {
     },
 
     // Elimina dalla lista
-    deleteActualFromList(id) {
-        const actual = StorageManager.getActual(id);
+    async deleteActualFromList(id) {
+        const actual = await StorageManager.getActual(id);
         if (!actual) return;
 
         if (confirm(`Sei sicuro di voler eliminare il consuntivo "${actual.name}"?`)) {
-            StorageManager.deleteActual(id);
+            await StorageManager.deleteActual(id);
             ExportManager.showSuccess('Consuntivo eliminato');
             this.loadActualsList();
         }

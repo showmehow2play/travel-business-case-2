@@ -393,6 +393,96 @@ const SupabaseStorage = {
             .subscribe();
 
         return subscription;
+    },
+
+    // Ottieni tutti gli scenari da Supabase
+    async getAllScenarios() {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return [];
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('scenarios')
+                .select('data')
+                .order('updated_at', { ascending: false });
+
+            if (error) throw error;
+
+            return data ? data.map(s => s.data) : [];
+        } catch (error) {
+            console.error('Errore recupero scenari da Supabase:', error);
+            return [];
+        }
+    },
+
+    // Ottieni tutti i consuntivi da Supabase
+    async getAllActuals() {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return [];
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('actuals')
+                .select('data')
+                .order('updated_at', { ascending: false });
+
+            if (error) throw error;
+
+            return data ? data.map(a => a.data) : [];
+        } catch (error) {
+            console.error('Errore recupero consuntivi da Supabase:', error);
+            return [];
+        }
+    },
+
+    // Ottieni uno scenario specifico da Supabase
+    async getScenario(id) {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return null;
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('scenarios')
+                .select('data')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+
+            return data ? data.data : null;
+        } catch (error) {
+            console.error('Errore recupero scenario da Supabase:', error);
+            return null;
+        }
+    },
+
+    // Ottieni un consuntivo specifico da Supabase
+    async getActual(id) {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return null;
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('actuals')
+                .select('data')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+
+            return data ? data.data : null;
+        } catch (error) {
+            console.error('Errore recupero consuntivo da Supabase:', error);
+            return null;
+        }
     }
 };
 
