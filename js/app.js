@@ -6,7 +6,20 @@ const App = {
     currentScenario: null,
 
     // Inizializza l'applicazione
-    init() {
+    async init() {
+        // Sincronizza automaticamente da Supabase all'avvio
+        if (typeof SupabaseStorage !== 'undefined' && window.isSupabaseEnabled) {
+            console.log('🔄 Sincronizzazione automatica da Supabase...');
+            try {
+                const synced = await SupabaseStorage.syncFromSupabase();
+                if (synced) {
+                    console.log('✅ Dati sincronizzati da Supabase');
+                }
+            } catch (error) {
+                console.warn('⚠️ Errore sincronizzazione automatica:', error);
+            }
+        }
+        
         this.setupEventListeners();
         this.loadDashboard();
         this.loadScenariosList();
