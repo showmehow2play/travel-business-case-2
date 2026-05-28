@@ -492,7 +492,7 @@ function deleteParticipant(id) {
     }
 }
 
-function saveParticipant(event) {
+async function saveParticipant(event) {
     event.preventDefault();
     
     const form = event.target;
@@ -533,7 +533,7 @@ function saveParticipant(event) {
         if (typeof App !== 'undefined' && App.currentView === 'scenarioDetailView') {
             // Ricarica lo scenario aggiornato dal localStorage
             if (App.currentScenario && App.currentScenario.id) {
-                const updatedScenario = StorageManager.getScenario(App.currentScenario.id);
+                const updatedScenario = await StorageManager.getScenario(App.currentScenario.id);
                 if (updatedScenario) {
                     App.currentScenario = updatedScenario;
                     App.loadScenarioForm(updatedScenario);

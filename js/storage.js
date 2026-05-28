@@ -18,7 +18,7 @@ const StorageManager = {
                     console.log('✅ Dati sincronizzati da Supabase');
                     
                     // Verifica se ci sono dati dopo la sincronizzazione
-                    const existingData = this.getData();
+                    const existingData = await this.getData();
                     
                     // Se ancora non ci sono dati, carica i dati di esempio
                     if (!existingData || (existingData.scenarios.length === 0 && existingData.actuals.length === 0)) {
@@ -51,7 +51,7 @@ const StorageManager = {
         }
         
         // Fallback: usa localStorage
-        const existingData = this.getData();
+        const existingData = await this.getData();
         
         // Se non ci sono dati, carica i dati di esempio
         if (!existingData || (existingData.scenarios.length === 0 && existingData.actuals.length === 0)) {
@@ -167,20 +167,20 @@ const StorageManager = {
     },
 
     // Salva gli scenari
-    saveScenarios(scenarios) {
+    async saveScenarios(scenarios) {
         if (!Array.isArray(scenarios)) {
             console.error('Tentativo di salvare scenari in formato non valido:', scenarios);
             return false;
         }
 
-        const data = this.getData() || { scenarios: [], actuals: [] };
+        const data = await this.getData() || { scenarios: [], actuals: [] };
         data.scenarios = scenarios;
         return this.saveData(data);
     },
 
     // Aggiungi uno scenario
     async addScenario(scenario) {
-        const scenarios = this.getScenarios();
+        const scenarios = await this.getScenarios();
         const newScenario = {
             ...scenario,
             id: this.generateId(),
@@ -207,7 +207,7 @@ const StorageManager = {
 
     // Aggiorna uno scenario
     async updateScenario(id, updates) {
-        const scenarios = this.getScenarios();
+        const scenarios = await this.getScenarios();
         const index = scenarios.findIndex(s => s.id === id);
         if (index !== -1) {
             scenarios[index] = {
@@ -229,7 +229,7 @@ const StorageManager = {
 
     // Elimina uno scenario
     async deleteScenario(id) {
-        const scenarios = this.getScenarios();
+        const scenarios = await this.getScenarios();
         const filtered = scenarios.filter(s => s.id !== id);
         await this.saveScenarios(filtered);
         
@@ -248,8 +248,8 @@ const StorageManager = {
     },
 
     // Duplica uno scenario
-    duplicateScenario(id) {
-        const scenario = this.getScenario(id);
+    async duplicateScenario(id) {
+        const scenario = await this.getScenario(id);
         if (scenario) {
             const duplicate = {
                 ...scenario,
@@ -272,20 +272,20 @@ const StorageManager = {
     },
 
     // Salva i consuntivi
-    saveActuals(actuals) {
+    async saveActuals(actuals) {
         if (!Array.isArray(actuals)) {
             console.error('Tentativo di salvare consuntivi in formato non valido:', actuals);
             return false;
         }
 
-        const data = this.getData() || { scenarios: [], actuals: [] };
+        const data = await this.getData() || { scenarios: [], actuals: [] };
         data.actuals = actuals;
         return this.saveData(data);
     },
 
     // Aggiungi un consuntivo
     async addActual(actual) {
-        const actuals = this.getActuals();
+        const actuals = await this.getActuals();
         const newActual = {
             ...actual,
             id: this.generateId(),
@@ -313,7 +313,7 @@ const StorageManager = {
 
     // Aggiorna un consuntivo
     async updateActual(id, updates) {
-        const actuals = this.getActuals();
+        const actuals = await this.getActuals();
         const index = actuals.findIndex(a => a.id === id);
         if (index !== -1) {
             actuals[index] = {
@@ -335,7 +335,7 @@ const StorageManager = {
 
     // Elimina un consuntivo
     async deleteActual(id) {
-        const actuals = this.getActuals();
+        const actuals = await this.getActuals();
         const filtered = actuals.filter(a => a.id !== id);
         await this.saveActuals(filtered);
         
@@ -354,8 +354,8 @@ const StorageManager = {
     },
 
     // Duplica un consuntivo
-    duplicateActual(id) {
-        const actual = this.getActual(id);
+    async duplicateActual(id) {
+        const actual = await this.getActual(id);
         if (actual) {
             const duplicate = {
                 ...actual,
@@ -375,8 +375,8 @@ const StorageManager = {
     },
 
     // Crea un backup
-    createBackup() {
-        const data = this.getData();
+    async createBackup() {
+        const data = await this.getData();
         if (data) {
             try {
                 localStorage.setItem(this.BACKUP_KEY, JSON.stringify({
@@ -406,8 +406,8 @@ const StorageManager = {
     },
 
     // Esporta i dati in JSON
-    exportToJSON() {
-        const data = this.getData();
+    async exportToJSON() {
+        const data = await this.getData();
         if (data) {
             return {
                 ...data,
@@ -419,7 +419,7 @@ const StorageManager = {
     },
 
     // Importa dati da JSON
-    importFromJSON(jsonData) {
+    async importFromJSON(jsonData) {
         try {
             // Valida i dati
             if (!jsonData.scenarios || !Array.isArray(jsonData.scenarios)) {
@@ -427,7 +427,7 @@ const StorageManager = {
             }
 
             // Opzionale: merge con dati esistenti o sostituzione
-            const currentScenarios = this.getScenarios();
+            const currentScenarios = await this.getScenarios();
             const importedScenarios = jsonData.scenarios.map(s => ({
                 ...s,
                 id: this.generateId(), // Genera nuovi ID per evitare conflitti
@@ -435,7 +435,7 @@ const StorageManager = {
             }));
 
             const allScenarios = [...currentScenarios, ...importedScenarios];
-            this.saveScenarios(allScenarios);
+            await this.saveScenarios(allScenarios);
             return true;
         } catch (error) {
             console.error('Errore nell\'importazione:', error);
@@ -457,8 +457,8 @@ const StorageManager = {
     },
 
     // Ottieni statistiche
-    getStats() {
-        const scenarios = this.getScenarios();
+    async getStats() {
+        const scenarios = await this.getScenarios();
         
         if (scenarios.length === 0) {
             return {
