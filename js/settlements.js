@@ -3,6 +3,7 @@
 const SettlementsManager = {
     currentActual: null,
     payments: [], // Array per tracciare i pagamenti
+    sourceActualId: null, // ID del consuntivo da cui si è arrivati
 
     // Inizializza la view
     init() {
@@ -13,6 +14,7 @@ const SettlementsManager = {
     // Carica direttamente un consuntivo (senza selettore)
     loadActualDirect(actual) {
         this.currentActual = actual;
+        this.sourceActualId = actual.id; // Salva l'ID del consuntivo di origine
         
         // Inizializza i pagamenti se non esistono
         if (!this.currentActual.payments) {
@@ -48,7 +50,14 @@ const SettlementsManager = {
 
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                App.showView('actualsView');
+                // Se siamo arrivati da un consuntivo specifico, torna al dettaglio
+                if (this.sourceActualId) {
+                    ActualsUI.editActual(this.sourceActualId);
+                    this.sourceActualId = null; // Reset dopo l'uso
+                } else {
+                    // Altrimenti torna alla lista dei consuntivi
+                    App.showView('actualsView');
+                }
             });
         }
 
