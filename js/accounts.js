@@ -33,7 +33,7 @@ const AccountsManager = {
         }
     },
     
-    // Mostra la selezione dei partecipanti con schede compatte
+    // Mostra la selezione dei partecipanti con schede compatte (SOLO nome e foto)
     showParticipantSelection() {
         const container = document.getElementById('participantSummary');
         if (!container) return;
@@ -44,7 +44,7 @@ const AccountsManager = {
                 <h2 style="color: #2c3e50; margin-bottom: 0.5rem;">👥 Seleziona un Partecipante</h2>
                 <p style="color: #6c757d; font-size: 1rem;">Clicca su un partecipante per vedere il dettaglio delle sue spese</p>
             </div>
-            <div id="participantCardsAccounts" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div id="participantCardsAccounts" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
             </div>
             <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
                 <button class="btn btn-primary" style="font-size: 1.1rem; padding: 0.875rem 2rem;"
@@ -59,14 +59,9 @@ const AccountsManager = {
         
         const cardsContainer = document.getElementById('participantCardsAccounts');
         
-        // Crea una card per ogni partecipante
+        // Crea una card per ogni partecipante - SOLO nome e foto
         this.currentActual.participants.forEach(participant => {
             const photo = this.getParticipantPhoto(participant);
-            const financials = this.calculateParticipantFinancials(participant);
-            
-            // Determina colore in base al bilancio
-            const statusColor = financials.balance > 0 ? '#28a745' : financials.balance < 0 ? '#dc3545' : '#6c757d';
-            const statusIcon = financials.balance > 0 ? '🟢' : financials.balance < 0 ? '🔴' : '✅';
             
             const card = document.createElement('div');
             card.className = 'participant-select-card';
@@ -84,8 +79,8 @@ const AccountsManager = {
             card.innerHTML = `
                 <div style="margin-bottom: 1rem;">
                     ${photo
-                        ? `<img src="${photo}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid ${statusColor};" />`
-                        : `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto; color: white; font-size: 2rem; font-weight: bold; border: 3px solid ${statusColor};">
+                        ? `<img src="${photo}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;" />`
+                        : `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto; color: white; font-size: 2rem; font-weight: bold; border: 3px solid #667eea;">
                             ${participant.charAt(0).toUpperCase()}
                            </div>`
                     }
@@ -93,10 +88,7 @@ const AccountsManager = {
                 <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">
                     ${participant}
                 </div>
-                <div style="font-size: 0.85rem; color: ${statusColor}; font-weight: 600; margin-bottom: 0.5rem;">
-                    ${statusIcon} ${this.formatCurrency(Math.abs(financials.balance))}
-                </div>
-                <div style="font-size: 0.75rem; color: #667eea; font-weight: 500;">
+                <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;">
                     Vedi dettaglio →
                 </div>
             `;
