@@ -118,16 +118,15 @@ const ScenarioManager = {
     },
 
     // Confronta scenari
-    async compareScenarios(scenarioIds) {
-        const scenarios = await Promise.all(scenarioIds.map(async id => await StorageManager.getScenario(id)));
-        const filteredScenarios = scenarios.filter(s => s);
+    compareScenarios(scenarioIds) {
+        const scenarios = scenarioIds.map(id => StorageManager.getScenario(id)).filter(s => s);
         
         if (scenarios.length === 0) {
             return null;
         }
 
         const comparison = {
-            scenarios: filteredScenarios.map(s => ({
+            scenarios: scenarios.map(s => ({
                 id: s.id,
                 name: s.name,
                 destination: s.destination,
@@ -242,8 +241,8 @@ const ScenarioManager = {
     },
 
     // Cerca scenari
-    async searchScenarios(query) {
-        const scenarios = await StorageManager.getScenarios();
+    searchScenarios(query) {
+        const scenarios = StorageManager.getScenarios();
         const lowerQuery = query.toLowerCase();
         
         return scenarios.filter(s => 

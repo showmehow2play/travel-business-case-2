@@ -3,7 +3,6 @@
 const SettlementsManager = {
     currentActual: null,
     payments: [], // Array per tracciare i pagamenti
-    sourceActualId: null, // ID del consuntivo da cui si è arrivati
 
     // Inizializza la view
     init() {
@@ -14,7 +13,6 @@ const SettlementsManager = {
     // Carica direttamente un consuntivo (senza selettore)
     loadActualDirect(actual) {
         this.currentActual = actual;
-        this.sourceActualId = actual.id; // Salva l'ID del consuntivo di origine
         
         // Inizializza i pagamenti se non esistono
         if (!this.currentActual.payments) {
@@ -50,14 +48,7 @@ const SettlementsManager = {
 
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                // Se siamo arrivati da un consuntivo specifico, torna al dettaglio
-                if (this.sourceActualId) {
-                    ActualsUI.editActual(this.sourceActualId);
-                    this.sourceActualId = null; // Reset dopo l'uso
-                } else {
-                    // Altrimenti torna alla lista dei consuntivi
-                    App.showView('actualsView');
-                }
+                App.showView('actualsView');
             });
         }
 
@@ -97,8 +88,8 @@ const SettlementsManager = {
     },
 
     // Carica un consuntivo specifico
-    async loadActual(actualId) {
-        const actual = await StorageManager.getActual(actualId);
+    loadActual(actualId) {
+        const actual = StorageManager.getActual(actualId);
         if (!actual) return;
 
         this.currentActual = actual;
@@ -644,7 +635,7 @@ const SettlementsManager = {
                     <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
                         Annulla
                     </button>
-                    <button class="btn btn-primary" id="saveNewPaymentBtn">
+                    <button class="btn btn-primary" onclick="SettlementsManager.saveNewPayment()">
                         💾 Salva Pagamento
                     </button>
                 </div>
@@ -652,30 +643,6 @@ const SettlementsManager = {
         `;
         
         document.body.appendChild(modal);
-        
-        // Aggiungi event listener per il pulsante salva
-        document.getElementById('saveNewPaymentBtn').addEventListener('click', async (e) => {
-            const btn = e.target;
-            const originalText = btn.innerHTML;
-            
-            try {
-                // Disabilita il pulsante durante il salvataggio
-                btn.disabled = true;
-                btn.innerHTML = '⏳ Salvataggio...';
-                
-                await this.saveNewPayment();
-                
-                // Chiudi il modal dopo il salvataggio
-                modal.remove();
-            } catch (error) {
-                console.error('Errore salvataggio pagamento:', error);
-                alert('Errore durante il salvataggio del pagamento: ' + error.message);
-                
-                // Riabilita il pulsante in caso di errore
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        });
         
         setTimeout(() => {
             document.getElementById('paymentFrom').focus();
@@ -751,7 +718,7 @@ const SettlementsManager = {
                     <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
                         Annulla
                     </button>
-                    <button class="btn btn-primary" id="savePaymentBtn">
+                    <button class="btn btn-primary" onclick="SettlementsManager.savePayment('${participant}', ${isReceiving})">
                         💾 Salva Pagamento
                     </button>
                 </div>
@@ -760,30 +727,6 @@ const SettlementsManager = {
         
         document.body.appendChild(modal);
         
-        // Aggiungi event listener per il pulsante salva
-        document.getElementById('savePaymentBtn').addEventListener('click', async (e) => {
-            const btn = e.target;
-            const originalText = btn.innerHTML;
-            
-            try {
-                // Disabilita il pulsante durante il salvataggio
-                btn.disabled = true;
-                btn.innerHTML = '⏳ Salvataggio...';
-                
-                await this.savePayment(participant, isReceiving);
-                
-                // Chiudi il modal dopo il salvataggio
-                modal.remove();
-            } catch (error) {
-                console.error('Errore salvataggio pagamento:', error);
-                alert('Errore durante il salvataggio del pagamento: ' + error.message);
-                
-                // Riabilita il pulsante in caso di errore
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        });
-        
         // Focus sul primo campo
         setTimeout(() => {
             document.getElementById('paymentParticipant').focus();
@@ -791,9 +734,7 @@ const SettlementsManager = {
     },
 
     // Salva un nuovo pagamento generico
-    async saveNewPayment() {
-        console.log('💾 Inizio salvataggio nuovo pagamento...');
-        
+    saveNewPayment() {
         const from = document.getElementById('paymentFrom').value;
         const to = document.getElementById('paymentTo').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
@@ -804,30 +745,28 @@ const SettlementsManager = {
         // Validazione
         if (!from) {
             alert('Seleziona chi effettua il pagamento.');
-            throw new Error('Pagatore non selezionato');
+            return;
         }
         
         if (!to) {
             alert('Seleziona chi riceve il pagamento.');
-            throw new Error('Destinatario non selezionato');
+            return;
         }
         
         if (from === to) {
             alert('Il pagatore e il destinatario devono essere diversi.');
-            throw new Error('Pagatore e destinatario uguali');
+            return;
         }
         
         if (!amount || amount <= 0) {
             alert('Inserisci un importo valido.');
-            throw new Error('Importo non valido');
+            return;
         }
         
         if (!date) {
             alert('Inserisci una data.');
-            throw new Error('Data non inserita');
+            return;
         }
-        
-        console.log('✅ Validazione completata');
         
         // Crea oggetto pagamento
         const payment = {
@@ -846,49 +785,30 @@ const SettlementsManager = {
             payment.confirmedAt = new Date().toISOString();
         }
         
-        console.log('📝 Pagamento creato:', payment);
-        
         // Aggiungi al array dei pagamenti
         this.payments.push(payment);
         this.currentActual.payments = this.payments;
         
-        console.log('💾 Salvataggio su Supabase...');
-        
-        // Aggiorna l'oggetto completo
-        this.currentActual.payments = this.payments;
-        this.currentActual.updatedAt = new Date().toISOString();
-        
-        // Salva l'intero consuntivo
-        await StorageManager.updateActual(this.currentActual.id, this.currentActual);
-        
-        console.log('🔄 Invalidazione cache...');
-        
-        // Invalida la cache per forzare ricaricamento da Supabase
-        await StorageManager.invalidateCache();
-        
-        console.log('🗑️ Chiusura modal...');
+        // Salva nel storage
+        StorageManager.updateActual(this.currentActual);
         
         // Chiudi tutti i modal aperti
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => modal.remove());
         
-        console.log('🔄 Aggiornamento vista...');
-        
         // Aggiorna la vista
         this.calculateBalances(this.currentActual);
         this.displayPaymentsHistory();
         
-        console.log('✅ Salvataggio completato');
-        
         // Mostra messaggio di successo
         const message = confirmed
-            ? '✅ Pagamento registrato, confermato e sincronizzato su Supabase!'
-            : '✅ Pagamento registrato e sincronizzato su Supabase!';
+            ? '✅ Pagamento registrato e confermato! I bilanci sono stati aggiornati.'
+            : '✅ Pagamento registrato! In attesa di conferma.';
         this.showNotification(message, 'success');
     },
 
     // Salva un nuovo pagamento
-    async savePayment(participant, isReceiving) {
+    savePayment(participant, isReceiving) {
         const otherParticipant = document.getElementById('paymentParticipant').value;
         const amount = parseFloat(document.getElementById('paymentAmount').value);
         const date = document.getElementById('paymentDate').value;
@@ -932,14 +852,8 @@ const SettlementsManager = {
         this.payments.push(payment);
         this.currentActual.payments = this.payments;
         
-        // Aggiorna l'oggetto completo
-        this.currentActual.updatedAt = new Date().toISOString();
-        
-        // Salva l'intero consuntivo
-        await StorageManager.updateActual(this.currentActual.id, this.currentActual);
-        
-        // Invalida la cache per forzare ricaricamento da Supabase
-        await StorageManager.invalidateCache();
+        // Salva nel storage
+        StorageManager.updateActual(this.currentActual);
         
         // Chiudi tutti i modal aperti
         const modals = document.querySelectorAll('.modal');
@@ -951,13 +865,13 @@ const SettlementsManager = {
         
         // Mostra messaggio di successo
         const message = confirmed
-            ? '✅ Pagamento registrato, confermato e sincronizzato su Supabase!'
-            : '✅ Pagamento registrato e sincronizzato su Supabase!';
+            ? '✅ Pagamento registrato e confermato! I bilanci sono stati aggiornati.'
+            : '✅ Pagamento registrato! In attesa di conferma.';
         this.showNotification(message, 'success');
     },
 
     // Conferma un pagamento
-    async confirmPayment(paymentId) {
+    confirmPayment(paymentId) {
         const payment = this.payments.find(p => p.id === paymentId);
         if (!payment) return;
         
@@ -965,74 +879,31 @@ const SettlementsManager = {
             payment.confirmed = true;
             payment.confirmedAt = new Date().toISOString();
             
-            // Aggiorna l'oggetto completo del consuntivo
-            this.currentActual.payments = this.payments;
-            this.currentActual.updatedAt = new Date().toISOString();
-            
-            console.log('💾 Confermando pagamento e salvando su Supabase...');
-            
-            // Salva l'intero consuntivo su Supabase
-            await StorageManager.updateActual(this.currentActual.id, this.currentActual);
-            
-            // Invalida la cache per forzare ricaricamento da Supabase
-            await StorageManager.invalidateCache();
-            
-            console.log('✅ Pagamento confermato e cache invalidata');
+            // Salva nel storage
+            StorageManager.updateActual(this.currentActual);
             
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
             this.displayPaymentsHistory();
             
-            this.showNotification('✅ Pagamento confermato e sincronizzato su Supabase!', 'success');
+            this.showNotification('✅ Pagamento confermato!', 'success');
         }
     },
 
     // Elimina un pagamento
-    async deletePayment(paymentId) {
-        if (!confirm('Eliminare questo pagamento?')) {
-            return;
-        }
-        
-        try {
-            console.log('🗑️ Eliminazione pagamento:', paymentId);
-            
-            // Rimuovi il pagamento dall'array
+    deletePayment(paymentId) {
+        if (confirm('Eliminare questo pagamento?')) {
             this.payments = this.payments.filter(p => p.id !== paymentId);
             this.currentActual.payments = this.payments;
             
-            console.log('💾 Salvataggio su Supabase...');
-            
-            // Aggiorna l'oggetto completo
-            this.currentActual.payments = this.payments;
-            this.currentActual.updatedAt = new Date().toISOString();
-            
-            // Salva l'intero consuntivo
-            await StorageManager.updateActual(this.currentActual.id, this.currentActual);
-            
-            console.log('🔄 Invalidazione cache...');
-            
-            // Invalida la cache per forzare ricaricamento da Supabase
-            await StorageManager.invalidateCache();
-            
-            console.log('📥 Ricaricamento da Supabase...');
-            
-            // Ricarica il consuntivo da Supabase
-            this.currentActual = await StorageManager.getActual(this.currentActual.id);
-            this.payments = this.currentActual.payments || [];
-            
-            console.log('🔄 Aggiornamento vista...');
+            // Salva nel storage
+            StorageManager.updateActual(this.currentActual);
             
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
             this.displayPaymentsHistory();
             
-            console.log('✅ Pagamento eliminato con successo');
-            
-            this.showNotification('🗑️ Pagamento eliminato e sincronizzato su Supabase.', 'success');
-        } catch (error) {
-            console.error('❌ Errore eliminazione pagamento:', error);
-            alert('Errore durante l\'eliminazione del pagamento: ' + error.message);
-            this.showNotification('❌ Errore eliminazione pagamento', 'error');
+            this.showNotification('🗑️ Pagamento eliminato.', 'info');
         }
     },
 
@@ -1129,13 +1000,13 @@ const SettlementsManager = {
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
                             ${!payment.confirmed ? `
-                                <button class="btn btn-primary payment-confirm-btn" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;"
-                                        data-payment-id="${payment.id}">
+                                <button class="btn btn-primary" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;" 
+                                        onclick="SettlementsManager.confirmPayment('${payment.id}')">
                                     ✓ Conferma
                                 </button>
                             ` : ''}
-                            <button class="btn btn-danger payment-delete-btn" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;"
-                                    data-payment-id="${payment.id}">
+                            <button class="btn btn-danger" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;" 
+                                    onclick="SettlementsManager.deletePayment('${payment.id}')">
                                 🗑️
                             </button>
                         </div>
@@ -1143,41 +1014,6 @@ const SettlementsManager = {
                 </div>
             `;
         }).join('');
-        
-        // Aggiungi event listeners ai bottoni dopo aver creato l'HTML
-        container.querySelectorAll('.payment-confirm-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const paymentId = e.target.dataset.paymentId;
-                const originalText = e.target.innerHTML;
-                try {
-                    e.target.disabled = true;
-                    e.target.innerHTML = '⏳';
-                    await this.confirmPayment(paymentId);
-                } catch (error) {
-                    console.error('❌ Errore conferma:', error);
-                    alert('Errore: ' + error.message);
-                    e.target.disabled = false;
-                    e.target.innerHTML = originalText;
-                }
-            });
-        });
-        
-        container.querySelectorAll('.payment-delete-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const paymentId = e.target.dataset.paymentId;
-                const originalText = e.target.innerHTML;
-                try {
-                    e.target.disabled = true;
-                    e.target.innerHTML = '⏳';
-                    await this.deletePayment(paymentId);
-                } catch (error) {
-                    console.error('❌ Errore eliminazione:', error);
-                    alert('Errore: ' + error.message);
-                    e.target.disabled = false;
-                    e.target.innerHTML = originalText;
-                }
-            });
-        });
     },
 
     // Mostra notifica

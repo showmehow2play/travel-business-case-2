@@ -26,8 +26,8 @@ const ExportManager = {
     },
 
     // Esporta in CSV/Excel
-    async exportCSV() {
-        const scenarios = await StorageManager.getScenarios();
+    exportCSV() {
+        const scenarios = StorageManager.getScenarios();
         if (scenarios.length === 0) {
             this.showError('Nessuno scenario da esportare');
             return;
@@ -332,8 +332,8 @@ const ExportManager = {
     },
 
     // Esporta in PDF
-    async exportPDF() {
-        const scenarios = await StorageManager.getScenarios();
+    exportPDF() {
+        const scenarios = StorageManager.getScenarios();
         if (scenarios.length === 0) {
             this.showError('Nessuno scenario da esportare');
             return;

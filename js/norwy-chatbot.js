@@ -229,9 +229,9 @@ const NorwyChatbot = {
         this.showTypingIndicator();
         
         // Genera risposta dopo un breve delay
-        setTimeout(async () => {
+        setTimeout(() => {
             this.hideTypingIndicator();
-            const response = await this.generateResponse(message);
+            const response = this.generateResponse(message);
             this.addMessage(response, 'bot');
             
             // Salva conversazione
@@ -335,33 +335,33 @@ const NorwyChatbot = {
     },
     
     // Gestisce query sui dati
-    async handleDataQuery(message) {
+    handleDataQuery(message) {
         const lowerMessage = message.toLowerCase();
         
         // Query su costi specifici (volo, hotel, ecc.)
         if (lowerMessage.includes('volo') || lowerMessage.includes('aereo') || lowerMessage.includes('trasporto')) {
-            return await this.queryTransportCost(message);
+            return this.queryTransportCost(message);
         }
         
         if (lowerMessage.includes('hotel') || lowerMessage.includes('alloggio') || lowerMessage.includes('casa')) {
-            return await this.queryAccommodationCost(message);
+            return this.queryAccommodationCost(message);
         }
         
         if (lowerMessage.includes('cena') || lowerMessage.includes('ristorante') || lowerMessage.includes('cibo') || lowerMessage.includes('vitto')) {
-            return await this.queryFoodCost(message);
+            return this.queryFoodCost(message);
         }
         
         if (lowerMessage.includes('auto') || lowerMessage.includes('macchina') || lowerMessage.includes('noleggio')) {
-            return await this.queryCarCost(message);
+            return this.queryCarCost(message);
         }
         
         if (lowerMessage.includes('attività') || lowerMessage.includes('escursioni')) {
-            return await this.queryActivitiesCost(message);
+            return this.queryActivitiesCost(message);
         }
         
         // Query su totali
         if (lowerMessage.includes('totale') || lowerMessage.includes('tutto')) {
-            return await this.queryTotalCost(message);
+            return this.queryTotalCost(message);
         }
         
         // Query su costi per persona
@@ -378,9 +378,9 @@ const NorwyChatbot = {
     },
     
     // Query costo trasporto
-    async queryTransportCost(message) {
-        const scenarios = await this.getScenarios();
-        const actuals = await this.getActuals();
+    queryTransportCost(message) {
+        const scenarios = this.getScenarios();
+        const actuals = this.getActuals();
         const lowerMessage = message.toLowerCase();
         
         // Determina se chiedere per persona
@@ -453,9 +453,9 @@ const NorwyChatbot = {
     },
     
     // Query costo alloggio
-    async queryAccommodationCost(message) {
-        const scenarios = await this.getScenarios();
-        const actuals = await this.getActuals();
+    queryAccommodationCost(message) {
+        const scenarios = this.getScenarios();
+        const actuals = this.getActuals();
         const lowerMessage = message.toLowerCase();
         const perPerson = lowerMessage.includes('a testa') || lowerMessage.includes('per persona');
         
@@ -575,9 +575,9 @@ const NorwyChatbot = {
     },
     
     // Query costo auto
-    async queryCarCost(message) {
-        const scenarios = await this.getScenarios();
-        const actuals = await this.getActuals();
+    queryCarCost(message) {
+        const scenarios = this.getScenarios();
+        const actuals = this.getActuals();
         const lowerMessage = message.toLowerCase();
         const perPerson = lowerMessage.includes('a testa') || lowerMessage.includes('per persona');
         
@@ -636,9 +636,9 @@ const NorwyChatbot = {
     },
     
     // Query costo attività
-    async queryActivitiesCost(message) {
-        const scenarios = await this.getScenarios();
-        const actuals = await this.getActuals();
+    queryActivitiesCost(message) {
+        const scenarios = this.getScenarios();
+        const actuals = this.getActuals();
         const lowerMessage = message.toLowerCase();
         const perPerson = lowerMessage.includes('a testa') || lowerMessage.includes('per persona');
         
@@ -697,9 +697,9 @@ const NorwyChatbot = {
     },
     
     // Query costo totale
-    async queryTotalCost(message) {
-        const scenarios = await this.getScenarios();
-        const actuals = await this.getActuals();
+    queryTotalCost(message) {
+        const scenarios = this.getScenarios();
+        const actuals = this.getActuals();
         const lowerMessage = message.toLowerCase();
         const perPerson = lowerMessage.includes('a testa') || lowerMessage.includes('per persona');
         
@@ -818,16 +818,23 @@ const NorwyChatbot = {
     },
     
     // Helper: ottieni scenari
-    async getScenarios() {
+    getScenarios() {
         try {
             // Prova prima con StorageManager se disponibile
             if (typeof StorageManager !== 'undefined') {
-                const scenarios = await StorageManager.getScenarios();
-                console.log('🔍 Norwy getScenarios - StorageManager data:', scenarios);
-                if (scenarios) {
-                    console.log('🔍 Norwy getScenarios - found:', scenarios.length, 'items');
-                    return scenarios;
+                const data = StorageManager.getData();
+                console.log('🔍 Norwy getScenarios - StorageManager data:', data);
+                if (data && data.scenarios) {
+                    console.log('🔍 Norwy getScenarios - found:', data.scenarios.length, 'items');
+                    return data.scenarios;
                 }
+            }
+            
+            // Fallback: prova chiave diretta 'scenarios'
+            const directData = localStorage.getItem('scenarios');
+            if (directData) {
+                console.log('🔍 Norwy getScenarios - direct key found');
+                return JSON.parse(directData);
             }
             
             console.log('🔍 Norwy getScenarios - no data found');
@@ -839,15 +846,15 @@ const NorwyChatbot = {
     },
     
     // Helper: ottieni consuntivi
-    async getActuals() {
+    getActuals() {
         try {
             // Prova prima con StorageManager se disponibile
             if (typeof StorageManager !== 'undefined') {
-                const actuals = await StorageManager.getActuals();
-                console.log('🔍 Norwy getActuals - StorageManager data:', actuals);
-                if (actuals) {
-                    console.log('🔍 Norwy getActuals - found:', actuals.length, 'items');
-                    return actuals;
+                const data = StorageManager.getData();
+                console.log('🔍 Norwy getActuals - StorageManager data:', data);
+                if (data && data.actuals) {
+                    console.log('🔍 Norwy getActuals - found:', data.actuals.length, 'items');
+                    return data.actuals;
                 }
             }
             

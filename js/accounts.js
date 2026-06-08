@@ -99,37 +99,24 @@ const AccountsManager = {
         });
     },
 
-    calculateParticipantFinancials(participantName) {
-        if (!this.currentActual) {
-            return {
-                paidAmount: 0,
-                sharedAmount: 0,
-                paymentsReceived: 0,
-                paymentsMade: 0,
-                balance: 0
-            };
-        }
+    // Carica riepilogo per partecipante
+    loadParticipantSummary(participantName) {
+        if (!this.currentActual || !this.currentActual.expenses) return;
 
-        const expenses = this.currentActual.expenses || [];
-        const payments = this.currentActual.payments || [];
+        const expenses = this.currentActual.expenses;
 
-        const paidAmount = expenses
-            .filter(exp => exp.paidBy === participantName)
-            .reduce((sum, exp) => {
-                const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
-                return sum + (parseFloat(amount) || 0);
-            }, 0);
+        // Calcola spese pagate dal partecipante (usa amountEUR)
+        const paidExpenses = expenses.filter(exp => exp.paidBy === participantName);
+        const paidAmount = paidExpenses.reduce((sum, exp) => {
+            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
+            return sum + (parseFloat(amount) || 0);
+        }, 0);
 
+        // Calcola quota spese condivise (usa amountEUR)
         let sharedAmount = 0;
         expenses.forEach(exp => {
-            let sharedBy = exp.sharedBy || [];
-
-            if (sharedBy.length === 0) {
-                sharedBy = this.currentActual.participants || [];
-            }
-
-            if (sharedBy.includes(participantName)) {
-                const shareCount = sharedBy.length;
+            if (exp.sharedBy && exp.sharedBy.includes(participantName)) {
+                const shareCount = exp.sharedBy.length;
                 if (shareCount > 0) {
                     const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
                     sharedAmount += (parseFloat(amount) || 0) / shareCount;
@@ -137,49 +124,8 @@ const AccountsManager = {
             }
         });
 
-        const confirmedPayments = payments.filter(payment => payment.confirmed);
-        const paymentsReceived = confirmedPayments
-            .filter(payment => payment.to === participantName)
-            .reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
-
-        const paymentsMade = confirmedPayments
-            .filter(payment => payment.from === participantName)
-            .reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0);
-
-        const balance = paidAmount - sharedAmount + paymentsMade - paymentsReceived;
-
-        const receivedTransfers = confirmedPayments
-            .filter(payment => payment.to === participantName)
-            .sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
-
-        const sentTransfers = confirmedPayments
-            .filter(payment => payment.from === participantName)
-            .sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
-
-        return {
-            paidAmount,
-            sharedAmount,
-            paymentsReceived,
-            paymentsMade,
-            balance,
-            receivedTransfers,
-            sentTransfers
-        };
-    },
-
-    // Carica riepilogo per partecipante
-    loadParticipantSummary(participantName) {
-        if (!this.currentActual || !this.currentActual.expenses) return;
-
-        const {
-            paidAmount,
-            sharedAmount,
-            paymentsReceived,
-            paymentsMade,
-            balance,
-            receivedTransfers,
-            sentTransfers
-        } = this.calculateParticipantFinancials(participantName);
+        // Calcola bilancio (quanto ha pagato - quanto deve)
+        const balance = paidAmount - sharedAmount;
 
         // Ottieni foto del partecipante
         const photo = this.getParticipantPhoto(participantName);
@@ -187,15 +133,8 @@ const AccountsManager = {
             ? `<img src="${photo}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary-color); margin-right: 1rem; vertical-align: middle;" />`
             : '';
 
-        const paymentsInfo = (paymentsReceived > 0 || paymentsMade > 0)
-            ? `<div style="margin-top: 0.5rem; font-size: 0.95rem; color: var(--text-secondary);">
-                    ${paymentsReceived > 0 ? `<div>✅ Pagamenti ricevuti: ${this.formatCurrency(paymentsReceived)}</div>` : ''}
-                    ${paymentsMade > 0 ? `<div>💸 Pagamenti effettuati: ${this.formatCurrency(paymentsMade)}</div>` : ''}
-               </div>`
-            : '';
-
         // Aggiorna UI con foto
-        document.getElementById('participantSummaryTitle').innerHTML = `${photoHtml}<span style="vertical-align: middle;">Riepilogo Spese - ${participantName}</span>${paymentsInfo}`;
+        document.getElementById('participantSummaryTitle').innerHTML = `${photoHtml}<span style="vertical-align: middle;">Riepilogo Spese - ${participantName}</span>`;
         document.getElementById('participantPaidAmount').textContent = this.formatCurrency(paidAmount);
         document.getElementById('participantSharedAmount').textContent = this.formatCurrency(sharedAmount);
         
@@ -214,9 +153,6 @@ const AccountsManager = {
             balanceElement.parentElement.querySelector('.stat-label').textContent = '⚖️ In Pari';
         }
 
-        // Carica sezione trasferimenti
-        this.loadParticipantTransfers(participantName, receivedTransfers, sentTransfers);
-
         // Carica tabella spese
         this.loadParticipantExpensesTable(participantName);
 
@@ -225,65 +161,6 @@ const AccountsManager = {
 
         // Mostra sezione
         document.getElementById('participantSummary').style.display = 'block';
-    },
-
-    loadParticipantTransfers(participantName, receivedTransfers = [], sentTransfers = []) {
-        const container = document.getElementById('participantTransfersSection');
-        if (!container) return;
-
-        const renderTransferCard = (transfer, type) => {
-            const otherParticipant = type === 'received' ? transfer.from : transfer.to;
-            const amount = parseFloat(transfer.amount) || 0;
-            const date = transfer.date || '-';
-            const notes = transfer.notes ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem;">💬 ${transfer.notes}</div>` : '';
-            const badgeStyle = type === 'received'
-                ? 'background: rgba(16, 185, 129, 0.12); color: #059669;'
-                : 'background: rgba(239, 68, 68, 0.12); color: #dc2626;';
-            const badgeLabel = type === 'received' ? 'Ricevuto' : 'Effettuato';
-
-            return `
-                <div class="stat-card" style="margin-bottom: var(--spacing-sm);">
-                    <div class="stat-content">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
-                            <div>
-                                <div style="font-weight: 600;">${type === 'received' ? 'Da' : 'A'} ${otherParticipant}</div>
-                                <div style="font-size: 0.9rem; color: var(--text-secondary);">📅 ${date}</div>
-                                ${notes}
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; ${badgeStyle}">
-                                    ${badgeLabel}
-                                </div>
-                                <div style="margin-top: 0.4rem; font-size: 1rem; font-weight: 700;">
-                                    ${this.formatCurrency(amount)}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        };
-
-        const receivedHtml = receivedTransfers.length > 0
-            ? receivedTransfers.map(transfer => renderTransferCard(transfer, 'received')).join('')
-            : '<div style="color: var(--text-secondary);">Nessun trasferimento ricevuto confermato</div>';
-
-        const sentHtml = sentTransfers.length > 0
-            ? sentTransfers.map(transfer => renderTransferCard(transfer, 'sent')).join('')
-            : '<div style="color: var(--text-secondary);">Nessun trasferimento effettuato confermato</div>';
-
-        container.innerHTML = `
-            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-md);">
-                <div>
-                    <h5 style="margin-top: 0; margin-bottom: var(--spacing-sm); color: #059669;">✅ Ricevuti</h5>
-                    ${receivedHtml}
-                </div>
-                <div>
-                    <h5 style="margin-top: 0; margin-bottom: var(--spacing-sm); color: #dc2626;">💸 Effettuati</h5>
-                    ${sentHtml}
-                </div>
-            </div>
-        `;
     },
 
     // Carica tabella spese partecipante
