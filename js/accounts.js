@@ -162,77 +162,485 @@ const AccountsManager = {
                 </div>
             </div>
             
-            <!-- Grid Informazioni Principali -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                <!-- Quota Totale -->
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 12px; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 0.5rem;">
-                        💰 Quota Totale
+            <!-- Grafici Interattivi -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <!-- Grafico Quota Totale -->
+                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
+                     onclick="AccountsManager.showQuotaDetails('${participantName}')"
+                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(102, 126, 234, 0.3)'"
+                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                            💰 Quota Totale da Pagare
+                        </div>
                     </div>
-                    <div style="font-size: 2rem; font-weight: bold;">
-                        ${this.formatCurrency(sharedAmount)}
+                    <canvas id="quotaChart" style="max-height: 150px;"></canvas>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #667eea;">
+                            ${this.formatCurrency(sharedAmount)}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                            👆 Clicca per vedere il dettaglio
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Ha Pagato -->
-                <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 12px; border-left: 5px solid #28a745;">
-                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #2e7d32; margin-bottom: 0.5rem; font-weight: 600;">
-                        💳 Ha Pagato
+                <!-- Grafico Ha Pagato -->
+                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
+                     onclick="AccountsManager.showPaidDetails('${participantName}')"
+                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(40, 167, 69, 0.3)'"
+                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 0.85rem; color: #28a745; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                            💳 Ha Già Pagato
+                        </div>
                     </div>
-                    <div style="font-size: 2rem; font-weight: bold; color: #1b5e20;">
-                        ${this.formatCurrency(paidAmount)}
+                    <canvas id="paidChart" style="max-height: 150px;"></canvas>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #28a745;">
+                            ${this.formatCurrency(paidAmount)}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                            👆 Clicca per vedere le spese pagate
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Bilancio -->
-                <div style="background: ${balance > 0 ? '#e8f5e9' : balance < 0 ? '#ffebee' : '#f5f5f5'}; padding: 1.5rem; border-radius: 12px; border-left: 5px solid ${statusColor};">
-                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: ${statusColor}; margin-bottom: 0.5rem; font-weight: 600;">
-                        ⚖️ Bilancio
+                <!-- Grafico Pagamenti Versati -->
+                ${paymentsMade > 0 ? `
+                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
+                     onclick="AccountsManager.showPaymentsMadeDetails('${participantName}')"
+                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(13, 71, 161, 0.3)'"
+                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 0.85rem; color: #0d47a1; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                            📤 Pagamenti Versati
+                        </div>
                     </div>
-                    <div style="font-size: 2rem; font-weight: bold; color: ${statusColor};">
+                    <canvas id="paymentsMadeChart" style="max-height: 150px;"></canvas>
+                    <div style="text-align: center; margin-top: 1rem;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #0d47a1;">
+                            ${this.formatCurrency(paymentsMade)}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                            👆 Clicca per vedere i trasferimenti
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <!-- Grafico Pagamenti Ricevuti -->
+                ${paymentsReceived > 0 ? `
+                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
+                     onclick="AccountsManager.showPaymentsReceivedDetails('${participantName}')"
+                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(230, 81, 0, 0.3)'"
+                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 0.85rem; color: #e65100; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                            📥 Pagamenti Ricevuti
+                        </div>
+                    </div>
+                    <canvas id="paymentsReceivedChart" style="max-height: 150px;"></canvas>
+                    <div style="text-align: center; margin-top: 1rem;">
+    
+    // Carica i grafici per il partecipante
+    loadParticipantCharts(participantName, sharedAmount, paidAmount, paymentsMade, paymentsReceived) {
+        // Grafico Quota Totale (Doughnut)
+        const quotaCtx = document.getElementById('quotaChart');
+        if (quotaCtx) {
+            new Chart(quotaCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Quota da Pagare'],
+                    datasets: [{
+                        data: [sharedAmount],
+                        backgroundColor: ['#667eea'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+        
+        // Grafico Ha Pagato (Doughnut)
+        const paidCtx = document.getElementById('paidChart');
+        if (paidCtx) {
+            new Chart(paidCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Già Pagato'],
+                    datasets: [{
+                        data: [paidAmount],
+                        backgroundColor: ['#28a745'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+        
+        // Grafico Pagamenti Versati (se presenti)
+        if (paymentsMade > 0) {
+            const paymentsMadeCtx = document.getElementById('paymentsMadeChart');
+            if (paymentsMadeCtx) {
+                new Chart(paymentsMadeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pagamenti Versati'],
+                        datasets: [{
+                            data: [paymentsMade],
+                            backgroundColor: ['#0d47a1'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+        }
+        
+        // Grafico Pagamenti Ricevuti (se presenti)
+        if (paymentsReceived > 0) {
+            const paymentsReceivedCtx = document.getElementById('paymentsReceivedChart');
+            if (paymentsReceivedCtx) {
+                new Chart(paymentsReceivedCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pagamenti Ricevuti'],
+                        datasets: [{
+                            data: [paymentsReceived],
+                            backgroundColor: ['#e65100'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+        }
+    },
+    
+    // Mostra dettaglio quota totale
+    showQuotaDetails(participantName) {
+        const expenses = this.currentActual.expenses || [];
+        const participantExpenses = expenses.filter(exp => {
+            let sharedBy = exp.sharedBy || [];
+            if (sharedBy.length === 0) sharedBy = this.currentActual.participants;
+            return sharedBy.includes(participantName);
+        });
+        
+        let html = `
+            <div class="modal" style="display: flex;">
+                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+                    <div class="modal-header">
+                        <h3>💰 Dettaglio Quota Totale - ${participantName}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
+                            Queste sono tutte le spese condivise in cui ${participantName} è coinvolto/a.
+                        </p>
+        `;
+        
+        let total = 0;
+        participantExpenses.forEach(exp => {
+            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
+            let sharedBy = exp.sharedBy || [];
+            if (sharedBy.length === 0) sharedBy = this.currentActual.participants;
+            const shareAmount = sharedBy.length > 0 ? amount / sharedBy.length : 0;
+            total += shareAmount;
+            
+            const categoryIcon = ActualsManager.categories.find(c => c.value === exp.category)?.icon || '📝';
+            
+            html += `
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #667eea;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
+                                ${categoryIcon} ${exp.description}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">
+                                Totale spesa: ${this.formatCurrency(amount)} • Condivisa tra ${sharedBy.length} persone
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.3rem; font-weight: bold; color: #667eea;">
+                                ${this.formatCurrency(shareAmount)}
+                            </div>
+                            <div style="font-size: 0.75rem; color: #6c757d;">
+                                tua quota
+                            </div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                        👥 Condivisa con: ${sharedBy.join(', ')}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE QUOTA</div>
+                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('detailsModalContainer').innerHTML = html;
+    },
+    
+    // Mostra dettaglio spese pagate
+    showPaidDetails(participantName) {
+        const expenses = this.currentActual.expenses || [];
+        const paidExpenses = expenses.filter(exp => exp.paidBy === participantName);
+        
+        let html = `
+            <div class="modal" style="display: flex;">
+                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+                    <div class="modal-header">
+                        <h3>💳 Spese Pagate - ${participantName}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
+                            Queste sono tutte le spese che ${participantName} ha pagato.
+                        </p>
+        `;
+        
+        let total = 0;
+        paidExpenses.forEach(exp => {
+            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
+            total += amount;
+            
+            const categoryIcon = ActualsManager.categories.find(c => c.value === exp.category)?.icon || '📝';
+            
+            html += `
+                <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #28a745;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
+                                ${categoryIcon} ${exp.description}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #2e7d32;">
+                                📅 ${exp.date ? new Date(exp.date).toLocaleDateString('it-IT') : 'Data non specificata'}
+                            </div>
+                            ${exp.notes ? `<div style="font-size: 0.85rem; color: #6c757d; margin-top: 0.5rem;">📝 ${exp.notes}</div>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">
+                                ${this.formatCurrency(amount)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE PAGATO</div>
+                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('detailsModalContainer').innerHTML = html;
+    },
+    
+    // Mostra dettaglio pagamenti versati
+    showPaymentsMadeDetails(participantName) {
+        const payments = this.currentActual.payments || [];
+        const madePayments = payments.filter(p => p.confirmed && p.from === participantName);
+        
+        let html = `
+            <div class="modal" style="display: flex;">
+                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+                    <div class="modal-header">
+                        <h3>📤 Pagamenti Versati - ${participantName}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
+                            Questi sono i pagamenti che ${participantName} ha versato ad altri partecipanti.
+                        </p>
+        `;
+        
+        let total = 0;
+        madePayments.forEach(payment => {
+            const amount = parseFloat(payment.amount) || 0;
+            total += amount;
+            
+            html += `
+                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #0d47a1;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; color: #0d47a1;">
+                                💸 Pagamento a ${payment.to}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #1565c0;">
+                                📅 ${payment.date ? new Date(payment.date).toLocaleDateString('it-IT') : 'Data non specificata'}
+                            </div>
+                            ${payment.notes ? `<div style="font-size: 0.85rem; color: #6c757d; margin-top: 0.5rem;">📝 ${payment.notes}</div>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #0d47a1;">
+                                ${this.formatCurrency(amount)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                        <div style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE VERSATO</div>
+                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('detailsModalContainer').innerHTML = html;
+    },
+    
+    // Mostra dettaglio pagamenti ricevuti
+    showPaymentsReceivedDetails(participantName) {
+        const payments = this.currentActual.payments || [];
+        const receivedPayments = payments.filter(p => p.confirmed && p.to === participantName);
+        
+        let html = `
+            <div class="modal" style="display: flex;">
+                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+                    <div class="modal-header">
+                        <h3>📥 Pagamenti Ricevuti - ${participantName}</h3>
+                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
+                            Questi sono i pagamenti che ${participantName} ha ricevuto da altri partecipanti.
+                        </p>
+        `;
+        
+        let total = 0;
+        receivedPayments.forEach(payment => {
+            const amount = parseFloat(payment.amount) || 0;
+            total += amount;
+            
+            html += `
+                <div style="background: #fff3e0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #e65100;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; color: #e65100;">
+                                💰 Pagamento da ${payment.from}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #f57c00;">
+                                📅 ${payment.date ? new Date(payment.date).toLocaleDateString('it-IT') : 'Data non specificata'}
+                            </div>
+                            ${payment.notes ? `<div style="font-size: 0.85rem; color: #6c757d; margin-top: 0.5rem;">📝 ${payment.notes}</div>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #e65100;">
+                                ${this.formatCurrency(amount)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                        <div style="background: linear-gradient(135deg, #e65100 0%, #ff6f00 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE RICEVUTO</div>
+                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('detailsModalContainer').innerHTML = html;
+    },
+                        <div style="font-size: 2rem; font-weight: bold; color: #e65100;">
+                            ${this.formatCurrency(paymentsReceived)}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
+                            👆 Clicca per vedere i trasferimenti
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            
+            <!-- Bilancio Finale Grande -->
+            <div style="background: ${balance > 0 ? 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' : balance < 0 ? 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)' : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)'}; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; border: 3px solid ${statusColor}; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1.5px; color: ${statusColor}; font-weight: 700; margin-bottom: 1rem;">
+                        ${balance > 0 ? '📈 Bilancio Positivo' : balance < 0 ? '📉 Bilancio Negativo' : '⚖️ Bilancio in Pari'}
+                    </div>
+                    <div style="font-size: 3.5rem; font-weight: bold; color: ${statusColor}; margin-bottom: 1rem;">
                         ${this.formatCurrency(Math.abs(balance))}
                     </div>
-                </div>
-            </div>
-            
-            <!-- Pagamenti (se presenti) -->
-            ${paymentsReceived > 0 || paymentsMade > 0 ? `
-                <div style="background: #fff3e0; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border-left: 5px solid #ff9800;">
-                    <h3 style="margin: 0 0 1rem 0; color: #e65100; font-size: 1.2rem;">💸 Pagamenti Registrati</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        ${paymentsReceived > 0 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: #e65100; margin-bottom: 0.25rem;">📥 Ricevuti</div>
-                                <div style="font-size: 1.5rem; font-weight: bold; color: #e65100;">${this.formatCurrency(paymentsReceived)}</div>
-                            </div>
-                        ` : ''}
-                        ${paymentsMade > 0 ? `
-                            <div>
-                                <div style="font-size: 0.85rem; color: #0d47a1; margin-bottom: 0.25rem;">📤 Effettuati</div>
-                                <div style="font-size: 1.5rem; font-weight: bold; color: #0d47a1;">${this.formatCurrency(paymentsMade)}</div>
-                            </div>
-                        ` : ''}
+                    <div style="font-size: 1.2rem; color: ${statusColor}; font-weight: 600;">
+                        ${balance > 0 ? '🟢 Deve ricevere questo importo' : balance < 0 ? '🔴 Deve dare questo importo' : '✅ È in pari!'}
                     </div>
                 </div>
-            ` : ''}
-            
-            <!-- Dettaglio Spese -->
-            <div id="participantExpensesDetail" style="margin-top: 2rem;">
-                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.3rem;">📋 Dettaglio Spese</h3>
-                <div id="participantExpensesTable"></div>
             </div>
             
-            <!-- Grafico Categorie -->
-            <div style="margin-top: 2rem;">
-                <h3 style="color: #2c3e50; margin-bottom: 1rem; font-size: 1.3rem;">📊 Spese per Categoria</h3>
-                <canvas id="participantCategoryChart" style="max-height: 300px;"></canvas>
-            </div>
-            
-            <!-- Trasferimenti (se presenti) -->
-            ${receivedTransfers.length > 0 || sentTransfers.length > 0 ? `
-                <div id="participantTransfersSection" style="margin-top: 2rem;"></div>
-            ` : ''}
+            <!-- Modal Container per i dettagli -->
+            <div id="detailsModalContainer"></div>
         `;
+        
+        // Carica i grafici
+        this.loadParticipantCharts(participantName, sharedAmount, paidAmount, paymentsMade, paymentsReceived);
         
         // Carica i dettagli
         this.loadParticipantExpensesTable(participantName);
