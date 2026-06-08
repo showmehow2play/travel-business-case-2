@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fix Splitwise - Dare/Avere e Ottimizzazione</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        h2 {
+            color: #764ba2;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+        }
+        .fix-item {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .fix-item h3 {
+            color: #667eea;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .icon {
+            font-size: 1.5rem;
+        }
+        .success {
+            border-left-color: #28a745;
+        }
+        .success h3 {
+            color: #28a745;
+        }
+        .test-steps {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 12px;
+            border-left: 5px solid #ffc107;
+        }
+        .test-steps ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        .test-steps li {
+            margin: 12px 0;
+            line-height: 1.6;
+        }
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            margin: 10px 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        .checkmark {
+            color: #28a745;
+            font-size: 1.2rem;
+        }
+        .example-box {
+            background: #e6f7ff;
+            border: 2px solid #1890ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .example-box h4 {
+            color: #1890ff;
+            margin-top: 0;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .before {
+            background: #fee;
+            border: 2px solid #dc3545;
+        }
+        .after {
+            background: #efe;
+            border: 2px solid #28a745;
+        }
+        .before h4 {
+            color: #dc3545;
+            margin-top: 0;
+        }
+        .after h4 {
+            color: #28a745;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Fix Completato: Sistema Dare/Avere Stile Splitwise</h1>
+        
+        <div class="section success">
+            <h2><span class="icon">🎉</span> Problema Risolto</h2>
+            <p><strong>Il sistema di calcolo dei bilanci (dare/avere) e le proposte di ottimizzazione ora funzionano correttamente quando si inseriscono nuove spese, proprio come Splitwise!</strong></p>
+        </div>
+
+        <h2>🔧 Modifiche Implementate</h2>
+
+        <div class="fix-item success">
+            <h3><span class="checkmark">✓</span> 1. Aggiornamento Automatico dei Bilanci</h3>
+            <p>Quando modifichi le spese nel consuntivo, i bilanci si aggiornano automaticamente in tempo reale:</p>
+            <ul class="feature-list">
+                <li><span class="checkmark">✓</span> Aggiunta di nuove spese</li>
+                <li><span class="checkmark">✓</span> Modifica degli importi</li>
+                <li><span class="checkmark">✓</span> Cambio di chi ha pagato</li>
+                <li><span class="checkmark">✓</span> Modifica dei partecipanti che condividono la spesa</li>
+                <li><span class="checkmark">✓</span> Rimozione di spese</li>
+            </ul>
+        </div>
+
+        <div class="fix-item success">
+            <h3><span class="checkmark">✓</span> 2. Calcolo Bilanci Migliorato</h3>
+            <p>Il calcolo dei bilanci ora gestisce correttamente:</p>
+            <ul class="feature-list">
+                <li><span class="checkmark">✓</span> Spese con importo 0 (vengono ignorate)</li>
+                <li><span class="checkmark">✓</span> Partecipanti rimossi (vengono filtrati)</li>
+                <li><span class="checkmark">✓</span> Conversione valute (usa sempre amountEUR)</li>
+                <li><span class="checkmark">✓</span> Divisione equa tra partecipanti selezionati</li>
+            </ul>
+        </div>
+
+        <div class="fix-item success">
+            <h3><span class="checkmark">✓</span> 3. Ottimizzazione Trasferimenti</h3>
+            <p>Le proposte di ottimizzazione si ricalcolano automaticamente considerando:</p>
+            <ul class="feature-list">
+                <li><span class="checkmark">✓</span> Tutte le spese aggiornate</li>
+                <li><span class="checkmark">✓</span> I pagamenti già confermati</li>
+                <li><span class="checkmark">✓</span> I bilanci correnti di ogni partecipante</li>
+            </ul>
+        </div>
+
+        <div class="fix-item success">
+            <h3><span class="checkmark">✓</span> 4. Salvataggio Automatico</h3>
+            <p>Le modifiche vengono salvate automaticamente quando:</p>
+            <ul class="feature-list">
+                <li><span class="checkmark">✓</span> Salvi una spesa</li>
+                <li><span class="checkmark">✓</span> Rimuovi una spesa</li>
+                <li><span class="checkmark">✓</span> Modifichi i partecipanti di una spesa</li>
+            </ul>
+        </div>
+
+        <div class="fix-item success">
+            <h3><span class="checkmark">✓</span> 5. Nuove Spese Pre-configurate</h3>
+            <p>Quando aggiungi una nuova spesa:</p>
+            <ul class="feature-list">
+                <li><span class="checkmark">✓</span> Tutti i partecipanti sono selezionati di default</li>
+                <li><span class="checkmark">✓</span> La divisione è equa tra tutti</li>
+                <li><span class="checkmark">✓</span> Puoi modificare chi condivide la spesa</li>
+            </ul>
+        </div>
+
+        <h2>📊 Come Funziona (Stile Splitwise)</h2>
+
+        <div class="comparison">
+            <div class="before">
+                <h4>❌ Prima</h4>
+                <ul>
+                    <li>Bilanci non si aggiornano</li>
+                    <li>Ottimizzazione con dati vecchi</li>
+                    <li>Necessario ricaricare la pagina</li>
+                    <li>Calcoli non sincronizzati</li>
+                </ul>
+            </div>
+            <div class="after">
+                <h4>✅ Ora</h4>
+                <ul>
+                    <li>Bilanci in tempo reale</li>
+                    <li>Ottimizzazione sempre aggiornata</li>
+                    <li>Tutto automatico</li>
+                    <li>Calcoli sempre corretti</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-steps">
+            <h2>🧪 Come Testare</h2>
+            <ol>
+                <li><strong>Crea un nuovo consuntivo</strong> con almeno 3 partecipanti (es. Marco, Luca, Sara)</li>
+                <li><strong>Aggiungi alcune spese:</strong>
+                    <ul>
+                        <li>Ristorante: €120 pagato da Marco, condiviso da tutti</li>
+                        <li>Hotel: €300 pagato da Luca, condiviso da tutti</li>
+                        <li>Benzina: €60 pagato da Sara, condiviso da tutti</li>
+                    </ul>
+                </li>
+                <li><strong>Vai alla sezione "Dare/Avere"</strong> e verifica i bilanci iniziali</li>
+                <li><strong>Torna al consuntivo</strong> e aggiungi una nuova spesa:
+                    <ul>
+                        <li>Supermercato: €90 pagato da Marco, condiviso da tutti</li>
+                    </ul>
+                </li>
+                <li><strong>Torna a "Dare/Avere"</strong> e verifica che i bilanci si siano aggiornati automaticamente</li>
+                <li><strong>Clicca su "Ottimizza Trasferimenti"</strong> e verifica che le proposte siano corrette</li>
+                <li><strong>Modifica una spesa esistente</strong> (cambia importo o partecipanti) e verifica che tutto si aggiorni</li>
+            </ol>
+        </div>
+
+        <div class="example-box">
+            <h4>💡 Esempio Pratico</h4>
+            <p><strong>Scenario:</strong> Viaggio in 3 persone (Marco, Luca, Sara)</p>
+            <p><strong>Spese:</strong></p>
+            <ul>
+                <li>Marco paga €120 per il ristorante (diviso tra tutti 3) → Marco anticipa €80</li>
+                <li>Luca paga €300 per l'hotel (diviso tra tutti 3) → Luca anticipa €200</li>
+                <li>Sara paga €60 per la benzina (diviso tra tutti 3) → Sara anticipa €40</li>
+            </ul>
+            <p><strong>Totale spese:</strong> €480</p>
+            <p><strong>Quota per persona:</strong> €160</p>
+            <p><strong>Bilanci finali:</strong></p>
+            <ul>
+                <li>Marco: ha pagato €120, deve €160 → <strong style="color: #dc3545;">Deve dare €40</strong></li>
+                <li>Luca: ha pagato €300, deve €160 → <strong style="color: #28a745;">Deve ricevere €140</strong></li>
+                <li>Sara: ha pagato €60, deve €160 → <strong style="color: #dc3545;">Deve dare €100</strong></li>
+            </ul>
+            <p><strong>Ottimizzazione:</strong></p>
+            <ul>
+                <li>Sara paga €100 a Luca</li>
+                <li>Marco paga €40 a Luca</li>
+            </ul>
+            <p style="color: #28a745; font-weight: bold;">✅ Tutti i conti sono in pari con solo 2 trasferimenti!</p>
+        </div>
+
+        <h2>📝 File Modificati</h2>
+        <div class="fix-item">
+            <h3>travel-business-case/js/actuals-ui.js</h3>
+            <ul>
+                <li><code>updateTotals()</code> - Aggiorna anche i bilanci quando cambiano le spese</li>
+                <li><code>addExpense()</code> - Pre-seleziona tutti i partecipanti</li>
+                <li><code>removeExpense()</code> - Salva automaticamente</li>
+                <li><code>saveExpense()</code> - Salva automaticamente</li>
+                <li><code>attachExpenseListeners()</code> - Salva quando cambiano i partecipanti</li>
+                <li><code>autoSaveExpenses()</code> - Nuovo metodo per salvataggio automatico</li>
+            </ul>
+        </div>
+        <div class="fix-item">
+            <h3>travel-business-case/js/settlements.js</h3>
+            <ul>
+                <li><code>calculateBalances()</code> - Migliorata gestione spese e partecipanti</li>
+                <li>Validazione spese con importo 0</li>
+                <li>Filtro partecipanti validi</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 50px;">
+            <a href="index.html" class="btn">🚀 Prova l'Applicazione</a>
+        </div>
+
+        <div style="margin-top: 50px; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; text-align: center; color: white;">
+            <h3 style="color: white; margin: 0 0 15px 0; font-size: 1.8rem;">✨ Sistema Completato!</h3>
+            <p style="margin: 0; font-size: 1.1rem; opacity: 0.95;">
+                Il sistema di gestione spese ora funziona esattamente come Splitwise:<br>
+                calcoli automatici, bilanci in tempo reale e ottimizzazione intelligente dei trasferimenti.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,201 +1,224 @@
-// ===== Storage Manager =====
-// Gestisce il salvataggio e recupero dei dati dal localStorage
+// ===== Storage Manager - SOLO SUPABASE =====
+// Gestisce il salvataggio e recupero dei dati ESCLUSIVAMENTE da Supabase
+// localStorage è usato SOLO come cache temporanea per performance
 
 const StorageManager = {
     STORAGE_KEY: 'travelBusinessCase',
-    BACKUP_KEY: 'travelBusinessCase_backup',
+    CACHE_KEY: 'travelBusinessCase_cache', // Solo per cache locale
+    cacheData: null, // Cache in memoria
 
     // Inizializza lo storage
     async init() {
-        console.log('🔄 Inizializzazione StorageManager...');
+        console.log('🔄 Inizializzazione StorageManager (SOLO SUPABASE)...');
         
-        // Se Supabase è disponibile, prova a sincronizzare i dati
-        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-            console.log('☁️ Supabase disponibile, sincronizzazione dati...');
-            try {
-                const synced = await window.SupabaseStorage.syncFromSupabase();
-                if (synced) {
-                    console.log('✅ Dati sincronizzati da Supabase');
-                    // Backup automatico ogni 5 minuti
-                    setInterval(() => this.createBackup(), 5 * 60 * 1000);
-                    return;
-                }
-            } catch (error) {
-                console.warn('⚠️ Errore sincronizzazione da Supabase, uso localStorage:', error);
-            }
+        // Verifica che Supabase sia disponibile
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            console.error('❌ ERRORE: Supabase non è disponibile! L\'app richiede Supabase per funzionare.');
+            alert('Errore: Supabase non configurato. L\'applicazione richiede Supabase per funzionare.');
+            return;
         }
+
+        console.log('✅ Supabase disponibile');
         
-        // Fallback: usa localStorage
-        const existingData = this.getData();
-        
-        // Se non ci sono dati, carica i dati di esempio
-        if (!existingData || (existingData.scenarios.length === 0 && existingData.actuals.length === 0)) {
-            console.log('📦 Caricamento dati di esempio...');
+        // Carica i dati da Supabase
+        try {
+            await this.loadFromSupabase();
+            console.log('✅ Dati caricati da Supabase');
+        } catch (error) {
+            console.error('❌ Errore caricamento da Supabase:', error);
             
-            // Verifica se SampleData è disponibile
-            if (typeof SampleData !== 'undefined') {
-                await this.saveData({
-                    scenarios: SampleData.scenarios || [],
-                    actuals: SampleData.actuals || []
-                });
-                
-                // Carica anche i partecipanti di esempio nell'anagrafica
-                if (typeof participantsRegistry !== 'undefined' && SampleData.participants) {
-                    localStorage.setItem('participants_registry', JSON.stringify(SampleData.participants));
-                }
-                
-                console.log('✅ Dati di esempio caricati con successo!');
-            } else {
-                // Se SampleData non è disponibile, inizializza con dati vuoti
-                await this.saveData({ scenarios: [], actuals: [] });
+            // Se non ci sono dati, carica i dati di esempio
+            const data = await this.getData();
+            if (!data || (data.scenarios.length === 0 && data.actuals.length === 0)) {
+                console.log('📦 Caricamento dati di esempio...');
+                await this.loadSampleData();
             }
         }
-        
-        // Backup automatico ogni 5 minuti
-        setInterval(() => this.createBackup(), 5 * 60 * 1000);
     },
 
-    // Ottieni tutti i dati
-    getData() {
+    // Carica i dati da Supabase
+    async loadFromSupabase() {
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            throw new Error('Supabase non disponibile');
+        }
+
+        console.log('📥 Caricamento dati da Supabase...');
+        
+        // Carica scenari
+        const scenarios = await window.SupabaseStorage.getAllScenarios();
+        console.log(`📋 ${scenarios.length} scenari caricati`);
+        
+        // Carica consuntivi
+        const actuals = await window.SupabaseStorage.getAllActuals();
+        console.log(`💰 ${actuals.length} consuntivi caricati`);
+        
+        // Aggiorna cache in memoria
+        this.cacheData = {
+            scenarios: scenarios || [],
+            actuals: actuals || []
+        };
+        
+        // Aggiorna cache localStorage (solo per performance)
         try {
-            const data = localStorage.getItem(this.STORAGE_KEY);
-            const parsed = data ? JSON.parse(data) : null;
+            localStorage.setItem(this.CACHE_KEY, JSON.stringify(this.cacheData));
+        } catch (e) {
+            console.warn('⚠️ Impossibile aggiornare cache localStorage:', e);
+        }
+        
+        return this.cacheData;
+    },
 
-            if (!parsed) {
-                return null;
-            }
+    // Carica dati di esempio
+    async loadSampleData() {
+        if (typeof SampleData === 'undefined') {
+            console.warn('⚠️ SampleData non disponibile');
+            return;
+        }
 
-            // Assicura che esistano entrambi gli array
-            if (!Array.isArray(parsed.scenarios)) {
-                parsed.scenarios = [];
+        console.log('📦 Caricamento dati di esempio su Supabase...');
+        
+        // Salva scenari di esempio
+        if (SampleData.scenarios && Array.isArray(SampleData.scenarios)) {
+            for (const scenario of SampleData.scenarios) {
+                await this.addScenario(scenario);
             }
-            if (!Array.isArray(parsed.actuals)) {
-                parsed.actuals = [];
+            console.log(`✅ ${SampleData.scenarios.length} scenari di esempio caricati`);
+        }
+        
+        // Salva consuntivi di esempio
+        if (SampleData.actuals && Array.isArray(SampleData.actuals)) {
+            for (const actual of SampleData.actuals) {
+                await this.addActual(actual);
             }
+            console.log(`✅ ${SampleData.actuals.length} consuntivi di esempio caricati`);
+        }
+        
+        // Ricarica i dati
+        await this.loadFromSupabase();
+    },
 
-            return parsed;
+    // Ottieni tutti i dati (da cache o Supabase)
+    async getData() {
+        // Se abbiamo cache in memoria, usala
+        if (this.cacheData) {
+            return this.cacheData;
+        }
+        
+        // Altrimenti carica da Supabase
+        try {
+            return await this.loadFromSupabase();
         } catch (error) {
             console.error('Errore nel recupero dei dati:', error);
-
-            try {
-                const normalized = { scenarios: [], actuals: [] };
-                this.saveData(normalized);
-                return normalized;
-            } catch (saveError) {
-                console.error('Errore nel ripristino automatico dello storage:', saveError);
-                return null;
-            }
+            return { scenarios: [], actuals: [] };
         }
     },
 
-    // Salva i dati
-    async saveData(data) {
+    // Invalida la cache (forza ricaricamento da Supabase)
+    async invalidateCache() {
+        this.cacheData = null;
         try {
-            // Salva sempre in localStorage
-            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
-            
-            // Se Supabase è disponibile, salva anche lì
-            if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-                await window.SupabaseStorage.setItem(this.STORAGE_KEY, data);
-            }
-            
-            return true;
-        } catch (error) {
-            console.error('Errore nel salvataggio dei dati:', error);
-            return false;
+            localStorage.removeItem(this.CACHE_KEY);
+        } catch (e) {
+            console.warn('⚠️ Impossibile rimuovere cache localStorage:', e);
         }
+        return await this.loadFromSupabase();
     },
+
+    // ===== SCENARI =====
 
     // Ottieni tutti gli scenari
-    getScenarios() {
-        const data = this.getData();
-        return data ? data.scenarios : [];
+    async getScenarios() {
+        const data = await this.getData();
+        return data.scenarios || [];
     },
 
-    // Salva gli scenari
-    saveScenarios(scenarios) {
-        if (!Array.isArray(scenarios)) {
-            console.error('Tentativo di salvare scenari in formato non valido:', scenarios);
-            return false;
+    // Ottieni uno scenario per ID
+    async getScenario(id) {
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            const scenarios = await this.getScenarios();
+            return scenarios.find(s => s.id === id);
         }
-
-        const data = this.getData() || { scenarios: [], actuals: [] };
-        data.scenarios = scenarios;
-        return this.saveData(data);
+        
+        return await window.SupabaseStorage.getScenario(id);
     },
 
     // Aggiungi uno scenario
     async addScenario(scenario) {
-        const scenarios = this.getScenarios();
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            throw new Error('Supabase non disponibile');
+        }
+
         const newScenario = {
             ...scenario,
-            id: this.generateId(),
-            createdAt: new Date().toISOString(),
+            id: scenario.id || this.generateId(),
+            createdAt: scenario.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
 
-        scenarios.push(newScenario);
-        const saved = await this.saveScenarios(scenarios);
-
-        if (!saved) {
-            console.error('Errore nel salvataggio del nuovo scenario');
-            return null;
+        // Salva su Supabase
+        const saved = await window.SupabaseStorage.saveScenario(newScenario);
+        
+        if (saved) {
+            // Invalida cache per ricaricare
+            await this.invalidateCache();
+            console.log('✅ Scenario salvato su Supabase:', newScenario.name);
+            return newScenario;
         }
-
-        // Salva anche su Supabase se disponibile
-        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-            await window.SupabaseStorage.saveScenario(newScenario);
-        }
-
-        console.log('Scenario salvato correttamente:', newScenario);
-        return newScenario;
+        
+        throw new Error('Errore nel salvataggio dello scenario');
     },
 
     // Aggiorna uno scenario
     async updateScenario(id, updates) {
-        const scenarios = this.getScenarios();
-        const index = scenarios.findIndex(s => s.id === id);
-        if (index !== -1) {
-            scenarios[index] = {
-                ...scenarios[index],
-                ...updates,
-                updatedAt: new Date().toISOString()
-            };
-            await this.saveScenarios(scenarios);
-            
-            // Salva anche su Supabase se disponibile
-            if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-                await window.SupabaseStorage.saveScenario(scenarios[index]);
-            }
-            
-            return scenarios[index];
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            throw new Error('Supabase non disponibile');
         }
-        return null;
+
+        const scenario = await this.getScenario(id);
+        if (!scenario) {
+            throw new Error('Scenario non trovato');
+        }
+
+        const updatedScenario = {
+            ...scenario,
+            ...updates,
+            updatedAt: new Date().toISOString()
+        };
+
+        // Salva su Supabase
+        const saved = await window.SupabaseStorage.saveScenario(updatedScenario);
+        
+        if (saved) {
+            // Invalida cache per ricaricare
+            await this.invalidateCache();
+            console.log('✅ Scenario aggiornato su Supabase:', updatedScenario.name);
+            return updatedScenario;
+        }
+        
+        throw new Error('Errore nell\'aggiornamento dello scenario');
     },
 
     // Elimina uno scenario
     async deleteScenario(id) {
-        const scenarios = this.getScenarios();
-        const filtered = scenarios.filter(s => s.id !== id);
-        await this.saveScenarios(filtered);
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            throw new Error('Supabase non disponibile');
+        }
+
+        const deleted = await window.SupabaseStorage.deleteScenario(id);
         
-        // Elimina anche da Supabase se disponibile
-        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-            await window.SupabaseStorage.deleteScenario(id);
+        if (deleted) {
+            // Invalida cache per ricaricare
+            await this.invalidateCache();
+            console.log('✅ Scenario eliminato da Supabase');
+            return true;
         }
         
-        return filtered.length < scenarios.length;
-    },
-
-    // Ottieni uno scenario per ID
-    getScenario(id) {
-        const scenarios = this.getScenarios();
-        return scenarios.find(s => s.id === id);
+        return false;
     },
 
     // Duplica uno scenario
-    duplicateScenario(id) {
-        const scenario = this.getScenario(id);
+    async duplicateScenario(id) {
+        const scenario = await this.getScenario(id);
         if (scenario) {
             const duplicate = {
                 ...scenario,
@@ -209,99 +232,102 @@ const StorageManager = {
         return null;
     },
 
-    // ===== Gestione Consuntivi (Actuals) =====
+    // ===== CONSUNTIVI (ACTUALS) =====
 
     // Ottieni tutti i consuntivi
-    getActuals() {
-        const data = this.getData();
-        return data ? (data.actuals || []) : [];
+    async getActuals() {
+        const data = await this.getData();
+        return data.actuals || [];
     },
 
-    // Salva i consuntivi
-    saveActuals(actuals) {
-        if (!Array.isArray(actuals)) {
-            console.error('Tentativo di salvare consuntivi in formato non valido:', actuals);
-            return false;
+    // Ottieni un consuntivo per ID
+    async getActual(id) {
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            const actuals = await this.getActuals();
+            return actuals.find(a => a.id === id);
         }
-
-        const data = this.getData() || { scenarios: [], actuals: [] };
-        data.actuals = actuals;
-        return this.saveData(data);
+        
+        return await window.SupabaseStorage.getActual(id);
     },
 
     // Aggiungi un consuntivo
     async addActual(actual) {
-        const actuals = this.getActuals();
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            throw new Error('Supabase non disponibile');
+        }
+
         const newActual = {
             ...actual,
-            id: this.generateId(),
+            id: actual.id || this.generateId(),
             type: 'actual',
-            createdAt: new Date().toISOString(),
+            createdAt: actual.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
 
-        actuals.push(newActual);
-        const saved = await this.saveActuals(actuals);
-
-        if (!saved) {
-            console.error('Errore nel salvataggio del nuovo consuntivo');
-            return null;
+        // Salva su Supabase
+        const saved = await window.SupabaseStorage.saveActual(newActual);
+        
+        if (saved) {
+            // Invalida cache per ricaricare
+            await this.invalidateCache();
+            console.log('✅ Consuntivo salvato su Supabase:', newActual.name);
+            return newActual;
         }
-
-        // Salva anche su Supabase se disponibile
-        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-            await window.SupabaseStorage.saveActual(newActual);
-        }
-
-        console.log('Consuntivo salvato correttamente:', newActual);
-        return newActual;
+        
+        throw new Error('Errore nel salvataggio del consuntivo');
     },
 
     // Aggiorna un consuntivo
     async updateActual(id, updates) {
-        const actuals = this.getActuals();
-        const index = actuals.findIndex(a => a.id === id);
-        if (index !== -1) {
-            actuals[index] = {
-                ...actuals[index],
-                ...updates,
-                updatedAt: new Date().toISOString()
-            };
-            await this.saveActuals(actuals);
-            
-            // Salva anche su Supabase se disponibile
-            if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-                await window.SupabaseStorage.saveActual(actuals[index]);
-            }
-            
-            return actuals[index];
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            throw new Error('Supabase non disponibile');
         }
-        return null;
+
+        const actual = await this.getActual(id);
+        if (!actual) {
+            throw new Error('Consuntivo non trovato');
+        }
+
+        const updatedActual = {
+            ...actual,
+            ...updates,
+            updatedAt: new Date().toISOString()
+        };
+
+        // Salva su Supabase
+        const saved = await window.SupabaseStorage.saveActual(updatedActual);
+        
+        if (saved) {
+            // Invalida cache per ricaricare
+            await this.invalidateCache();
+            console.log('✅ Consuntivo aggiornato su Supabase:', updatedActual.name);
+            return updatedActual;
+        }
+        
+        throw new Error('Errore nell\'aggiornamento del consuntivo');
     },
 
     // Elimina un consuntivo
     async deleteActual(id) {
-        const actuals = this.getActuals();
-        const filtered = actuals.filter(a => a.id !== id);
-        await this.saveActuals(filtered);
+        if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+            throw new Error('Supabase non disponibile');
+        }
+
+        const deleted = await window.SupabaseStorage.deleteActual(id);
         
-        // Elimina anche da Supabase se disponibile
-        if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
-            await window.SupabaseStorage.deleteActual(id);
+        if (deleted) {
+            // Invalida cache per ricaricare
+            await this.invalidateCache();
+            console.log('✅ Consuntivo eliminato da Supabase');
+            return true;
         }
         
-        return filtered.length < actuals.length;
-    },
-
-    // Ottieni un consuntivo per ID
-    getActual(id) {
-        const actuals = this.getActuals();
-        return actuals.find(a => a.id === id);
+        return false;
     },
 
     // Duplica un consuntivo
-    duplicateActual(id) {
-        const actual = this.getActual(id);
+    async duplicateActual(id) {
+        const actual = await this.getActual(id);
         if (actual) {
             const duplicate = {
                 ...actual,
@@ -315,96 +341,16 @@ const StorageManager = {
         return null;
     },
 
+    // ===== UTILITY =====
+
     // Genera un ID univoco
     generateId() {
-        return 'scenario_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    },
-
-    // Crea un backup
-    createBackup() {
-        const data = this.getData();
-        if (data) {
-            try {
-                localStorage.setItem(this.BACKUP_KEY, JSON.stringify({
-                    ...data,
-                    backupDate: new Date().toISOString()
-                }));
-            } catch (error) {
-                console.error('Errore nella creazione del backup:', error);
-            }
-        }
-    },
-
-    // Ripristina dal backup
-    restoreBackup() {
-        try {
-            const backup = localStorage.getItem(this.BACKUP_KEY);
-            if (backup) {
-                const data = JSON.parse(backup);
-                delete data.backupDate;
-                this.saveData(data);
-                return true;
-            }
-        } catch (error) {
-            console.error('Errore nel ripristino del backup:', error);
-        }
-        return false;
-    },
-
-    // Esporta i dati in JSON
-    exportToJSON() {
-        const data = this.getData();
-        if (data) {
-            return {
-                ...data,
-                exportDate: new Date().toISOString(),
-                version: '1.0'
-            };
-        }
-        return null;
-    },
-
-    // Importa dati da JSON
-    importFromJSON(jsonData) {
-        try {
-            // Valida i dati
-            if (!jsonData.scenarios || !Array.isArray(jsonData.scenarios)) {
-                throw new Error('Formato dati non valido');
-            }
-
-            // Opzionale: merge con dati esistenti o sostituzione
-            const currentScenarios = this.getScenarios();
-            const importedScenarios = jsonData.scenarios.map(s => ({
-                ...s,
-                id: this.generateId(), // Genera nuovi ID per evitare conflitti
-                importedAt: new Date().toISOString()
-            }));
-
-            const allScenarios = [...currentScenarios, ...importedScenarios];
-            this.saveScenarios(allScenarios);
-            return true;
-        } catch (error) {
-            console.error('Errore nell\'importazione:', error);
-            return false;
-        }
-    },
-
-    // Cancella tutti i dati
-    clearAll() {
-        try {
-            localStorage.removeItem(this.STORAGE_KEY);
-            localStorage.removeItem(this.BACKUP_KEY);
-            this.init();
-            return true;
-        } catch (error) {
-            console.error('Errore nella cancellazione dei dati:', error);
-            return false;
-        }
+        return 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     },
 
     // Ottieni statistiche
-    getStats() {
-        const scenarios = this.getScenarios();
+    async getStats() {
+        const scenarios = await this.getScenarios();
         
         if (scenarios.length === 0) {
             return {
@@ -440,10 +386,88 @@ const StorageManager = {
     calculateTotal(expenses) {
         if (!expenses) return 0;
         return Object.values(expenses).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+    },
+
+    // Esporta i dati in JSON (per backup)
+    async exportToJSON() {
+        const data = await this.getData();
+        if (data) {
+            return {
+                ...data,
+                exportDate: new Date().toISOString(),
+                version: '2.0',
+                source: 'supabase'
+            };
+        }
+        return null;
+    },
+
+    // Importa dati da JSON (carica su Supabase)
+    async importFromJSON(jsonData) {
+        try {
+            if (!jsonData.scenarios || !Array.isArray(jsonData.scenarios)) {
+                throw new Error('Formato dati non valido');
+            }
+
+            // Importa scenari
+            for (const scenario of jsonData.scenarios) {
+                await this.addScenario({
+                    ...scenario,
+                    id: undefined, // Genera nuovo ID
+                    importedAt: new Date().toISOString()
+                });
+            }
+
+            // Importa consuntivi se presenti
+            if (jsonData.actuals && Array.isArray(jsonData.actuals)) {
+                for (const actual of jsonData.actuals) {
+                    await this.addActual({
+                        ...actual,
+                        id: undefined, // Genera nuovo ID
+                        importedAt: new Date().toISOString()
+                    });
+                }
+            }
+
+            // Ricarica i dati
+            await this.invalidateCache();
+            
+            return true;
+        } catch (error) {
+            console.error('Errore nell\'importazione:', error);
+            return false;
+        }
+    },
+
+    // Cancella tutti i dati (ATTENZIONE: elimina tutto da Supabase!)
+    async clearAll() {
+        if (!confirm('ATTENZIONE: Questa operazione eliminerà TUTTI i dati da Supabase in modo permanente. Sei sicuro?')) {
+            return false;
+        }
+
+        try {
+            // Elimina tutti gli scenari
+            const scenarios = await this.getScenarios();
+            for (const scenario of scenarios) {
+                await this.deleteScenario(scenario.id);
+            }
+
+            // Elimina tutti i consuntivi
+            const actuals = await this.getActuals();
+            for (const actual of actuals) {
+                await this.deleteActual(actual.id);
+            }
+
+            // Invalida cache
+            await this.invalidateCache();
+            
+            console.log('✅ Tutti i dati eliminati da Supabase');
+            return true;
+        } catch (error) {
+            console.error('Errore nella cancellazione dei dati:', error);
+            return false;
+        }
     }
 };
 
-// NOTA: L'inizializzazione viene gestita da app.js per garantire
-// che la sincronizzazione Supabase sia completata prima di caricare l'interfaccia
-
-// Made with Bob
+// Made with Bob - SUPABASE ONLY VERSION

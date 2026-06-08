@@ -117,8 +117,8 @@ const ActualsUI = {
     },
 
     // Carica lista consuntivi
-    loadActualsList() {
-        const actuals = StorageManager.getActuals() || [];
+    async loadActualsList() {
+        const actuals = await StorageManager.getActuals() || [];
         const list = document.getElementById('actualsList');
 
         if (!list) return;
@@ -243,12 +243,12 @@ const ActualsUI = {
     },
 
     // Crea nuovo consuntivo
-    createNewActual() {
+    async createNewActual() {
         this.currentActualId = null;
         this.currentExpenses = [];
         
         // Chiedi se vuole partire da un preventivo
-        const scenarios = StorageManager.getScenarios();
+        const scenarios = await StorageManager.getScenarios();
         
         if (scenarios.length > 0) {
             this.showScenarioSelectionModal();
@@ -263,8 +263,8 @@ const ActualsUI = {
     },
 
     // Mostra modal per selezione preventivo
-    showScenarioSelectionModal() {
-        const scenarios = StorageManager.getScenarios();
+    async showScenarioSelectionModal() {
+        const scenarios = await StorageManager.getScenarios();
         
         const modalHTML = `
             <div id="scenarioSelectionModal" class="modal active">
@@ -315,10 +315,10 @@ const ActualsUI = {
     },
 
     // Carica da preventivo
-    loadFromScenario(scenarioId) {
+    async loadFromScenario(scenarioId) {
         this.closeScenarioSelectionModal();
         
-        const scenario = StorageManager.getScenario(scenarioId);
+        const scenario = await StorageManager.getScenario(scenarioId);
         if (!scenario) {
             this.startFromScratch();
             return;
@@ -481,8 +481,8 @@ const ActualsUI = {
     },
 
     // Modifica consuntivo
-    editActual(id) {
-        const actual = StorageManager.getActual(id);
+    async editActual(id) {
+        const actual = await StorageManager.getActual(id);
         if (actual) {
             this.currentActualId = id;
             this.currentExpenses = actual.expenses || [];
@@ -791,6 +791,12 @@ const ActualsUI = {
     // Aggiungi spesa
     addExpense() {
         const newExpense = ActualsManager.createEmptyExpense();
+        
+        // Imposta automaticamente tutti i partecipanti come sharedBy di default
+        const participants = Array.from(document.querySelectorAll('#actualParticipantsList .participant-tag span'))
+            .map(span => span.textContent);
+        newExpense.sharedBy = [...participants];
+        
         this.currentExpenses.push(newExpense);
         
         // Converti in EUR se necessario
@@ -807,6 +813,11 @@ const ActualsUI = {
             this.currentExpenses.splice(index, 1);
             this.loadExpenses(this.currentExpenses);
             this.updateTotals();
+            
+            // Forza il salvataggio automatico per aggiornare i bilanci
+            if (this.currentActualId) {
+                this.autoSaveExpenses();
+            }
         }
     },
 
@@ -831,6 +842,11 @@ const ActualsUI = {
         // Ricarica per disabilitare i campi
         this.loadExpenses(this.currentExpenses);
         this.updateTotals();
+        
+        // Salva automaticamente il consuntivo per aggiornare i bilanci
+        if (this.currentActualId) {
+            this.autoSaveExpenses();
+        }
         
         // Feedback visivo
         if (typeof showToast !== 'undefined') {
@@ -913,8 +929,14 @@ const ActualsUI = {
                         this.currentExpenses[index].sharedBy = this.currentExpenses[index].sharedBy.filter(p => p !== participant);
                     }
                     
-                    // Aggiorna solo il costo per persona senza ricaricare
+                    // Aggiorna il costo per persona e i totali
                     this.updateCostPerPerson(index);
+                    this.updateTotals();
+                    
+                    // Salva automaticamente per aggiornare i bilanci
+                    if (this.currentActualId) {
+                        this.autoSaveExpenses();
+                    }
                 }
             });
         });
@@ -1110,6 +1132,22 @@ const ActualsUI = {
 
         document.getElementById('actualTotalCost').textContent = ActualsManager.formatCurrency(total);
         document.getElementById('actualCostPerPerson').textContent = ActualsManager.formatCurrency(costPerPerson);
+        
+        // Se siamo in modalità modifica di un consuntivo esistente, aggiorna anche i bilanci
+        // in modo che riflettano le modifiche alle spese in tempo reale
+        if (this.currentActualId && this.currentActual) {
+            // Aggiorna l'oggetto actual corrente con le spese modificate
+            this.currentActual.expenses = this.currentExpenses;
+            
+            // Se SettlementsManager è disponibile e ha questo consuntivo caricato,
+            // aggiorna i suoi bilanci
+            if (typeof SettlementsManager !== 'undefined' &&
+                SettlementsManager.currentActual &&
+                SettlementsManager.currentActual.id === this.currentActualId) {
+                SettlementsManager.currentActual.expenses = this.currentExpenses;
+                SettlementsManager.calculateBalances(SettlementsManager.currentActual);
+            }
+        }
     },
 
     // Salva consuntivo
@@ -1144,6 +1182,30 @@ const ActualsUI = {
         App.switchView('actuals');
         this.loadActualsList();
     },
+    
+    // Salvataggio automatico delle spese (senza cambiare vista)
+    autoSaveExpenses() {
+        if (!this.currentActualId) return;
+        
+        const participants = Array.from(document.querySelectorAll('#actualParticipantsList .participant-tag span'))
+            .map(span => span.textContent);
+
+        const actualData = {
+            name: document.getElementById('actualName').value,
+            destination: document.getElementById('actualDestination').value,
+            startDate: document.getElementById('actualStartDate').value,
+            endDate: document.getElementById('actualEndDate').value,
+            participants: participants,
+            expenses: this.currentExpenses,
+            notes: document.getElementById('actualNotes').value
+        };
+
+        // Salva senza validazione completa (permette salvataggio parziale)
+        StorageManager.updateActual(this.currentActualId, actualData);
+        
+        // Aggiorna anche l'oggetto corrente
+        this.currentActual = { ...actualData, id: this.currentActualId };
+    },
 
     // Elimina consuntivo corrente
     deleteCurrentActual() {
@@ -1159,8 +1221,8 @@ const ActualsUI = {
     },
 
     // Visualizza pagina Conti dalla lista principale
-    viewAccountsFromList() {
-        const actuals = StorageManager.getActuals() || [];
+    async viewAccountsFromList() {
+        const actuals = await StorageManager.getActuals() || [];
         
         if (actuals.length === 0) {
             App.showToast('Crea prima un consuntivo per visualizzare i conti', 'warning');
@@ -1180,8 +1242,8 @@ const ActualsUI = {
     },
 
     // Visualizza pagina Dare/Avere per un consuntivo specifico
-    viewSettlements(actualId) {
-        const actual = StorageManager.getActual(actualId);
+    async viewSettlements(actualId) {
+        const actual = await StorageManager.getActual(actualId);
         if (!actual) {
             App.showToast('Consuntivo non trovato', 'error');
             return;
@@ -1193,10 +1255,10 @@ const ActualsUI = {
     },
 
     // Visualizza pagina Conti dal dettaglio consuntivo
-    viewAccounts() {
+    async viewAccounts() {
         if (!this.currentActualId) return;
 
-        const actual = StorageManager.getActual(this.currentActualId);
+        const actual = await StorageManager.getActual(this.currentActualId);
         if (!actual) return;
 
         // Inizializza AccountsManager con il consuntivo corrente
@@ -1207,12 +1269,12 @@ const ActualsUI = {
     },
 
     // Elimina dalla lista
-    deleteActualFromList(id) {
-        const actual = StorageManager.getActual(id);
+    async deleteActualFromList(id) {
+        const actual = await StorageManager.getActual(id);
         if (!actual) return;
 
         if (confirm(`Sei sicuro di voler eliminare il consuntivo "${actual.name}"?`)) {
-            StorageManager.deleteActual(id);
+            await StorageManager.deleteActual(id);
             ExportManager.showSuccess('Consuntivo eliminato');
             this.loadActualsList();
         }

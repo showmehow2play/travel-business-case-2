@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pannello Admin - Business Case Viaggi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+        }
+        
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .admin-header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .admin-tabs {
+            background: white;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 0 30px;
+        }
+        
+        .admin-tabs-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .tab-btn {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn:hover {
+            color: #667eea;
+        }
+        
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .admin-main {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #1f2937;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th {
+            text-align: left;
+            padding: 12px;
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .btn-icon {
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: all 0.2s;
+        }
+        
+        .btn-icon:hover {
+            background: #e5e7eb;
+        }
+        
+        .log-entry {
+            padding: 15px;
+            border-left: 4px solid #e5e7eb;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .log-entry.create {
+            border-left-color: #10b981;
+        }
+        
+        .log-entry.update {
+            border-left-color: #f59e0b;
+        }
+        
+        .log-entry.delete {
+            border-left-color: #ef4444;
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .log-user {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .log-date {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .log-details {
+            font-size: 14px;
+            color: #4b5563;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .group-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .group-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .group-stats {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .group-members,
+        .group-scenarios {
+            margin-top: 15px;
+        }
+        
+        .group-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+        
+        .member-tag,
+        .scenario-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="admin-header-content">
+            <h1>⚙️ Pannello Amministrazione</h1>
+            <div class="admin-header-actions">
+                <span id="currentUserName" style="margin-right: 15px;">👤 Admin</span>
+                <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+                    🏠 Dashboard
+                </button>
+                <button class="btn btn-secondary" onclick="Auth.logout()">
+                    🚪 Esci
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="admin-tabs">
+        <div class="admin-tabs-content">
+            <button class="tab-btn active" data-tab="users">👥 Utenti</button>
+            <button class="tab-btn" data-tab="groups">👨‍👩‍👧‍👦 Gruppi</button>
+            <button class="tab-btn" data-tab="activity">📝 Log Attività</button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="admin-main">
+        <!-- Tab: Utenti -->
+        <div id="usersTab" class="tab-content active">
+            <div class="section-header">
+                <h2>Gestione Utenti</h2>
+                <button class="btn btn-primary" onclick="AdminPanel.showNewUserModal()">
+                    ➕ Nuovo Utente
+                </button>
+            </div>
+            
+            <div class="card">
+                <div id="usersLoading" class="loading">
+                    ⏳ Caricamento utenti...
+                </div>
+                <table class="table" id="usersTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Ruolo</th>
+                            <th>Gruppi</th>
+                            <th>Ultimo Accesso</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Popolato dinamicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Tab: Gruppi -->
+        <div id="groupsTab" class="tab-content">
+            <div class="section-header">
+                <h2>Gestione Gruppi</h2>
+                <button class="btn btn-primary" onclick="AdminPanel.showNewGroupModal()">
+                    ➕ Nuovo Gruppo
+                </button>
+            </div>
+            
+            <div id="groupsLoading" class="loading">
+                ⏳ Caricamento gruppi...
+            </div>
+            <div id="groupsContainer">
+                <!-- Popolato dinamicamente -->
+            </div>
+        </div>
+        
+        <!-- Tab: Log Attività -->
+        <div id="activityTab" class="tab-content">
+            <div class="section-header">
+                <h2>Log Attività</h2>
+            </div>
+            
+            <div class="card">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Utente</label>
+                        <select id="filterUser">
+                            <option value="">Tutti gli utenti</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Azione</label>
+                        <select id="filterAction">
+                            <option value="">Tutte le azioni</option>
+                            <option value="create">Creazione</option>
+                            <option value="update">Modifica</option>
+                            <option value="delete">Eliminazione</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Periodo</label>
+                        <select id="filterPeriod">
+                            <option value="7">Ultimi 7 giorni</option>
+                            <option value="30">Ultimi 30 giorni</option>
+                            <option value="90">Ultimi 90 giorni</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="AdminPanel.loadActivityLog()">
+                            🔍 Filtra
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="activityLoading" class="loading">
+                ⏳ Caricamento log...
+            </div>
+            <div id="activityContainer">
+                <!-- Popolato dinamicamente -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/activity-logger.js"></script>
+    <script src="js/access-control.js"></script>
+    
+    <script>
+        // Admin Panel Manager
+        const AdminPanel = {
+            async init() {
+                // Verifica autenticazione
+                const isAuth = await Auth.init();
+                if (!isAuth) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                // Verifica superuser
+                if (!Auth.isSuperuser()) {
+                    alert('Accesso negato: solo i superuser possono accedere');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // Mostra nome utente
+                document.getElementById('currentUserName').textContent = 
+                    '👤 ' + Auth.currentUser.full_name;
+                
+                // Setup tabs
+                this.setupTabs();
+                
+                // Carica dati
+                await this.loadUsers();
+                await this.loadGroups();
+                await this.loadActivityLog();
+            },
+            
+            setupTabs() {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const tabName = e.target.dataset.tab;
+                        
+                        // Aggiorna pulsanti
+                        document.querySelectorAll('.tab-btn').forEach(b => 
+                            b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        
+                        // Aggiorna contenuti
+                        document.querySelectorAll('.tab-content').forEach(c => 
+                            c.classList.remove('active'));
+                        document.getElementById(tabName + 'Tab').classList.add('active');
+                    });
+                });
+            },
+            
+            async loadUsers() {
+                const loading = document.getElementById('usersLoading');
+                const table = document.getElementById('usersTable');
+                const tbody = document.getElementById('usersTableBody');
+                
+                try {
+                    const { data: users, error } = await supabaseClient
+                        .from('users')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    
+                    if (!users || users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">Nessun utente trovato</td></tr>';
+                    } else {
+                        tbody.innerHTML = users.map(user => `
+                            <tr>
+                                <td>${user.full_name}</td>
+                                <td>${user.email}</td>
+                                <td>
+                                    ${user.is_superuser ? 
+                                        '<span class="badge badge-warning">👑 Superuser</span>' : 
+                                        '<span class="badge badge-success">👤 Utente</span>'}
+                                </td>
+                                <td>
+                                    <span class="badge badge-success">2 gruppi</span>
+                                </td>
+                                <td>${user.last_login ? new Date(user.last_login).toLocaleDateString('it-IT') : 'Mai'}</td>
+                                <td>
+                                    <button class="btn-icon" title="Modifica">✏️</button>
+                                    <button class="btn-icon" title="Gruppi">👥</button>
+                                    <button class="btn-icon" title="Elimina">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                    
+                    loading.style.display = 'none';
+                    table.style.display = 'table';
+                } catch (error) {
+                    console.error('Errore caricamento utenti:', error);
+                    loading.textContent = '❌ Errore caricamento utenti';
+                }
+            },
+            
+            async loadGroups() {
+                const loading = document.getElementById('groupsLoading');
+                const container = document.getElementById('groupsContainer');
+                
+                try {
+                    const { data: groups, error } = await supabaseClient
+                        .from('groups')
+                        .select('*')
+                        .order('name');
+                    
+                    if (error) throw error;
+                    
+                    if (!groups || groups.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">👨‍👩‍👧‍👦</div>
+                                <p>Nessun gruppo creato</p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = groups.map(group => `
+                            <div class="group-card">
+                                <div class="group-header">
+                                    <div>
+                                        <div class="group-title">${group.icon || '📦'} ${group.name}</div>
+                                        <div class="group-stats">👥 3 membri • 📋 2 scenari</div>
+                                    </div>
+                                    <div>
+                                        <button class="btn-icon" title="Modifica">✏️</button>
+                                        <button class="btn-icon" title="Elimina">🗑️</button>
+                                    </div>
+                                </div>
+                                ${group.description ? `<p style="color: #6b7280; margin: 10px 0;">${group.description}</p>` : ''}
+                                <div class="group-members">
+                                    <div class="group-section-title">Membri</div>
+                                    <span class="member-tag">Mario Rossi</span>
+                                    <span class="member-tag">Laura Bianchi</span>
+                                    <button class="btn-icon">➕ Aggiungi</button>
+                                </div>
+                                <div class="group-scenarios">
+                                    <div class="group-section-title">Scenari Assegnati</div>
+                                    <span class="scenario-tag">Viaggio Norvegia</span>
+                                    <span class="scenario-tag">Weekend Roma</span>
+                                    <button class="btn-icon">➕ Assegna</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    
+                    loading.style.display = 'none';
+                } catch (error) {
+                    console.error('Errore caricamento gruppi:', error);
+                    loading.textContent = '❌ Errore caricamento gruppi';
+                }
+            },
+            
+            async loadActivityLog() {
+                const loading = document.getElementById('activityLoading');
+                const container = document.getElementById('activityContainer');
+                
+                try {
+                    const filters = {
+                        action: document.getElementById('filterAction').value,
+                        limit: 50
+                    };
+                    
+                    const logs = await ActivityLogger.getActivityLog(filters);
+                    
+                    if (!logs || logs.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📝</div>
+                                <p>Nessuna attività registrata</p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = logs.map(log => {
+                            const formatted = ActivityLogger.formatLogEntry(log);
+                            return `
+                                <div class="log-entry ${log.action}">
+                                    <div class="log-header">
+                                        <div class="log-user">
+                                            ${formatted.icon} ${formatted.user} ha ${formatted.label}
+                                        </div>
+                                        <div class="log-date">${formatted.date}</div>
+                                    </div>
+                                    <div class="log-details">
+                                        ${formatted.resource}
+                                        ${formatted.details ? `<br><small>${formatted.details}</small>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                    
+                    loading.style.display = 'none';
+                } catch (error) {
+                    console.error('Errore caricamento log:', error);
+                    loading.textContent = '❌ Errore caricamento log';
+                }
+            },
+            
+            showNewUserModal() {
+                alert('Funzionalità in sviluppo: Creazione nuovo utente');
+            },
+            
+            showNewGroupModal() {
+                alert('Funzionalità in sviluppo: Creazione nuovo gruppo');
+            }
+        };
+        
+        // Inizializza al caricamento
+        if (isAuthEnabled()) {
+            AdminPanel.init();
+        } else {
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 100px 20px;">
+                    <h1>⚠️ Sistema Autenticazione Disattivato</h1>
+                    <p>Il pannello admin è disponibile solo quando il sistema di autenticazione è attivo.</p>
+                    <p>Per attivarlo, segui le istruzioni in <code>COME_ATTIVARE_AUTENTICAZIONE.md</code></p>
+                    <br>
+                    <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                        🏠 Torna alla Dashboard
+                    </button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

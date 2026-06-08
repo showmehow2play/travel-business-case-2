@@ -140,12 +140,20 @@ const SupabaseStorage = {
                     });
 
                 if (error) {
-                    console.error('Errore salvataggio scenario su Supabase:', error);
+                    console.error('❌ Errore salvataggio scenario su Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Scenario salvato su Supabase:', scenario.id);
+                return true;
             } catch (error) {
-                console.error('Errore salvataggio scenario su Supabase:', error);
+                console.error('❌ Errore salvataggio scenario su Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque salvato (in localStorage)
+        return true;
     },
 
     // Elimina uno scenario
@@ -164,12 +172,20 @@ const SupabaseStorage = {
                     .eq('id', scenarioId);
 
                 if (error) {
-                    console.error('Errore eliminazione scenario da Supabase:', error);
+                    console.error('❌ Errore eliminazione scenario da Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Scenario eliminato da Supabase:', scenarioId);
+                return true;
             } catch (error) {
-                console.error('Errore eliminazione scenario da Supabase:', error);
+                console.error('❌ Errore eliminazione scenario da Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque eliminato (da localStorage)
+        return true;
     },
 
     // Salva un consuntivo (actual)
@@ -200,12 +216,20 @@ const SupabaseStorage = {
                     });
 
                 if (error) {
-                    console.error('Errore salvataggio consuntivo su Supabase:', error);
+                    console.error('❌ Errore salvataggio consuntivo su Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Consuntivo salvato su Supabase:', actual.id);
+                return true;
             } catch (error) {
-                console.error('Errore salvataggio consuntivo su Supabase:', error);
+                console.error('❌ Errore salvataggio consuntivo su Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque salvato (in localStorage)
+        return true;
     },
 
     // Elimina un consuntivo
@@ -224,12 +248,20 @@ const SupabaseStorage = {
                     .eq('id', actualId);
 
                 if (error) {
-                    console.error('Errore eliminazione consuntivo da Supabase:', error);
+                    console.error('❌ Errore eliminazione consuntivo da Supabase:', error);
+                    return false;
                 }
+                
+                console.log('✅ Consuntivo eliminato da Supabase:', actualId);
+                return true;
             } catch (error) {
-                console.error('Errore eliminazione consuntivo da Supabase:', error);
+                console.error('❌ Errore eliminazione consuntivo da Supabase:', error);
+                return false;
             }
         }
+        
+        // Se Supabase non è disponibile, considera comunque eliminato (da localStorage)
+        return true;
     },
 
     // Salva l'anagrafica partecipanti
@@ -393,6 +425,96 @@ const SupabaseStorage = {
             .subscribe();
 
         return subscription;
+    },
+
+    // Ottieni tutti gli scenari da Supabase
+    async getAllScenarios() {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return [];
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('scenarios')
+                .select('data')
+                .order('updated_at', { ascending: false });
+
+            if (error) throw error;
+
+            return data ? data.map(s => s.data) : [];
+        } catch (error) {
+            console.error('Errore recupero scenari da Supabase:', error);
+            return [];
+        }
+    },
+
+    // Ottieni tutti i consuntivi da Supabase
+    async getAllActuals() {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return [];
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('actuals')
+                .select('data')
+                .order('updated_at', { ascending: false });
+
+            if (error) throw error;
+
+            return data ? data.map(a => a.data) : [];
+        } catch (error) {
+            console.error('Errore recupero consuntivi da Supabase:', error);
+            return [];
+        }
+    },
+
+    // Ottieni uno scenario specifico da Supabase
+    async getScenario(id) {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return null;
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('scenarios')
+                .select('data')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+
+            return data ? data.data : null;
+        } catch (error) {
+            console.error('Errore recupero scenario da Supabase:', error);
+            return null;
+        }
+    },
+
+    // Ottieni un consuntivo specifico da Supabase
+    async getActual(id) {
+        if (!this.isAvailable()) {
+            console.warn('Supabase non disponibile');
+            return null;
+        }
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('actuals')
+                .select('data')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+
+            return data ? data.data : null;
+        } catch (error) {
+            console.error('Errore recupero consuntivo da Supabase:', error);
+            return null;
+        }
     }
 };
 
