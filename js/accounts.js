@@ -905,42 +905,109 @@ const AccountsManager = {
         `;
     },
 
-    // Carica tabella spese partecipante
+    // Carica tabella spese partecipante con card
     loadParticipantExpensesTable(participantName) {
-        const tbody = document.getElementById('participantExpensesTable');
-        if (!tbody || !this.currentActual) return;
+        const container = document.getElementById('participantExpensesTable');
+        if (!container || !this.currentActual) return;
 
-        const expenses = this.currentActual.expenses.filter(exp => 
+        const expenses = this.currentActual.expenses.filter(exp =>
             exp.paidBy === participantName || (exp.sharedBy && exp.sharedBy.includes(participantName))
         );
 
         if (expenses.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: var(--spacing-md);">Nessuna spesa trovata</td></tr>';
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6c757d;">Nessuna spesa trovata</div>';
             return;
         }
 
-        tbody.innerHTML = expenses.map(exp => {
+        container.innerHTML = expenses.map(exp => {
             // Usa amountEUR se disponibile, altrimenti amount
             const amount = exp.amountEUR !== undefined ? parseFloat(exp.amountEUR) : parseFloat(exp.amount);
             const shareCount = exp.sharedBy ? exp.sharedBy.length : 0;
             const quota = shareCount > 0 && exp.sharedBy.includes(participantName) ? amount / shareCount : 0;
             
             const categoryIcon = this.getCategoryIcon(exp.category);
+            const isPayer = exp.paidBy === participantName;
+            const isSharer = exp.sharedBy && exp.sharedBy.includes(participantName);
             
             // Mostra valuta originale se diversa da EUR
             const currencyInfo = exp.currency && exp.currency !== 'EUR'
-                ? ` <span style="font-size: 0.85em; color: #6b7280;">(${exp.amount} ${exp.currency})</span>`
+                ? `<div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem;">Originale: ${exp.amount} ${exp.currency}</div>`
                 : '';
             
             return `
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="padding: var(--spacing-sm);">${exp.date || '-'}</td>
-                    <td style="padding: var(--spacing-sm);">${categoryIcon} ${this.getCategoryLabel(exp.category)}</td>
-                    <td style="padding: var(--spacing-sm);">${exp.description || '-'}</td>
-                    <td style="padding: var(--spacing-sm); text-align: right; font-weight: 600;">${this.formatCurrency(amount)}${currencyInfo}</td>
-                    <td style="padding: var(--spacing-sm);">${exp.paidBy || '-'}</td>
-                    <td style="padding: var(--spacing-sm); text-align: right; ${exp.sharedBy && exp.sharedBy.includes(participantName) ? 'color: var(--primary-color); font-weight: 600;' : ''}">${quota > 0 ? this.formatCurrency(quota) : '-'}</td>
-                </tr>
+                <div style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <!-- Header con categoria e data -->
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e9ecef;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.25rem;">
+                                ${categoryIcon} ${exp.description || 'Senza descrizione'}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6c757d;">
+                                📅 ${exp.date ? new Date(exp.date).toLocaleDateString('it-IT') : 'Data non specificata'}
+                                • ${this.getCategoryLabel(exp.category)}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #2c3e50;">
+                                ${this.formatCurrency(amount)}
+                            </div>
+                            ${currencyInfo}
+                        </div>
+                    </div>
+                    
+                    <!-- Info pagamento e quota -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- Chi ha pagato -->
+                        <div style="background: ${isPayer ? '#e8f5e9' : '#f8f9fa'}; padding: 0.75rem; border-radius: 8px; border-left: 4px solid ${isPayer ? '#28a745' : '#dee2e6'};">
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: ${isPayer ? '#2e7d32' : '#6c757d'}; margin-bottom: 0.25rem; font-weight: 600;">
+                                💳 Pagato da
+                            </div>
+                            <div style="font-size: 1rem; font-weight: 600; color: ${isPayer ? '#1b5e20' : '#2c3e50'};">
+                                ${exp.paidBy || 'Non specificato'}
+                            </div>
+                            ${isPayer ? '<div style="font-size: 0.75rem; color: #2e7d32; margin-top: 0.25rem;">✅ Hai pagato tu</div>' : ''}
+                        </div>
+                        
+                        <!-- Quota personale -->
+                        <div style="background: ${isSharer ? '#e3f2fd' : '#f8f9fa'}; padding: 0.75rem; border-radius: 8px; border-left: 4px solid ${isSharer ? '#2196f3' : '#dee2e6'};">
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: ${isSharer ? '#0d47a1' : '#6c757d'}; margin-bottom: 0.25rem; font-weight: 600;">
+                                📊 Tua Quota
+                            </div>
+                            <div style="font-size: 1rem; font-weight: 600; color: ${isSharer ? '#0d47a1' : '#6c757d'};">
+                                ${quota > 0 ? this.formatCurrency(quota) : 'Non condivisa'}
+                            </div>
+                            ${isSharer && shareCount > 0 ? `<div style="font-size: 0.75rem; color: #1565c0; margin-top: 0.25rem;">Divisa tra ${shareCount} persone</div>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Condivisa con (se applicabile) -->
+                    ${isSharer && exp.sharedBy && exp.sharedBy.length > 0 ? `
+                        <div style="margin-top: 0.75rem; padding: 0.75rem; background: #f8f9fa; border-radius: 8px;">
+                            <div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 0.5rem; font-weight: 600;">
+                                👥 Condivisa con:
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                ${exp.sharedBy.map(person => `
+                                    <span style="background: ${person === participantName ? '#667eea' : 'white'}; color: ${person === participantName ? 'white' : '#2c3e50'}; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; border: 1px solid ${person === participantName ? '#667eea' : '#dee2e6'};">
+                                        ${person}${person === participantName ? ' (tu)' : ''}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Note (se presenti) -->
+                    ${exp.notes ? `
+                        <div style="margin-top: 0.75rem; padding: 0.75rem; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                            <div style="font-size: 0.75rem; color: #856404; margin-bottom: 0.25rem; font-weight: 600;">
+                                📝 Note:
+                            </div>
+                            <div style="font-size: 0.9rem; color: #856404;">
+                                ${exp.notes}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
             `;
         }).join('');
     },
