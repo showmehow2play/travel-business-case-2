@@ -22,24 +22,15 @@ const SettlementsManager = {
         }
         this.payments = this.currentActual.payments;
         
-        // Nascondi il selettore e mostra direttamente il contenuto
+        // Nascondi il selettore e mostra la selezione partecipanti
         const selectSection = document.querySelector('#settlementsView .form-section');
         if (selectSection) selectSection.style.display = 'none';
         
-        document.getElementById('settlementsContent').style.display = 'block';
-        document.getElementById('optimizedTransfers').style.display = 'none';
-
         // Aggiorna il titolo
         document.getElementById('settlementsTitle').textContent = `🔄 Dare/Avere - ${actual.name}`;
 
-        // Aggiorna statistiche
-        this.updateStats(actual);
-
-        // Calcola e mostra i bilanci
-        this.calculateBalances(actual);
-        
-        // Mostra storico pagamenti
-        this.displayPaymentsHistory();
+        // Mostra la selezione partecipanti
+        this.showParticipantSelection();
     },
 
     // Setup event listeners
@@ -109,15 +100,290 @@ const SettlementsManager = {
         }
         this.payments = this.currentActual.payments;
         
-        // Mostra il contenuto
+        // Aggiorna il titolo
+        document.getElementById('settlementsTitle').textContent = `🔄 Dare/Avere - ${actual.name}`;
+
+        // Mostra la selezione partecipanti
+        this.showParticipantSelection();
+    },
+    
+    // Mostra la selezione dei partecipanti con schede compatte
+    showParticipantSelection() {
+        const container = document.getElementById('participantBalances');
+        if (!container) return;
+        
+        // Nascondi altri contenuti
         document.getElementById('settlementsContent').style.display = 'block';
         document.getElementById('optimizedTransfers').style.display = 'none';
-
+        
+        container.innerHTML = `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2 style="color: #2c3e50; margin-bottom: 0.5rem;">👥 Seleziona un Partecipante</h2>
+                <p style="color: #6c757d; font-size: 1rem;">Clicca su un partecipante per vedere i suoi conti</p>
+            </div>
+            <div id="participantCards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            </div>
+            <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
+                <button class="btn btn-primary" style="font-size: 1.1rem; padding: 0.875rem 2rem;"
+                        onclick="SettlementsManager.showAllParticipants()">
+                    👁️ Mostra Tutti i Partecipanti
+                </button>
+                <p style="color: #6c757d; font-size: 0.9rem; margin-top: 1rem; margin-bottom: 0;">
+                    Visualizza i bilanci di tutti insieme
+                </p>
+            </div>
+        `;
+        
+        const cardsContainer = document.getElementById('participantCards');
+        
+        // Crea una card per ogni partecipante
+        this.currentActual.participants.forEach(participant => {
+            const photo = this.getParticipantPhoto(participant);
+            
+            const card = document.createElement('div');
+            card.className = 'participant-select-card';
+            card.style.cssText = `
+                background: white;
+                border-radius: 12px;
+                padding: 1.5rem;
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 2px solid #e9ecef;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            `;
+            
+            card.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    ${photo
+                        ? `<img src="${photo}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;" />`
+                        : `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto; color: white; font-size: 2rem; font-weight: bold; border: 3px solid #667eea;">
+                            ${participant.charAt(0).toUpperCase()}
+                           </div>`
+                    }
+                </div>
+                <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">
+                    ${participant}
+                </div>
+                <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;">
+                    Vedi conti →
+                </div>
+            `;
+            
+            // Hover effects
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+                card.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.3)';
+                card.style.borderColor = '#667eea';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+                card.style.borderColor = '#e9ecef';
+            });
+            
+            // Click per selezionare
+            card.addEventListener('click', () => {
+                this.showParticipantDetails(participant);
+            });
+            
+            cardsContainer.appendChild(card);
+        });
+    },
+    
+    // Mostra i dettagli di un singolo partecipante
+    showParticipantDetails(participant) {
+        const container = document.getElementById('participantBalances');
+        if (!container) return;
+        
+        // Calcola i bilanci per avere i dati aggiornati
+        this.calculateBalances(this.currentActual);
+        
+        // Ottieni i dati del partecipante
+        const balance = this.balances[participant];
+        const paid = this.calculatePaidByParticipant(participant);
+        const owes = this.calculateOwedByParticipant(participant);
+        const received = this.calculatePaymentsReceived(participant);
+        const made = this.calculatePaymentsMade(participant);
+        
+        const statusIcon = balance > 0 ? '🟢 ⬆️' : balance < 0 ? '🔴 ⬇️' : '✅';
+        const statusText = balance > 0 ? 'Deve ricevere' : balance < 0 ? 'Deve dare' : 'In pari';
+        const statusColor = balance > 0 ? '#28a745' : balance < 0 ? '#dc3545' : '#6c757d';
+        
+        const photo = this.getParticipantPhoto(participant);
+        const photoHtml = photo
+            ? `<img src="${photo}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid ${statusColor};" />`
+            : `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem; font-weight: bold; border: 4px solid ${statusColor};">
+                ${participant.charAt(0).toUpperCase()}
+               </div>`;
+        
+        container.innerHTML = `
+            <!-- Pulsante Indietro -->
+            <div style="margin-bottom: 2rem;">
+                <button class="btn btn-secondary" onclick="SettlementsManager.showParticipantSelection()" style="font-size: 0.95rem;">
+                    ← Torna alla Selezione
+                </button>
+            </div>
+            
+            <!-- Header Partecipante -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 15px; margin-bottom: 2rem; color: white; text-align: center;">
+                <div style="margin-bottom: 1rem;">
+                    ${photoHtml}
+                </div>
+                <h2 style="margin: 0 0 0.5rem 0; font-size: 2rem; color: white;">${participant}</h2>
+                <div style="font-size: 1.1rem; opacity: 0.95;">
+                    ${statusIcon} ${statusText}
+                </div>
+            </div>
+            
+            <!-- Sezione QUOTA TOTALE DEL VIAGGIO -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 0.5rem;">
+                    💰 Quota Totale Viaggio
+                </div>
+                <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem;">
+                    €${owes.toFixed(2)}
+                </div>
+                <div style="font-size: 0.95rem; opacity: 0.9;">
+                    La tua parte delle spese condivise
+                </div>
+            </div>
+            
+            <!-- Grid con Anticipato e Pagamenti -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- ANTICIPATO -->
+                <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 12px; border-left: 5px solid #28a745;">
+                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #2e7d32; margin-bottom: 0.5rem; font-weight: 600;">
+                        💳 Hai Anticipato
+                    </div>
+                    <div style="font-size: 2rem; font-weight: bold; color: #1b5e20; margin-bottom: 0.5rem;">
+                        €${paid.toFixed(2)}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #2e7d32;">
+                        Totale spese pagate
+                    </div>
+                </div>
+                
+                <!-- PAGAMENTI -->
+                <div style="background: ${received > 0 || made > 0 ? '#fff3e0' : '#f8f9fa'}; padding: 1.5rem; border-radius: 12px; border-left: 5px solid ${received > 0 || made > 0 ? '#ff9800' : '#dee2e6'};">
+                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: ${received > 0 || made > 0 ? '#e65100' : '#6c757d'}; margin-bottom: 0.5rem; font-weight: 600;">
+                        💸 Pagamenti
+                    </div>
+                    ${received > 0 ? `
+                        <div style="margin-bottom: 0.75rem;">
+                            <div style="font-size: 0.75rem; color: #e65100;">📥 Ricevuti</div>
+                            <div style="font-size: 1.3rem; font-weight: bold; color: #e65100;">€${received.toFixed(2)}</div>
+                        </div>
+                    ` : ''}
+                    ${made > 0 ? `
+                        <div>
+                            <div style="font-size: 0.75rem; color: #0d47a1;">📤 Effettuati</div>
+                            <div style="font-size: 1.3rem; font-weight: bold; color: #0d47a1;">€${made.toFixed(2)}</div>
+                        </div>
+                    ` : ''}
+                    ${received === 0 && made === 0 ? `
+                        <div style="font-size: 1.5rem; color: #6c757d; text-align: center; padding: 1rem 0;">
+                            Nessun pagamento
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <!-- BILANCIO FINALE -->
+            <div style="background: ${balance > 0 ? '#e8f5e9' : balance < 0 ? '#ffebee' : '#f5f5f5'}; padding: 2rem; border-radius: 15px; border: 3px solid ${statusColor}; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <div style="text-align: center;">
+                    <div style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1.5px; color: ${statusColor}; font-weight: 700; margin-bottom: 1rem;">
+                        ${balance > 0 ? '📈 Bilancio Positivo' : balance < 0 ? '📉 Bilancio Negativo' : '⚖️ Bilancio in Pari'}
+                    </div>
+                    <div style="font-size: 3rem; font-weight: bold; color: ${statusColor}; margin-bottom: 1rem;">
+                        €${Math.abs(balance).toFixed(2)}
+                    </div>
+                    <div style="font-size: 1.1rem; color: ${statusColor}; font-weight: 600;">
+                        ${balance > 0 ? '🟢 Devi ricevere questo importo' : balance < 0 ? '🔴 Devi dare questo importo' : '✅ Sei in pari!'}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pulsanti Azione -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <button class="btn ${balance !== 0 ? 'btn-primary' : 'btn-secondary'}"
+                        style="font-size: 1rem; padding: 1rem; font-weight: 600;"
+                        onclick="SettlementsManager.showPaymentModal('${participant}', ${balance})">
+                    ${balance > 0 ? '📥 Registra Incasso' : balance < 0 ? '📤 Registra Pagamento' : '💳 Registra Pagamento'}
+                </button>
+                <button class="btn btn-outline-primary"
+                        style="font-size: 1rem; padding: 1rem; font-weight: 600;"
+                        onclick="SettlementsManager.showExpenseDetails('${participant}')">
+                    📋 Dettaglio Spese
+                </button>
+            </div>
+        `;
+    },
+    
+    // Funzioni helper per calcolare i valori
+    calculatePaidByParticipant(participant) {
+        let total = 0;
+        if (this.currentActual.expenses) {
+            this.currentActual.expenses.forEach(expense => {
+                if (expense.paidBy === participant) {
+                    const amount = expense.amountEUR !== undefined ? expense.amountEUR : expense.amount;
+                    total += parseFloat(amount) || 0;
+                }
+            });
+        }
+        return total;
+    },
+    
+    calculateOwedByParticipant(participant) {
+        let total = 0;
+        if (this.currentActual.expenses) {
+            this.currentActual.expenses.forEach(expense => {
+                const amount = expense.amountEUR !== undefined ? expense.amountEUR : expense.amount;
+                let sharedBy = expense.sharedBy || [];
+                if (sharedBy.length === 0) {
+                    sharedBy = this.currentActual.participants;
+                }
+                if (sharedBy.includes(participant)) {
+                    const sharePerPerson = sharedBy.length > 0 ? (amount || 0) / sharedBy.length : 0;
+                    total += sharePerPerson;
+                }
+            });
+        }
+        return total;
+    },
+    
+    calculatePaymentsReceived(participant) {
+        let total = 0;
+        if (this.payments) {
+            this.payments.forEach(payment => {
+                if (payment.confirmed && payment.to === participant) {
+                    total += parseFloat(payment.amount) || 0;
+                }
+            });
+        }
+        return total;
+    },
+    
+    calculatePaymentsMade(participant) {
+        let total = 0;
+        if (this.payments) {
+            this.payments.forEach(payment => {
+                if (payment.confirmed && payment.from === participant) {
+                    total += parseFloat(payment.amount) || 0;
+                }
+            });
+        }
+        return total;
+    },
+    
+    // Mostra tutti i partecipanti insieme (vista originale)
+    showAllParticipants() {
         // Aggiorna statistiche
-        this.updateStats(actual);
-
-        // Calcola e mostra i bilanci
-        this.calculateBalances(actual);
+        this.updateStats(this.currentActual);
+        
+        // Calcola e mostra i bilanci di tutti
+        this.calculateBalances(this.currentActual);
         
         // Mostra storico pagamenti
         this.displayPaymentsHistory();
