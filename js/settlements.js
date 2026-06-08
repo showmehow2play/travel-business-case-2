@@ -291,40 +291,123 @@ const SettlementsManager = {
             // Ottieni foto del partecipante
             const photo = this.getParticipantPhoto(participant);
             const photoHtml = photo
-                ? `<img src="${photo}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid ${statusColor}; margin-right: 0.75rem;" />`
+                ? `<img src="${photo}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 3px solid ${statusColor}; margin-right: 1rem;" />`
                 : '';
-            
-            // Mostra info pagamenti se presenti
-            const paymentsInfo = (received > 0 || made > 0) ? `
-                <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: #f8f9fa; border-radius: 6px;">
-                    ${received > 0 ? `<div style="font-size: 0.85rem; color: #28a745;">✅ Ricevuti: €${received.toFixed(2)}</div>` : ''}
-                    ${made > 0 ? `<div style="font-size: 0.85rem; color: #dc3545;">💸 Pagati: €${made.toFixed(2)}</div>` : ''}
-                </div>
-            ` : '';
             
             card.innerHTML = `
                 <div class="stat-content">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <!-- Header con foto e nome -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 2px solid #e9ecef;">
                         <div style="display: flex; align-items: center;">
                             ${photoHtml}
-                            <h4 style="margin: 0; font-size: 1.1rem;">${participant}</h4>
+                            <div>
+                                <h4 style="margin: 0; font-size: 1.3rem; font-weight: 700;">${participant}</h4>
+                                <div style="font-size: 0.85rem; color: ${statusColor}; font-weight: 600; margin-top: 0.25rem;">
+                                    ${statusIcon} ${statusText}
+                                </div>
+                            </div>
                         </div>
-                        <span style="font-size: 1.5rem;">${statusIcon}</span>
                     </div>
-                    <div style="margin-bottom: 0.75rem;">
-                        <div style="font-size: 0.85rem; color: #6c757d;">Ha pagato:</div>
-                        <div style="font-size: 1.2rem; font-weight: bold;">€${paidAmount.toFixed(2)}</div>
-                    </div>
-                    <div style="margin-bottom: 0.75rem;">
-                        <div style="font-size: 0.85rem; color: #6c757d;">Sua quota spese:</div>
-                        <div style="font-size: 1rem;">€${owesAmount.toFixed(2)}</div>
-                    </div>
-                    ${paymentsInfo}
-                    <div style="padding-top: 0.75rem; border-top: 2px solid #dee2e6;">
-                        <div style="font-size: 0.85rem; color: ${statusColor}; font-weight: 600;">${statusText}</div>
-                        <div style="font-size: 1.3rem; font-weight: bold; color: ${statusColor};">
-                            €${Math.abs(balance).toFixed(2)}
+                    
+                    <!-- Sezione QUOTA TOTALE DEL VIAGGIO -->
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; color: white;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 0.25rem;">
+                            💰 Quota Totale Viaggio
                         </div>
+                        <div style="font-size: 1.8rem; font-weight: bold;">
+                            €${owesAmount.toFixed(2)}
+                        </div>
+                        <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 0.25rem;">
+                            La tua parte delle spese condivise
+                        </div>
+                    </div>
+                    
+                    <!-- Sezione ANTICIPATO -->
+                    <div style="background: #e8f5e9; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #28a745;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #2e7d32; margin-bottom: 0.25rem;">
+                                    💳 Hai Anticipato
+                                </div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #1b5e20;">
+                                    €${paidAmount.toFixed(2)}
+                                </div>
+                            </div>
+                            <div style="font-size: 2rem;">✅</div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: #2e7d32; margin-top: 0.5rem;">
+                            Totale spese pagate da te
+                        </div>
+                    </div>
+                    
+                    <!-- Sezione PAGAMENTI RICEVUTI (se presenti) -->
+                    ${received > 0 ? `
+                        <div style="background: #fff3e0; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #ff9800;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #e65100; margin-bottom: 0.25rem;">
+                                        📥 Pagamenti Ricevuti
+                                    </div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #e65100;">
+                                        €${received.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div style="font-size: 2rem;">💰</div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #e65100; margin-top: 0.5rem;">
+                                Soldi ricevuti da altri partecipanti
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Sezione PAGAMENTI EFFETTUATI (se presenti) -->
+                    ${made > 0 ? `
+                        <div style="background: #e3f2fd; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid #2196f3;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #0d47a1; margin-bottom: 0.25rem;">
+                                        📤 Pagamenti Effettuati
+                                    </div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: #0d47a1;">
+                                        €${made.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div style="font-size: 2rem;">💸</div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #0d47a1; margin-top: 0.5rem;">
+                                Soldi pagati ad altri partecipanti
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <!-- BILANCIO FINALE -->
+                    <div style="background: ${balance > 0 ? '#e8f5e9' : balance < 0 ? '#ffebee' : '#f5f5f5'}; padding: 1.25rem; border-radius: 10px; border: 2px solid ${statusColor};">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: ${statusColor}; font-weight: 600; margin-bottom: 0.5rem;">
+                                ${balance > 0 ? '📈 Bilancio Positivo' : balance < 0 ? '📉 Bilancio Negativo' : '⚖️ Bilancio in Pari'}
+                            </div>
+                            <div style="font-size: 2.2rem; font-weight: bold; color: ${statusColor}; margin-bottom: 0.5rem;">
+                                €${Math.abs(balance).toFixed(2)}
+                            </div>
+                            <div style="font-size: 0.9rem; color: ${statusColor}; font-weight: 600;">
+                                ${balance > 0 ? '🟢 Devi ricevere questo importo' : balance < 0 ? '🔴 Devi dare questo importo' : '✅ Sei in pari!'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pulsante azione -->
+                    <button class="btn ${balance !== 0 ? 'btn-primary' : 'btn-secondary'}"
+                            style="width: 100%; margin-top: 1rem; font-size: 1rem; padding: 0.875rem; font-weight: 600;"
+                            onclick="SettlementsManager.showPaymentModal('${participant}', ${balance})">
+                        ${balance > 0 ? '📥 Registra Incasso' : balance < 0 ? '📤 Registra Pagamento' : '💳 Registra Pagamento'}
+                    </button>
+                    
+                    <!-- Link al dettaglio spese -->
+                    <button class="btn btn-outline-secondary"
+                            style="width: 100%; margin-top: 0.5rem; font-size: 0.9rem; padding: 0.625rem;"
+                            onclick="SettlementsManager.showExpenseDetails('${participant}')">
+                        📋 Vedi Dettaglio Spese
+                    </button>
                     </div>
                     <button class="btn ${balance !== 0 ? 'btn-primary' : 'btn-secondary'}"
                             style="width: 100%; margin-top: 0.75rem; font-size: 0.9rem;"
@@ -692,6 +775,173 @@ const SettlementsManager = {
         setTimeout(() => {
             document.getElementById('paymentFrom').focus();
         }, 100);
+    },
+
+    // Mostra dettaglio spese per un partecipante
+    showExpenseDetails(participant) {
+        if (!this.currentActual || !this.currentActual.expenses) {
+            alert('Nessuna spesa disponibile');
+            return;
+        }
+        
+        // Filtra le spese che coinvolgono questo partecipante
+        const participantExpenses = this.currentActual.expenses.filter(expense => {
+            // Spese pagate dal partecipante
+            const isPayer = expense.paidBy === participant;
+            // Spese condivise dal partecipante
+            const isSharer = expense.sharedBy && expense.sharedBy.includes(participant);
+            return isPayer || isSharer;
+        });
+        
+        if (participantExpenses.length === 0) {
+            alert(`Nessuna spesa trovata per ${participant}`);
+            return;
+        }
+        
+        // Calcola totali
+        let totalPaid = 0;
+        let totalOwed = 0;
+        
+        participantExpenses.forEach(expense => {
+            const amount = expense.amountEUR !== undefined ? expense.amountEUR : expense.amount;
+            
+            if (expense.paidBy === participant) {
+                totalPaid += amount;
+            }
+            
+            if (expense.sharedBy && expense.sharedBy.includes(participant)) {
+                const sharePerPerson = expense.sharedBy.length > 0 ? amount / expense.sharedBy.length : 0;
+                totalOwed += sharePerPerson;
+            }
+        });
+        
+        // Crea il modal
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'block';
+        
+        // Genera HTML per le spese
+        const expensesHtml = participantExpenses.map(expense => {
+            const amount = expense.amountEUR !== undefined ? expense.amountEUR : expense.amount;
+            const isPayer = expense.paidBy === participant;
+            const isSharer = expense.sharedBy && expense.sharedBy.includes(participant);
+            const shareAmount = isSharer && expense.sharedBy.length > 0 
+                ? amount / expense.sharedBy.length 
+                : 0;
+            
+            // Icona categoria
+            const categoryIcon = ActualsManager.categories.find(c => c.value === expense.category)?.icon || '📝';
+            
+            return `
+                <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 4px solid ${isPayer ? '#28a745' : '#2196f3'};">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
+                                ${categoryIcon} ${expense.description}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #6c757d;">
+                                ${expense.date ? new Date(expense.date).toLocaleDateString('it-IT') : ''}
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #2c3e50;">
+                                €${amount.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${isPayer ? `
+                        <div style="background: #e8f5e9; padding: 0.5rem; border-radius: 5px; margin-bottom: 0.5rem;">
+                            <div style="font-size: 0.75rem; color: #2e7d32; font-weight: 600;">
+                                💳 HAI PAGATO: €${amount.toFixed(2)}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${isSharer ? `
+                        <div style="background: #e3f2fd; padding: 0.5rem; border-radius: 5px;">
+                            <div style="font-size: 0.75rem; color: #0d47a1; font-weight: 600;">
+                                📊 TUA QUOTA: €${shareAmount.toFixed(2)}
+                            </div>
+                            <div style="font-size: 0.7rem; color: #1565c0; margin-top: 0.25rem;">
+                                Condivisa con: ${expense.sharedBy.join(', ')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${expense.notes ? `
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border-radius: 5px; font-size: 0.8rem; color: #6c757d;">
+                            📝 ${expense.notes}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+                <div class="modal-header">
+                    <h3>📋 Dettaglio Spese - ${participant}</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Riepilogo -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 1rem; border-radius: 10px; color: white;">
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 0.25rem;">
+                                💳 Totale Pagato
+                            </div>
+                            <div style="font-size: 1.8rem; font-weight: bold;">
+                                €${totalPaid.toFixed(2)}
+                            </div>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%); padding: 1rem; border-radius: 10px; color: white;">
+                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 0.25rem;">
+                                📊 Totale Quote
+                            </div>
+                            <div style="font-size: 1.8rem; font-weight: bold;">
+                                €${totalOwed.toFixed(2)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lista spese -->
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px;">
+                        <h4 style="margin: 0 0 1rem 0; color: #2c3e50; font-size: 1.1rem;">
+                            📝 Elenco Spese (${participantExpenses.length})
+                        </h4>
+                        ${expensesHtml}
+                    </div>
+                    
+                    <!-- Legenda -->
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <div style="font-size: 0.85rem; color: #856404;">
+                            <strong>💡 Legenda:</strong><br>
+                            <div style="margin-top: 0.5rem;">
+                                🟢 Bordo verde = Hai pagato questa spesa<br>
+                                🔵 Bordo blu = Condividi questa spesa con altri<br>
+                                💳 HAI PAGATO = Importo totale che hai anticipato<br>
+                                📊 TUA QUOTA = La tua parte di questa spesa condivisa
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                        Chiudi
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Chiudi modal cliccando fuori
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
     },
 
     // Mostra modal per registrare un pagamento da una card specifica
