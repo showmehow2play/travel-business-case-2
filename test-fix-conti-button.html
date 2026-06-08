@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fix Pulsante Conti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        #console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .log-error { color: #f48771; }
+        .log-warn { color: #dcdcaa; }
+        .log-info { color: #4ec9b0; }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Fix Pulsante Conti</h1>
+    
+    <div class="test-section">
+        <h2>📋 Istruzioni</h2>
+        <ol>
+            <li>Apri la console del browser (F12)</li>
+            <li>Vai alla pagina Consuntivi nell'app principale</li>
+            <li>Modifica un consuntivo esistente</li>
+            <li>Clicca sul pulsante "📊 Conti"</li>
+            <li>Verifica i log nella console qui sotto</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Test Simulazione</h2>
+        <p>Simula il click sul pulsante Conti con dati di test:</p>
+        <button class="btn btn-primary" onclick="testContiButton()">🧪 Simula Click Conti</button>
+        <button class="btn btn-secondary" onclick="clearConsole()">🗑️ Pulisci Console</button>
+        <div id="test-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Console Output</h2>
+        <div id="console-output"></div>
+    </div>
+
+    <script>
+        // Intercetta console.log, console.error, console.warn
+        const consoleOutput = document.getElementById('console-output');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'log-error' : type === 'warn' ? 'log-warn' : 'log-info';
+            consoleOutput.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole('ERROR: ' + args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsole('WARN: ' + args.join(' '), 'warn');
+        };
+
+        function clearConsole() {
+            consoleOutput.innerHTML = '';
+            document.getElementById('test-status').innerHTML = '';
+        }
+
+        // Simula il comportamento del pulsante Conti
+        async function testContiButton() {
+            const statusDiv = document.getElementById('test-status');
+            statusDiv.innerHTML = '<div class="status info">⏳ Test in corso...</div>';
+            
+            console.log('=== INIZIO TEST PULSANTE CONTI ===');
+            
+            try {
+                // Simula dati di test
+                const testActual = {
+                    id: 'test-123',
+                    name: 'Test Consuntivo',
+                    destination: 'Test Destination',
+                    participants: [
+                        { name: 'Mario', photo: '' },
+                        { name: 'Luigi', photo: '' },
+                        { name: 'Peach', photo: '' }
+                    ],
+                    expenses: [
+                        {
+                            description: 'Hotel',
+                            amount: 300,
+                            amountEUR: 300,
+                            category: 'accommodation',
+                            paidBy: 'Mario',
+                            sharedBy: ['Mario', 'Luigi', 'Peach'],
+                            date: '2026-06-01'
+                        },
+                        {
+                            description: 'Ristorante',
+                            amount: 150,
+                            amountEUR: 150,
+                            category: 'food',
+                            paidBy: 'Luigi',
+                            sharedBy: ['Mario', 'Luigi', 'Peach'],
+                            date: '2026-06-02'
+                        }
+                    ],
+                    customPayments: []
+                };
+
+                console.log('Test Actual creato:', testActual);
+                
+                // Verifica che gli elementi DOM esistano
+                const viewAccountsBtn = document.getElementById('viewAccountsBtn');
+                console.log('Pulsante viewAccountsBtn trovato:', !!viewAccountsBtn);
+                
+                const participantSummary = document.getElementById('participantSummary');
+                console.log('Container participantSummary trovato:', !!participantSummary);
+                
+                const accountsView = document.getElementById('accountsView');
+                console.log('Vista accountsView trovata:', !!accountsView);
+
+                // Verifica che ActualsUIManager esista
+                if (typeof ActualsUIManager !== 'undefined') {
+                    console.log('ActualsUIManager disponibile');
+                    console.log('currentActualId:', ActualsUIManager.currentActualId);
+                    
+                    // Simula l'impostazione di currentActualId
+                    ActualsUIManager.currentActualId = testActual.id;
+                    console.log('currentActualId impostato a:', ActualsUIManager.currentActualId);
+                } else {
+                    console.error('ActualsUIManager NON disponibile');
+                }
+
+                // Verifica che AccountsManager esista
+                if (typeof AccountsManager !== 'undefined') {
+                    console.log('AccountsManager disponibile');
+                    
+                    // Simula l'inizializzazione
+                    console.log('Chiamata AccountsManager.init()...');
+                    AccountsManager.init(testActual);
+                    
+                    statusDiv.innerHTML = '<div class="status success">✅ Test completato! Controlla i log sopra.</div>';
+                } else {
+                    console.error('AccountsManager NON disponibile');
+                    statusDiv.innerHTML = '<div class="status error">❌ AccountsManager non trovato. Assicurati di aver caricato tutti gli script.</div>';
+                }
+
+            } catch (error) {
+                console.error('Errore durante il test:', error);
+                statusDiv.innerHTML = `<div class="status error">❌ Errore: ${error.message}</div>`;
+            }
+            
+            console.log('=== FINE TEST ===');
+        }
+
+        // Log iniziale
+        console.log('Test page caricata. Pronto per il test.');
+        console.log('Nota: Questo test funziona meglio se eseguito dalla pagina principale dell\'app.');
+    </script>
+
+    <div class="test-section">
+        <h2>🔍 Checklist Diagnostica</h2>
+        <ul>
+            <li>✅ Il pulsante "📊 Conti" è visibile quando modifichi un consuntivo?</li>
+            <li>✅ Quando clicchi il pulsante, vedi i log nella console?</li>
+            <li>✅ Il log mostra "viewAccounts chiamato"?</li>
+            <li>✅ Il log mostra "currentActualId" con un valore valido?</li>
+            <li>✅ Il log mostra "Actual caricato" con i dati del consuntivo?</li>
+            <li>✅ Il log mostra "Inizializzazione AccountsManager"?</li>
+            <li>✅ Il log mostra "Mostra vista accountsView"?</li>
+            <li>✅ La vista Conti si apre correttamente?</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🐛 Possibili Problemi</h2>
+        <ul>
+            <li><strong>currentActualId non definito:</strong> Il consuntivo non è stato caricato correttamente</li>
+            <li><strong>Actual non trovato:</strong> Problema con StorageManager o ID non valido</li>
+            <li><strong>Container participantSummary non trovato:</strong> Problema con il DOM o l'HTML</li>
+            <li><strong>currentActual o participants non disponibili:</strong> Dati del consuntivo incompleti</li>
+            <li><strong>Nessun log appare:</strong> Event listener non collegato correttamente</li>
+        </ul>
+    </div>
+</body>
+</html>

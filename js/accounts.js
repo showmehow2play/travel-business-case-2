@@ -9,8 +9,12 @@ const AccountsManager = {
     init(actual) {
         this.currentActual = actual;
         this.loadGeneralStats();
-        this.showParticipantSelection(); // Mostra selezione con schede
         this.setupEventListeners();
+        
+        // Mostra selezione con schede dopo un breve delay per assicurarsi che il DOM sia pronto
+        setTimeout(() => {
+            this.showParticipantSelection();
+        }, 100);
     },
 
     // Setup event listeners
@@ -36,7 +40,15 @@ const AccountsManager = {
     // Mostra la selezione dei partecipanti con schede compatte (SOLO nome e foto)
     showParticipantSelection() {
         const container = document.getElementById('participantSummary');
-        if (!container) return;
+        if (!container) {
+            console.error('Container participantSummary non trovato');
+            return;
+        }
+        
+        if (!this.currentActual || !this.currentActual.participants) {
+            console.error('currentActual o participants non disponibili');
+            return;
+        }
         
         container.style.display = 'block';
         container.innerHTML = `
