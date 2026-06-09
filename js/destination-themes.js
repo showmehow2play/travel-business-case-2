@@ -166,6 +166,28 @@ class DestinationThemes {
                 background: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80'
             },
             
+            // Danimarca
+            'denmark': {
+                country: 'Danimarca',
+                flag: '🇩🇰',
+                colors: {
+                    primary: 'from-red-700 to-white',
+                    secondary: 'from-red-600 to-gray-100'
+                },
+                background: 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&q=80',
+                cities: ['copenhagen', 'aarhus', 'odense', 'aalborg']
+            },
+            'copenhagen': {
+                country: 'Danimarca',
+                city: 'Copenhagen',
+                flag: '🇩🇰',
+                colors: {
+                    primary: 'from-red-700 to-blue-700',
+                    secondary: 'from-red-600 to-blue-600'
+                },
+                background: 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&q=80'
+            },
+            
             // Grecia
             'greece': {
                 country: 'Grecia',

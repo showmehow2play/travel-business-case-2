@@ -370,22 +370,25 @@
                         
                         <!-- Statistiche Partecipante -->
                         <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-md);">
-                            <div class="stat-card">
+                            <div class="stat-card stat-card-clickable" id="paidAmountCard" onclick="AccountsManager.filterExpensesByPaidBy()" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
                                 <div class="stat-content">
-                                    <div class="stat-label">💳 Spese Pagate</div>
+                                    <div class="stat-label">💳 Spese Effettuate</div>
                                     <div class="stat-value" id="participantPaidAmount">€0.00</div>
+                                    <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">Clicca per dettagli</div>
                                 </div>
                             </div>
-                            <div class="stat-card">
+                            <div class="stat-card stat-card-clickable" id="sharedAmountCard" onclick="AccountsManager.filterExpensesByShared()" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
                                 <div class="stat-content">
-                                    <div class="stat-label">🤝 Quota Spese Condivise</div>
+                                    <div class="stat-label">🎯 Costo Personale del Viaggio</div>
                                     <div class="stat-value" id="participantSharedAmount">€0.00</div>
+                                    <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">Clicca per dettagli</div>
                                 </div>
                             </div>
-                            <div class="stat-card">
+                            <div class="stat-card stat-card-clickable" id="balanceCard" onclick="AccountsManager.showTransfersSummary()" style="cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
                                 <div class="stat-content">
-                                    <div class="stat-label">⚖️ Bilancio</div>
+                                    <div class="stat-label" id="balanceLabel">⚖️ Bilancio</div>
                                     <div class="stat-value" id="participantBalance">€0.00</div>
+                                    <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">Clicca per trasferimenti</div>
                                 </div>
                             </div>
                         </div>
