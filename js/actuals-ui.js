@@ -1256,7 +1256,6 @@ const ActualsUI = {
 
     // Visualizza pagina Conti dal dettaglio consuntivo
     async viewAccounts() {
-        console.log('viewAccounts chiamato, currentActualId:', this.currentActualId);
         
         if (!this.currentActualId) {
             console.error('currentActualId non definito');
@@ -1264,7 +1263,6 @@ const ActualsUI = {
         }
 
         const actual = await StorageManager.getActual(this.currentActualId);
-        console.log('Actual caricato:', actual);
         
         if (!actual) {
             console.error('Actual non trovato');
@@ -1272,11 +1270,9 @@ const ActualsUI = {
         }
 
         // Inizializza AccountsManager con il consuntivo corrente
-        console.log('Inizializzazione AccountsManager...');
         AccountsManager.init(actual);
 
         // Mostra la vista Conti
-        console.log('Mostra vista accountsView');
         App.showView('accountsView');
     },
 

@@ -368,7 +368,6 @@ const FlightSearchManager = {
                     
                     // Aggiungi evento click per tracking
                     linkElement.onclick = (e) => {
-                        console.log(`Apertura ricerca voli su ${site.name}:`, params);
                     };
                 } catch (error) {
                     console.error(`Errore nella generazione URL per ${site.name}:`, error);

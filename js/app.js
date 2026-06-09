@@ -31,7 +31,6 @@ const App = {
                 e.preventDefault();
                 e.stopPropagation();
                 const participantName = e.target.dataset.participant;
-                console.log('Rimozione partecipante:', participantName);
                 this.removeParticipant(participantName);
             }
         });
@@ -448,7 +447,6 @@ const App = {
                         return;
                     }
                     e.preventDefault();
-                    console.log('Click su scenario:', cardId);
                     this.editScenario(cardId);
                 });
 
@@ -551,7 +549,6 @@ const App = {
         const scenarios = await StorageManager.getScenarios() || [];
         const list = document.getElementById('scenariosList');
 
-        console.log('loadScenariosList - scenari trovati:', scenarios.length, scenarios);
 
         if (!list) {
             console.error('Elemento scenariosList non trovato nel DOM');
@@ -666,7 +663,6 @@ const App = {
                 }
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Apertura scenario con ID:', cardId);
                 this.editScenario(cardId);
             };
 
@@ -699,7 +695,6 @@ const App = {
             });
         });
 
-        console.log('Scenari caricati e event listeners aggiunti');
     },
 
     // Elimina uno scenario dalla lista scenari
@@ -955,9 +950,6 @@ const App = {
 
     // Carica il form dello scenario
     loadScenarioForm(scenario) {
-        console.log('=== loadScenarioForm INIZIO ===');
-        console.log('Scenario ricevuto:', scenario);
-        console.log('Partecipanti nello scenario:', scenario.participants);
         try {
             document.getElementById('scenarioName').value = scenario.name || '';
             document.getElementById('destination').value = scenario.destination || '';
@@ -1002,7 +994,6 @@ const App = {
             
             this.updateTotals();
             
-            console.log('=== loadScenarioForm FINE ===');
         } catch (error) {
             console.error('Errore nel caricamento del form:', error);
             ExportManager.showError('Errore nel caricamento dello scenario');
@@ -1033,7 +1024,6 @@ const App = {
                     if (!registryParticipant && participantsRegistry.getByNameFuzzy) {
                         registryParticipant = participantsRegistry.getByNameFuzzy(p);
                         if (registryParticipant) {
-                            console.log(`Fuzzy match: "${p}" → "${registryParticipant.name}"`);
                         }
                     }
                     
@@ -1160,7 +1150,6 @@ const App = {
 
     // Rimuovi partecipante
     removeParticipant(name) {
-        console.log('Tentativo rimozione partecipante:', name);
         
         const tags = document.querySelectorAll('.participant-tag');
         let removed = false;
@@ -1172,7 +1161,6 @@ const App = {
             // Confronta sia con textContent che con data-participant per gestire caratteri escaped
             if (nameSpan && (nameSpan.textContent === name ||
                 (removeBtn && removeBtn.dataset.participant === name))) {
-                console.log('Rimozione tag per:', nameSpan.textContent);
                 tag.remove();
                 removed = true;
             }
@@ -1457,18 +1445,14 @@ const App = {
 
 // Inizializza l'app quando il DOM è pronto
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Inizializzazione app...');
     
     // Aspetta che StorageManager abbia completato la sincronizzazione
     if (typeof StorageManager !== 'undefined' && StorageManager.init) {
-        console.log('⏳ Attendo sincronizzazione StorageManager...');
         await StorageManager.init();
-        console.log('✅ StorageManager pronto');
     }
     
     // Ora inizializza l'interfaccia
     App.init();
-    console.log('✅ App inizializzata');
 });
 
 // Made with Bob

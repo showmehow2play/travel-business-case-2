@@ -53,7 +53,6 @@ const CurrenciesManager = {
 
     // Inizializza il manager delle valute
     init() {
-        console.log('Inizializzazione CurrenciesManager...');
         
         // Carica valute predefinite se non esistono
         const currencies = this.getCurrencies();
@@ -138,7 +137,6 @@ const CurrenciesManager = {
         ];
 
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(defaultCurrencies));
-        console.log('Valute predefinite caricate:', defaultCurrencies.length);
     },
 
     // Genera un ID univoco
@@ -241,7 +239,6 @@ const CurrenciesManager = {
     // Aggiorna i tassi di cambio da API esterna
     async updateExchangeRates() {
         try {
-            console.log('Scaricamento tassi di cambio...');
             
             // Mostra loading
             if (typeof showToast !== 'undefined') {
@@ -281,7 +278,6 @@ const CurrenciesManager = {
             // Salva le valute aggiornate
             localStorage.setItem(this.STORAGE_KEY, JSON.stringify(currencies));
 
-            console.log(`Aggiornati ${updatedCount} tassi di cambio`);
             
             return {
                 success: true,

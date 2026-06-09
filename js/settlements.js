@@ -1320,7 +1320,6 @@ const SettlementsManager = {
 
     // Salva un nuovo pagamento generico
     async saveNewPayment() {
-        console.log('💾 Inizio salvataggio nuovo pagamento...');
         
         const from = document.getElementById('paymentFrom').value;
         const to = document.getElementById('paymentTo').value;
@@ -1355,7 +1354,6 @@ const SettlementsManager = {
             throw new Error('Data non inserita');
         }
         
-        console.log('✅ Validazione completata');
         
         // Crea oggetto pagamento
         const payment = {
@@ -1374,13 +1372,11 @@ const SettlementsManager = {
             payment.confirmedAt = new Date().toISOString();
         }
         
-        console.log('📝 Pagamento creato:', payment);
         
         // Aggiungi al array dei pagamenti
         this.payments.push(payment);
         this.currentActual.payments = this.payments;
         
-        console.log('💾 Salvataggio su Supabase...');
         
         // Aggiorna l'oggetto completo
         this.currentActual.payments = this.payments;
@@ -1389,24 +1385,20 @@ const SettlementsManager = {
         // Salva l'intero consuntivo
         await StorageManager.updateActual(this.currentActual.id, this.currentActual);
         
-        console.log('🔄 Invalidazione cache...');
         
         // Invalida la cache per forzare ricaricamento da Supabase
         await StorageManager.invalidateCache();
         
-        console.log('🗑️ Chiusura modal...');
         
         // Chiudi tutti i modal aperti
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => modal.remove());
         
-        console.log('🔄 Aggiornamento vista...');
         
         // Aggiorna la vista
         this.calculateBalances(this.currentActual);
         this.displayPaymentsHistory();
         
-        console.log('✅ Salvataggio completato');
         
         // Mostra messaggio di successo
         const message = confirmed
@@ -1497,7 +1489,6 @@ const SettlementsManager = {
             this.currentActual.payments = this.payments;
             this.currentActual.updatedAt = new Date().toISOString();
             
-            console.log('💾 Confermando pagamento e salvando su Supabase...');
             
             // Salva l'intero consuntivo su Supabase
             await StorageManager.updateActual(this.currentActual.id, this.currentActual);
@@ -1505,7 +1496,6 @@ const SettlementsManager = {
             // Invalida la cache per forzare ricaricamento da Supabase
             await StorageManager.invalidateCache();
             
-            console.log('✅ Pagamento confermato e cache invalidata');
             
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
@@ -1522,13 +1512,11 @@ const SettlementsManager = {
         }
         
         try {
-            console.log('🗑️ Eliminazione pagamento:', paymentId);
             
             // Rimuovi il pagamento dall'array
             this.payments = this.payments.filter(p => p.id !== paymentId);
             this.currentActual.payments = this.payments;
             
-            console.log('💾 Salvataggio su Supabase...');
             
             // Aggiorna l'oggetto completo
             this.currentActual.payments = this.payments;
@@ -1537,24 +1525,20 @@ const SettlementsManager = {
             // Salva l'intero consuntivo
             await StorageManager.updateActual(this.currentActual.id, this.currentActual);
             
-            console.log('🔄 Invalidazione cache...');
             
             // Invalida la cache per forzare ricaricamento da Supabase
             await StorageManager.invalidateCache();
             
-            console.log('📥 Ricaricamento da Supabase...');
             
             // Ricarica il consuntivo da Supabase
             this.currentActual = await StorageManager.getActual(this.currentActual.id);
             this.payments = this.currentActual.payments || [];
             
-            console.log('🔄 Aggiornamento vista...');
             
             // Aggiorna la vista
             this.calculateBalances(this.currentActual);
             this.displayPaymentsHistory();
             
-            console.log('✅ Pagamento eliminato con successo');
             
             this.showNotification('🗑️ Pagamento eliminato e sincronizzato su Supabase.', 'success');
         } catch (error) {
