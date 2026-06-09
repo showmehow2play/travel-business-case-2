@@ -9,12 +9,12 @@ const AccountsManager = {
     init(actual) {
         this.currentActual = actual;
         this.loadGeneralStats();
+        this.loadParticipantSelector();
         this.setupEventListeners();
         
-        // Mostra selezione con schede dopo un breve delay per assicurarsi che il DOM sia pronto
-        setTimeout(() => {
-            this.showParticipantSelection();
-        }, 100);
+        // Nascondi il riepilogo partecipante all'inizio
+        const summaryEl = document.getElementById('participantSummary');
+        if (summaryEl) summaryEl.style.display = 'none';
     },
 
     // Setup event listeners
@@ -35,650 +35,6 @@ const AccountsManager = {
                 }
             });
         }
-    },
-    
-    // Mostra la selezione dei partecipanti con schede compatte (SOLO nome e foto)
-    showParticipantSelection() {
-        const container = document.getElementById('participantSummary');
-        if (!container) {
-            console.error('Container participantSummary non trovato');
-            return;
-        }
-        
-        if (!this.currentActual || !this.currentActual.participants) {
-            console.error('currentActual o participants non disponibili');
-            return;
-        }
-        
-        container.style.display = 'block';
-        container.innerHTML = `
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <h2 style="color: #2c3e50; margin-bottom: 0.5rem;">👥 Seleziona un Partecipante</h2>
-                <p style="color: #6c757d; font-size: 1rem;">Clicca su un partecipante per vedere il dettaglio delle sue spese</p>
-            </div>
-            <div id="participantCardsAccounts" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-            </div>
-            <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
-                <button class="btn btn-primary" style="font-size: 1.1rem; padding: 0.875rem 2rem;"
-                        onclick="AccountsManager.showAllParticipantsView()">
-                    📊 Mostra Grafico Generale
-                </button>
-                <p style="color: #6c757d; font-size: 0.9rem; margin-top: 1rem; margin-bottom: 0;">
-                    Visualizza il grafico con tutti i partecipanti
-                </p>
-            </div>
-        `;
-        
-        const cardsContainer = document.getElementById('participantCardsAccounts');
-        
-        // Crea una card per ogni partecipante - SOLO nome e foto
-        this.currentActual.participants.forEach(participant => {
-            const photo = this.getParticipantPhoto(participant);
-            
-            const card = document.createElement('div');
-            card.className = 'participant-select-card';
-            card.style.cssText = `
-                background: white;
-                border-radius: 12px;
-                padding: 1.5rem;
-                text-align: center;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                border: 2px solid #e9ecef;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            `;
-            
-            card.innerHTML = `
-                <div style="margin-bottom: 1rem;">
-                    ${photo
-                        ? `<img src="${photo}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;" />`
-                        : `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto; color: white; font-size: 2rem; font-weight: bold; border: 3px solid #667eea;">
-                            ${participant.charAt(0).toUpperCase()}
-                           </div>`
-                    }
-                </div>
-                <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">
-                    ${participant}
-                </div>
-                <div style="font-size: 0.85rem; color: #667eea; font-weight: 500;">
-                    Vedi dettaglio →
-                </div>
-            `;
-            
-            // Hover effects
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-5px)';
-                card.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.3)';
-                card.style.borderColor = '#667eea';
-            });
-            
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-                card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-                card.style.borderColor = '#e9ecef';
-            });
-            
-            // Click per selezionare
-            card.addEventListener('click', () => {
-                this.showParticipantDetails(participant);
-            });
-            
-            cardsContainer.appendChild(card);
-        });
-    },
-    
-    // Mostra i dettagli di un singolo partecipante
-    showParticipantDetails(participantName) {
-        const container = document.getElementById('participantSummary');
-        if (!container) return;
-        
-        container.style.display = 'block';
-        
-        const {
-            paidAmount,
-            sharedAmount,
-            paymentsReceived,
-            paymentsMade,
-            balance,
-            receivedTransfers,
-            sentTransfers
-        } = this.calculateParticipantFinancials(participantName);
-        
-        const statusColor = balance > 0 ? '#28a745' : balance < 0 ? '#dc3545' : '#6c757d';
-        const statusIcon = balance > 0 ? '🟢 ⬆️' : balance < 0 ? '🔴 ⬇️' : '✅';
-        const statusText = balance > 0 ? 'Deve ricevere' : balance < 0 ? 'Deve dare' : 'In pari';
-        
-        const photo = this.getParticipantPhoto(participantName);
-        const photoHtml = photo
-            ? `<img src="${photo}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 4px solid ${statusColor};" />`
-            : `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 2.5rem; font-weight: bold; border: 4px solid ${statusColor};">
-                ${participantName.charAt(0).toUpperCase()}
-               </div>`;
-        
-        container.innerHTML = `
-            <!-- Pulsante Indietro -->
-            <div style="margin-bottom: 2rem;">
-                <button class="btn btn-secondary" onclick="AccountsManager.showParticipantSelection()" style="font-size: 0.95rem;">
-                    ← Torna alla Selezione
-                </button>
-            </div>
-            
-            <!-- Header Partecipante -->
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 15px; margin-bottom: 2rem; color: white; text-align: center;">
-                <div style="margin-bottom: 1rem;">
-                    ${photoHtml}
-                </div>
-                <h2 style="margin: 0 0 0.5rem 0; font-size: 2rem; color: white;">${participantName}</h2>
-                <div style="font-size: 1.1rem; opacity: 0.95;">
-                    ${statusIcon} ${statusText}
-                </div>
-            </div>
-            
-            <!-- Grafici Interattivi -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                <!-- Grafico Quota Totale -->
-                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
-                     onclick="AccountsManager.showQuotaDetails('${participantName}')"
-                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(102, 126, 234, 0.3)'"
-                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
-                    <div style="text-align: center; margin-bottom: 1rem;">
-                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            💰 Quota Totale da Pagare
-                        </div>
-                    </div>
-                    <canvas id="quotaChart" style="max-height: 150px;"></canvas>
-                    <div style="text-align: center; margin-top: 1rem;">
-                        <div style="font-size: 2rem; font-weight: bold; color: #667eea;">
-                            ${this.formatCurrency(sharedAmount)}
-                        </div>
-                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
-                            👆 Clicca per vedere il dettaglio
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Grafico Ha Pagato -->
-                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
-                     onclick="AccountsManager.showPaidDetails('${participantName}')"
-                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(40, 167, 69, 0.3)'"
-                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
-                    <div style="text-align: center; margin-bottom: 1rem;">
-                        <div style="font-size: 0.85rem; color: #28a745; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            💳 Ha Già Pagato
-                        </div>
-                    </div>
-                    <canvas id="paidChart" style="max-height: 150px;"></canvas>
-                    <div style="text-align: center; margin-top: 1rem;">
-                        <div style="font-size: 2rem; font-weight: bold; color: #28a745;">
-                            ${this.formatCurrency(paidAmount)}
-                        </div>
-                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
-                            👆 Clicca per vedere le spese pagate
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Grafico Pagamenti Versati -->
-                ${paymentsMade > 0 ? `
-                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
-                     onclick="AccountsManager.showPaymentsMadeDetails('${participantName}')"
-                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(13, 71, 161, 0.3)'"
-                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
-                    <div style="text-align: center; margin-bottom: 1rem;">
-                        <div style="font-size: 0.85rem; color: #0d47a1; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            📤 Pagamenti Versati
-                        </div>
-                    </div>
-                    <canvas id="paymentsMadeChart" style="max-height: 150px;"></canvas>
-                    <div style="text-align: center; margin-top: 1rem;">
-                        <div style="font-size: 2rem; font-weight: bold; color: #0d47a1;">
-                            ${this.formatCurrency(paymentsMade)}
-                        </div>
-                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
-                            👆 Clicca per vedere i trasferimenti
-                        </div>
-                    </div>
-                </div>
-                ` : ''}
-                
-                <!-- Grafico Pagamenti Ricevuti -->
-                ${paymentsReceived > 0 ? `
-                <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s;"
-                     onclick="AccountsManager.showPaymentsReceivedDetails('${participantName}')"
-                     onmouseenter="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 20px rgba(230, 81, 0, 0.3)'"
-                     onmouseleave="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
-                    <div style="text-align: center; margin-bottom: 1rem;">
-                        <div style="font-size: 0.85rem; color: #e65100; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-                            📥 Pagamenti Ricevuti
-                        </div>
-                    </div>
-                    <canvas id="paymentsReceivedChart" style="max-height: 150px;"></canvas>
-                    <div style="text-align: center; margin-top: 1rem;">
-    
-    // Carica i grafici per il partecipante
-    loadParticipantCharts(participantName, sharedAmount, paidAmount, paymentsMade, paymentsReceived) {
-        // Grafico Quota Totale (Doughnut)
-        const quotaCtx = document.getElementById('quotaChart');
-        if (quotaCtx) {
-            new Chart(quotaCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Quota da Pagare'],
-                    datasets: [{
-                        data: [sharedAmount],
-                        backgroundColor: ['#667eea'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    },
-                    cutout: '70%'
-                }
-            });
-        }
-        
-        // Grafico Ha Pagato (Doughnut)
-        const paidCtx = document.getElementById('paidChart');
-        if (paidCtx) {
-            new Chart(paidCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Già Pagato'],
-                    datasets: [{
-                        data: [paidAmount],
-                        backgroundColor: ['#28a745'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    },
-                    cutout: '70%'
-                }
-            });
-        }
-        
-        // Grafico Pagamenti Versati (se presenti)
-        if (paymentsMade > 0) {
-            const paymentsMadeCtx = document.getElementById('paymentsMadeChart');
-            if (paymentsMadeCtx) {
-                new Chart(paymentsMadeCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pagamenti Versati'],
-                        datasets: [{
-                            data: [paymentsMade],
-                            backgroundColor: ['#0d47a1'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { enabled: false }
-                        },
-                        cutout: '70%'
-                    }
-                });
-            }
-        }
-        
-        // Grafico Pagamenti Ricevuti (se presenti)
-        if (paymentsReceived > 0) {
-            const paymentsReceivedCtx = document.getElementById('paymentsReceivedChart');
-            if (paymentsReceivedCtx) {
-                new Chart(paymentsReceivedCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Pagamenti Ricevuti'],
-                        datasets: [{
-                            data: [paymentsReceived],
-                            backgroundColor: ['#e65100'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { enabled: false }
-                        },
-                        cutout: '70%'
-                    }
-                });
-            }
-        }
-    },
-    
-    // Mostra dettaglio quota totale
-    showQuotaDetails(participantName) {
-        const expenses = this.currentActual.expenses || [];
-        const participantExpenses = expenses.filter(exp => {
-            let sharedBy = exp.sharedBy || [];
-            if (sharedBy.length === 0) sharedBy = this.currentActual.participants;
-            return sharedBy.includes(participantName);
-        });
-        
-        let html = `
-            <div class="modal" style="display: flex;">
-                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
-                    <div class="modal-header">
-                        <h3>💰 Dettaglio Quota Totale - ${participantName}</h3>
-                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
-                            Queste sono tutte le spese condivise in cui ${participantName} è coinvolto/a.
-                        </p>
-        `;
-        
-        let total = 0;
-        participantExpenses.forEach(exp => {
-            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
-            let sharedBy = exp.sharedBy || [];
-            if (sharedBy.length === 0) sharedBy = this.currentActual.participants;
-            const shareAmount = sharedBy.length > 0 ? amount / sharedBy.length : 0;
-            total += shareAmount;
-            
-            const categoryIcon = ActualsManager.categories.find(c => c.value === exp.category)?.icon || '📝';
-            
-            html += `
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #667eea;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
-                                ${categoryIcon} ${exp.description}
-                            </div>
-                            <div style="font-size: 0.85rem; color: #6c757d;">
-                                Totale spesa: ${this.formatCurrency(amount)} • Condivisa tra ${sharedBy.length} persone
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.3rem; font-weight: bold; color: #667eea;">
-                                ${this.formatCurrency(shareAmount)}
-                            </div>
-                            <div style="font-size: 0.75rem; color: #6c757d;">
-                                tua quota
-                            </div>
-                        </div>
-                    </div>
-                    <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
-                        👥 Condivisa con: ${sharedBy.join(', ')}
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += `
-                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
-                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE QUOTA</div>
-                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('detailsModalContainer').innerHTML = html;
-    },
-    
-    // Mostra dettaglio spese pagate
-    showPaidDetails(participantName) {
-        const expenses = this.currentActual.expenses || [];
-        const paidExpenses = expenses.filter(exp => exp.paidBy === participantName);
-        
-        let html = `
-            <div class="modal" style="display: flex;">
-                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
-                    <div class="modal-header">
-                        <h3>💳 Spese Pagate - ${participantName}</h3>
-                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
-                            Queste sono tutte le spese che ${participantName} ha pagato.
-                        </p>
-        `;
-        
-        let total = 0;
-        paidExpenses.forEach(exp => {
-            const amount = exp.amountEUR !== undefined ? exp.amountEUR : exp.amount;
-            total += amount;
-            
-            const categoryIcon = ActualsManager.categories.find(c => c.value === exp.category)?.icon || '📝';
-            
-            html += `
-                <div style="background: #e8f5e9; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #28a745;">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
-                                ${categoryIcon} ${exp.description}
-                            </div>
-                            <div style="font-size: 0.85rem; color: #2e7d32;">
-                                📅 ${exp.date ? new Date(exp.date).toLocaleDateString('it-IT') : 'Data non specificata'}
-                            </div>
-                            ${exp.notes ? `<div style="font-size: 0.85rem; color: #6c757d; margin-top: 0.5rem;">📝 ${exp.notes}</div>` : ''}
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">
-                                ${this.formatCurrency(amount)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += `
-                        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
-                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE PAGATO</div>
-                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('detailsModalContainer').innerHTML = html;
-    },
-    
-    // Mostra dettaglio pagamenti versati
-    showPaymentsMadeDetails(participantName) {
-        const payments = this.currentActual.payments || [];
-        const madePayments = payments.filter(p => p.confirmed && p.from === participantName);
-        
-        let html = `
-            <div class="modal" style="display: flex;">
-                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
-                    <div class="modal-header">
-                        <h3>📤 Pagamenti Versati - ${participantName}</h3>
-                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
-                            Questi sono i pagamenti che ${participantName} ha versato ad altri partecipanti.
-                        </p>
-        `;
-        
-        let total = 0;
-        madePayments.forEach(payment => {
-            const amount = parseFloat(payment.amount) || 0;
-            total += amount;
-            
-            html += `
-                <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #0d47a1;">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; color: #0d47a1;">
-                                💸 Pagamento a ${payment.to}
-                            </div>
-                            <div style="font-size: 0.85rem; color: #1565c0;">
-                                📅 ${payment.date ? new Date(payment.date).toLocaleDateString('it-IT') : 'Data non specificata'}
-                            </div>
-                            ${payment.notes ? `<div style="font-size: 0.85rem; color: #6c757d; margin-top: 0.5rem;">📝 ${payment.notes}</div>` : ''}
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #0d47a1;">
-                                ${this.formatCurrency(amount)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += `
-                        <div style="background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
-                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE VERSATO</div>
-                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('detailsModalContainer').innerHTML = html;
-    },
-    
-    // Mostra dettaglio pagamenti ricevuti
-    showPaymentsReceivedDetails(participantName) {
-        const payments = this.currentActual.payments || [];
-        const receivedPayments = payments.filter(p => p.confirmed && p.to === participantName);
-        
-        let html = `
-            <div class="modal" style="display: flex;">
-                <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
-                    <div class="modal-header">
-                        <h3>📥 Pagamenti Ricevuti - ${participantName}</h3>
-                        <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <p style="color: #6c757d; margin-bottom: 1.5rem;">
-                            Questi sono i pagamenti che ${participantName} ha ricevuto da altri partecipanti.
-                        </p>
-        `;
-        
-        let total = 0;
-        receivedPayments.forEach(payment => {
-            const amount = parseFloat(payment.amount) || 0;
-            total += amount;
-            
-            html += `
-                <div style="background: #fff3e0; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #e65100;">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; color: #e65100;">
-                                💰 Pagamento da ${payment.from}
-                            </div>
-                            <div style="font-size: 0.85rem; color: #f57c00;">
-                                📅 ${payment.date ? new Date(payment.date).toLocaleDateString('it-IT') : 'Data non specificata'}
-                            </div>
-                            ${payment.notes ? `<div style="font-size: 0.85rem; color: #6c757d; margin-top: 0.5rem;">📝 ${payment.notes}</div>` : ''}
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #e65100;">
-                                ${this.formatCurrency(amount)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += `
-                        <div style="background: linear-gradient(135deg, #e65100 0%, #ff6f00 100%); padding: 1.5rem; border-radius: 10px; margin-top: 1.5rem; color: white; text-align: center;">
-                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem;">TOTALE RICEVUTO</div>
-                            <div style="font-size: 2.5rem; font-weight: bold;">${this.formatCurrency(total)}</div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">Chiudi</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('detailsModalContainer').innerHTML = html;
-    },
-                        <div style="font-size: 2rem; font-weight: bold; color: #e65100;">
-                            ${this.formatCurrency(paymentsReceived)}
-                        </div>
-                        <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.5rem;">
-                            👆 Clicca per vedere i trasferimenti
-                        </div>
-                    </div>
-                </div>
-                ` : ''}
-            </div>
-            
-            <!-- Bilancio Finale Grande -->
-            <div style="background: ${balance > 0 ? 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)' : balance < 0 ? 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)' : 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)'}; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; border: 3px solid ${statusColor}; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <div style="text-align: center;">
-                    <div style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1.5px; color: ${statusColor}; font-weight: 700; margin-bottom: 1rem;">
-                        ${balance > 0 ? '📈 Bilancio Positivo' : balance < 0 ? '📉 Bilancio Negativo' : '⚖️ Bilancio in Pari'}
-                    </div>
-                    <div style="font-size: 3.5rem; font-weight: bold; color: ${statusColor}; margin-bottom: 1rem;">
-                        ${this.formatCurrency(Math.abs(balance))}
-                    </div>
-                    <div style="font-size: 1.2rem; color: ${statusColor}; font-weight: 600;">
-                        ${balance > 0 ? '🟢 Deve ricevere questo importo' : balance < 0 ? '🔴 Deve dare questo importo' : '✅ È in pari!'}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Modal Container per i dettagli -->
-            <div id="detailsModalContainer"></div>
-        `;
-        
-        // Carica i grafici
-        this.loadParticipantCharts(participantName, sharedAmount, paidAmount, paymentsMade, paymentsReceived);
-        
-        // Carica i dettagli
-        this.loadParticipantExpensesTable(participantName);
-        this.loadParticipantCategoryChart(participantName);
-        if (receivedTransfers.length > 0 || sentTransfers.length > 0) {
-            this.loadParticipantTransfers(participantName, receivedTransfers, sentTransfers);
-        }
-    },
-    
-    // Mostra vista generale con grafico
-    showAllParticipantsView() {
-        const container = document.getElementById('participantSummary');
-        if (!container) return;
-        
-        container.style.display = 'block';
-        container.innerHTML = `
-            <div style="margin-bottom: 2rem;">
-                <button class="btn btn-secondary" onclick="AccountsManager.showParticipantSelection()" style="font-size: 0.95rem;">
-                    ← Torna alla Selezione
-                </button>
-            </div>
-            <h3 style="color: #2c3e50; margin-bottom: 1.5rem; font-size: 1.5rem;">📊 Grafico Generale Partecipanti</h3>
-            <canvas id="participantChart" style="max-height: 400px;"></canvas>
-        `;
-        
-        this.loadAllParticipantsChart();
     },
 
     // Carica statistiche generali
@@ -714,20 +70,46 @@ const AccountsManager = {
         return participant?.photo || null;
     },
 
-    // Carica selettore partecipanti
+    // Carica selettore partecipanti con schede
     loadParticipantSelector() {
-        const select = document.getElementById('accountsParticipantSelect');
-        if (!select || !this.currentActual) return;
+        const container = document.getElementById('accountsParticipantSelect');
+        if (!container || !this.currentActual) return;
 
         const participants = this.currentActual.participants || [];
 
-        select.innerHTML = '<option value="">-- Seleziona un partecipante --</option>';
-        participants.forEach(p => {
-            const option = document.createElement('option');
-            option.value = p;
-            option.textContent = p;
-            select.appendChild(option);
+        // Crea griglia di schede partecipanti
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0;">';
+        
+        participants.forEach(participantName => {
+            const photo = this.getParticipantPhoto(participantName);
+            const photoHtml = photo
+                ? `<img src="${photo}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 0.75rem;" />`
+                : `<div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white; margin-bottom: 0.75rem;">${participantName.charAt(0)}</div>`;
+            
+            html += `
+                <div class="participant-card" onclick="AccountsManager.loadParticipantSummary('${participantName}')"
+                     style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                     onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'; this.style.borderColor='#667eea';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'; this.style.borderColor='#e0e0e0';">
+                    ${photoHtml}
+                    <div style="font-weight: 600; font-size: 1.1rem; color: #2c3e50;">${participantName}</div>
+                </div>
+            `;
         });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    },
+
+    // Torna alla selezione dei partecipanti
+    backToParticipantSelection() {
+        // Nascondi il riepilogo partecipante
+        const summaryEl = document.getElementById('participantSummary');
+        if (summaryEl) summaryEl.style.display = 'none';
+        
+        // Mostra le schede di selezione
+        const selectorContainer = document.getElementById('accountsParticipantSelect');
+        if (selectorContainer) selectorContainer.style.display = 'block';
     },
 
     calculateParticipantFinancials(participantName) {
@@ -812,6 +194,10 @@ const AccountsManager = {
             sentTransfers
         } = this.calculateParticipantFinancials(participantName);
 
+        // Nascondi le schede di selezione
+        const selectorContainer = document.getElementById('accountsParticipantSelect');
+        if (selectorContainer) selectorContainer.style.display = 'none';
+
         // Ottieni foto del partecipante
         const photo = this.getParticipantPhoto(participantName);
         const photoHtml = photo
@@ -825,8 +211,15 @@ const AccountsManager = {
                </div>`
             : '';
 
-        // Aggiorna UI con foto
-        document.getElementById('participantSummaryTitle').innerHTML = `${photoHtml}<span style="vertical-align: middle;">Riepilogo Spese - ${participantName}</span>${paymentsInfo}`;
+        // Aggiorna UI con foto e pulsante indietro
+        document.getElementById('participantSummaryTitle').innerHTML = `
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <button onclick="AccountsManager.backToParticipantSelection()" class="btn btn-secondary" style="padding: 0.5rem 1rem;">
+                    ← Torna alla Selezione
+                </button>
+            </div>
+            <div>${photoHtml}<span style="vertical-align: middle;">Riepilogo Spese - ${participantName}</span>${paymentsInfo}</div>
+        `;
         document.getElementById('participantPaidAmount').textContent = this.formatCurrency(paidAmount);
         document.getElementById('participantSharedAmount').textContent = this.formatCurrency(sharedAmount);
         
@@ -917,109 +310,42 @@ const AccountsManager = {
         `;
     },
 
-    // Carica tabella spese partecipante con card
+    // Carica tabella spese partecipante
     loadParticipantExpensesTable(participantName) {
-        const container = document.getElementById('participantExpensesTable');
-        if (!container || !this.currentActual) return;
+        const tbody = document.getElementById('participantExpensesTable');
+        if (!tbody || !this.currentActual) return;
 
-        const expenses = this.currentActual.expenses.filter(exp =>
+        const expenses = this.currentActual.expenses.filter(exp => 
             exp.paidBy === participantName || (exp.sharedBy && exp.sharedBy.includes(participantName))
         );
 
         if (expenses.length === 0) {
-            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6c757d;">Nessuna spesa trovata</div>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: var(--spacing-md);">Nessuna spesa trovata</td></tr>';
             return;
         }
 
-        container.innerHTML = expenses.map(exp => {
+        tbody.innerHTML = expenses.map(exp => {
             // Usa amountEUR se disponibile, altrimenti amount
             const amount = exp.amountEUR !== undefined ? parseFloat(exp.amountEUR) : parseFloat(exp.amount);
             const shareCount = exp.sharedBy ? exp.sharedBy.length : 0;
             const quota = shareCount > 0 && exp.sharedBy.includes(participantName) ? amount / shareCount : 0;
             
             const categoryIcon = this.getCategoryIcon(exp.category);
-            const isPayer = exp.paidBy === participantName;
-            const isSharer = exp.sharedBy && exp.sharedBy.includes(participantName);
             
             // Mostra valuta originale se diversa da EUR
             const currencyInfo = exp.currency && exp.currency !== 'EUR'
-                ? `<div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem;">Originale: ${exp.amount} ${exp.currency}</div>`
+                ? ` <span style="font-size: 0.85em; color: #6b7280;">(${exp.amount} ${exp.currency})</span>`
                 : '';
             
             return `
-                <div style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                    <!-- Header con categoria e data -->
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e9ecef;">
-                        <div style="flex: 1;">
-                            <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.25rem;">
-                                ${categoryIcon} ${exp.description || 'Senza descrizione'}
-                            </div>
-                            <div style="font-size: 0.85rem; color: #6c757d;">
-                                📅 ${exp.date ? new Date(exp.date).toLocaleDateString('it-IT') : 'Data non specificata'}
-                                • ${this.getCategoryLabel(exp.category)}
-                            </div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.5rem; font-weight: bold; color: #2c3e50;">
-                                ${this.formatCurrency(amount)}
-                            </div>
-                            ${currencyInfo}
-                        </div>
-                    </div>
-                    
-                    <!-- Info pagamento e quota -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <!-- Chi ha pagato -->
-                        <div style="background: ${isPayer ? '#e8f5e9' : '#f8f9fa'}; padding: 0.75rem; border-radius: 8px; border-left: 4px solid ${isPayer ? '#28a745' : '#dee2e6'};">
-                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: ${isPayer ? '#2e7d32' : '#6c757d'}; margin-bottom: 0.25rem; font-weight: 600;">
-                                💳 Pagato da
-                            </div>
-                            <div style="font-size: 1rem; font-weight: 600; color: ${isPayer ? '#1b5e20' : '#2c3e50'};">
-                                ${exp.paidBy || 'Non specificato'}
-                            </div>
-                            ${isPayer ? '<div style="font-size: 0.75rem; color: #2e7d32; margin-top: 0.25rem;">✅ Hai pagato tu</div>' : ''}
-                        </div>
-                        
-                        <!-- Quota personale -->
-                        <div style="background: ${isSharer ? '#e3f2fd' : '#f8f9fa'}; padding: 0.75rem; border-radius: 8px; border-left: 4px solid ${isSharer ? '#2196f3' : '#dee2e6'};">
-                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: ${isSharer ? '#0d47a1' : '#6c757d'}; margin-bottom: 0.25rem; font-weight: 600;">
-                                📊 Tua Quota
-                            </div>
-                            <div style="font-size: 1rem; font-weight: 600; color: ${isSharer ? '#0d47a1' : '#6c757d'};">
-                                ${quota > 0 ? this.formatCurrency(quota) : 'Non condivisa'}
-                            </div>
-                            ${isSharer && shareCount > 0 ? `<div style="font-size: 0.75rem; color: #1565c0; margin-top: 0.25rem;">Divisa tra ${shareCount} persone</div>` : ''}
-                        </div>
-                    </div>
-                    
-                    <!-- Condivisa con (se applicabile) -->
-                    ${isSharer && exp.sharedBy && exp.sharedBy.length > 0 ? `
-                        <div style="margin-top: 0.75rem; padding: 0.75rem; background: #f8f9fa; border-radius: 8px;">
-                            <div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 0.5rem; font-weight: 600;">
-                                👥 Condivisa con:
-                            </div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                                ${exp.sharedBy.map(person => `
-                                    <span style="background: ${person === participantName ? '#667eea' : 'white'}; color: ${person === participantName ? 'white' : '#2c3e50'}; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; border: 1px solid ${person === participantName ? '#667eea' : '#dee2e6'};">
-                                        ${person}${person === participantName ? ' (tu)' : ''}
-                                    </span>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <!-- Note (se presenti) -->
-                    ${exp.notes ? `
-                        <div style="margin-top: 0.75rem; padding: 0.75rem; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
-                            <div style="font-size: 0.75rem; color: #856404; margin-bottom: 0.25rem; font-weight: 600;">
-                                📝 Note:
-                            </div>
-                            <div style="font-size: 0.9rem; color: #856404;">
-                                ${exp.notes}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: var(--spacing-sm);">${exp.date || '-'}</td>
+                    <td style="padding: var(--spacing-sm);">${categoryIcon} ${this.getCategoryLabel(exp.category)}</td>
+                    <td style="padding: var(--spacing-sm);">${exp.description || '-'}</td>
+                    <td style="padding: var(--spacing-sm); text-align: right; font-weight: 600;">${this.formatCurrency(amount)}${currencyInfo}</td>
+                    <td style="padding: var(--spacing-sm);">${exp.paidBy || '-'}</td>
+                    <td style="padding: var(--spacing-sm); text-align: right; ${exp.sharedBy && exp.sharedBy.includes(participantName) ? 'color: var(--primary-color); font-weight: 600;' : ''}">${quota > 0 ? this.formatCurrency(quota) : '-'}</td>
+                </tr>
             `;
         }).join('');
     },

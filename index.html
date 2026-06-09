@@ -239,9 +239,9 @@
                     <h2 id="actualTitle">Dettaglio Consuntivo</h2>
                     <div class="header-actions">
                         <button type="submit" form="actualForm" class="btn btn-primary">💾 Salva consuntivo</button>
-                        <button id="viewAccountsBtn" class="btn btn-secondary">📊 Conti</button>
-                        <button id="viewSettlementsFromActualBtn" class="btn btn-secondary">🔄 Dare/Avere</button>
-                        <button id="deleteActualBtn" class="btn btn-danger">🗑️ Elimina</button>
+                        <button type="button" id="viewAccountsBtn" class="btn btn-secondary">📊 Conti</button>
+                        <button type="button" id="viewSettlementsFromActualBtn" class="btn btn-secondary">🔄 Dare/Avere</button>
+                        <button type="button" id="deleteActualBtn" class="btn btn-danger">🗑️ Elimina</button>
                     </div>
                 </div>
 
@@ -358,7 +358,12 @@
                     </div>
                 </div>
 
-                <!-- Riepilogo Partecipante (ora gestito da JS con schede) -->
+                <!-- Selezione Partecipante con Schede -->
+                <div id="accountsParticipantSelect" style="margin-top: var(--spacing-lg);">
+                    <!-- Le schede dei partecipanti verranno inserite qui da JavaScript -->
+                </div>
+
+                <!-- Riepilogo Partecipante -->
                 <div id="participantSummary" style="display: none; margin-top: var(--spacing-lg);">
                     <div class="form-section">
                         <h3 id="participantSummaryTitle">Riepilogo Spese</h3>
@@ -1368,9 +1373,9 @@
     <script src="js/currencies.js"></script>
     <script src="js/scenarios.js"></script>
     <script src="js/actuals.js"></script>
-    <script src="js/actuals-ui.js"></script>
     <script src="js/accounts.js"></script>
     <script src="js/settlements.js"></script>
+    <script src="js/actuals-ui.js"></script>
     <script src="js/export.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/flights.js"></script>

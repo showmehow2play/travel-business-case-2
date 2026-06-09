@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Pulsante Conti - Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .log-entry {
+            padding: 8px;
+            margin: 4px 0;
+            border-left: 3px solid #4CAF50;
+            background: #f9f9f9;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        .warning {
+            border-left-color: #ff9800;
+            background: #fff3e0;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #2196F3; color: white; }
+        .btn-secondary { background: #757575; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Pulsante Conti</h1>
+    
+    <div class="debug-section">
+        <h2>📋 Istruzioni</h2>
+        <ol>
+            <li>Apri la console del browser (F12)</li>
+            <li>Clicca sul pulsante "Test Click Conti" qui sotto</li>
+            <li>Osserva i log che appaiono</li>
+            <li>Verifica se ci sono errori nella console</li>
+        </ol>
+    </div>
+
+    <div class="debug-section">
+        <h2>🧪 Test Buttons</h2>
+        <button type="button" id="testBtn" class="btn btn-primary" onclick="testButtonClick()">
+            🧪 Test Click Conti
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="clearLogs()">
+            🗑️ Pulisci Log
+        </button>
+        <button type="button" class="btn btn-success" onclick="checkSetup()">
+            ✅ Verifica Setup
+        </button>
+    </div>
+
+    <div class="debug-section">
+        <h2>📊 Log Output</h2>
+        <div id="logOutput"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🔧 Stato Sistema</h2>
+        <div id="systemStatus"></div>
+    </div>
+
+    <script>
+        // Log helper
+        function addLog(message, type = 'info') {
+            const logOutput = document.getElementById('logOutput');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (type !== 'info' ? ' ' + type : '');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logOutput.appendChild(entry);
+            console.log(message);
+        }
+
+        function clearLogs() {
+            document.getElementById('logOutput').innerHTML = '';
+            addLog('Log puliti');
+        }
+
+        // Check if all required objects exist
+        function checkSetup() {
+            addLog('=== VERIFICA SETUP ===');
+            
+            // Check ActualsUI
+            if (typeof ActualsUI !== 'undefined') {
+                addLog('✅ ActualsUI è definito');
+                addLog(`   - currentActualId: ${ActualsUI.currentActualId}`);
+                addLog(`   - viewAccounts: ${typeof ActualsUI.viewAccounts}`);
+            } else {
+                addLog('❌ ActualsUI NON è definito', 'error');
+            }
+
+            // Check AccountsManager
+            if (typeof AccountsManager !== 'undefined') {
+                addLog('✅ AccountsManager è definito');
+                addLog(`   - init: ${typeof AccountsManager.init}`);
+            } else {
+                addLog('❌ AccountsManager NON è definito', 'error');
+            }
+
+            // Check StorageManager
+            if (typeof StorageManager !== 'undefined') {
+                addLog('✅ StorageManager è definito');
+                addLog(`   - getActual: ${typeof StorageManager.getActual}`);
+            } else {
+                addLog('❌ StorageManager NON è definito', 'error');
+            }
+
+            // Check App
+            if (typeof App !== 'undefined') {
+                addLog('✅ App è definito');
+                addLog(`   - showView: ${typeof App.showView}`);
+            } else {
+                addLog('❌ App NON è definito', 'error');
+            }
+
+            // Check button
+            const btn = document.getElementById('viewAccountsBtn');
+            if (btn) {
+                addLog('✅ Button viewAccountsBtn trovato nella pagina principale');
+            } else {
+                addLog('⚠️ Button viewAccountsBtn NON trovato (normale in questa pagina di test)', 'warning');
+            }
+
+            addLog('=== FINE VERIFICA ===');
+        }
+
+        // Simulate the button click
+        async function testButtonClick() {
+            addLog('=== INIZIO TEST ===');
+            addLog('Click sul pulsante simulato...');
+
+            try {
+                // Check if ActualsUI exists
+                if (typeof ActualsUI === 'undefined') {
+                    addLog('❌ ERRORE: ActualsUI non è definito!', 'error');
+                    addLog('   Assicurati che actuals-ui.js sia caricato', 'error');
+                    return;
+                }
+
+                // Check currentActualId
+                if (!ActualsUI.currentActualId) {
+                    addLog('⚠️ WARNING: currentActualId è null o undefined', 'warning');
+                    addLog('   Questo è normale se non hai aperto un consuntivo', 'warning');
+                    
+                    // Create a test ID
+                    addLog('   Creo un ID di test...');
+                    ActualsUI.currentActualId = 'test-id-123';
+                    addLog(`   currentActualId impostato a: ${ActualsUI.currentActualId}`);
+                }
+
+                // Check if viewAccounts method exists
+                if (typeof ActualsUI.viewAccounts !== 'function') {
+                    addLog('❌ ERRORE: ActualsUI.viewAccounts non è una funzione!', 'error');
+                    return;
+                }
+
+                addLog('✅ Tutti i controlli passati, chiamo viewAccounts()...');
+                
+                // Call the method
+                await ActualsUI.viewAccounts();
+                
+                addLog('✅ viewAccounts() completato senza errori');
+
+            } catch (error) {
+                addLog(`❌ ERRORE durante l'esecuzione: ${error.message}`, 'error');
+                addLog(`   Stack: ${error.stack}`, 'error');
+            }
+
+            addLog('=== FINE TEST ===');
+        }
+
+        // Update system status
+        function updateSystemStatus() {
+            const status = document.getElementById('systemStatus');
+            status.innerHTML = `
+                <p><strong>ActualsUI:</strong> ${typeof ActualsUI !== 'undefined' ? '✅ Caricato' : '❌ Non caricato'}</p>
+                <p><strong>AccountsManager:</strong> ${typeof AccountsManager !== 'undefined' ? '✅ Caricato' : '❌ Non caricato'}</p>
+                <p><strong>StorageManager:</strong> ${typeof StorageManager !== 'undefined' ? '✅ Caricato' : '❌ Non caricato'}</p>
+                <p><strong>App:</strong> ${typeof App !== 'undefined' ? '✅ Caricato' : '❌ Non caricato'}</p>
+            `;
+        }
+
+        // Initial log
+        window.addEventListener('DOMContentLoaded', () => {
+            addLog('Pagina di test caricata');
+            updateSystemStatus();
+            addLog('Clicca su "Verifica Setup" per controllare lo stato del sistema');
+        });
+    </script>
+
+    <!-- Load the actual application scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/actuals-ui.js"></script>
+    <script src="js/accounts.js"></script>
+</body>
+</html>
