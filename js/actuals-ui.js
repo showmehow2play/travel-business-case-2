@@ -739,13 +739,21 @@ const ActualsUI = {
                                value="${expense.date || ''}" required ${disabledAttr}>
                     </div>
                     
-                    <!-- Colonna 3: Pagato da (span 2 righe) -->
-                    <div class="expense-field" style="grid-column: 3; grid-row: 1 / 3; display: flex; flex-direction: column;">
-                        <label>Pagato da</label>
-                        <select class="expense-paidby-select" data-index="${index}" style="flex: 1;" ${disabledAttr}>
-                            <option value="">Seleziona...</option>
-                            ${paidByOptions}
-                        </select>
+                    <!-- Colonna 3: Pagato da e Stato Pagamento (span 2 righe) -->
+                    <div class="expense-field" style="grid-column: 3; grid-row: 1 / 3; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="flex: 1;">
+                            <label>Pagato da</label>
+                            <select class="expense-paidby-select" data-index="${index}" style="width: 100%;" ${disabledAttr}>
+                                <option value="">Seleziona...</option>
+                                ${paidByOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="participant-checkbox-compact" style="margin: 0; padding: 0.5rem; background: ${expense.isPaid !== false ? '#d1fae5' : '#fef3c7'}; border-radius: 0.375rem; border: 1px solid ${expense.isPaid !== false ? '#10b981' : '#f59e0b'};">
+                                <input type="checkbox" class="expense-ispaid" data-index="${index}" ${expense.isPaid !== false ? 'checked' : ''} ${disabledAttr}>
+                                <span style="font-weight: 600; color: ${expense.isPaid !== false ? '#065f46' : '#92400e'};">${expense.isPaid !== false ? '✅ Già Pagata' : '⏳ Futura'}</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <!-- Colonna 4: Partecipanti (span 2 righe) -->
@@ -932,6 +940,26 @@ const ActualsUI = {
                     // Aggiorna il costo per persona e i totali
                     this.updateCostPerPerson(index);
                     this.updateTotals();
+                    
+                    // Salva automaticamente per aggiornare i bilanci
+                    if (this.currentActualId) {
+                        this.autoSaveExpenses();
+                    }
+                }
+            });
+        });
+
+        // Checkbox per isPaid (già pagata/futura)
+        const isPaidCheckboxes = document.querySelectorAll('.expense-ispaid');
+        isPaidCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                
+                if (this.currentExpenses[index]) {
+                    this.currentExpenses[index].isPaid = e.target.checked;
+                    
+                    // Ricarica per aggiornare lo stile visivo
+                    this.loadExpenses(this.currentExpenses, true);
                     
                     // Salva automaticamente per aggiornare i bilanci
                     if (this.currentActualId) {

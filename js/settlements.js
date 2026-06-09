@@ -4,6 +4,7 @@ const SettlementsManager = {
     currentActual: null,
     payments: [], // Array per tracciare i pagamenti
     sourceActualId: null, // ID del consuntivo da cui si è arrivati
+    showOnlyPaid: false, // Flag per mostrare solo spese pagate
 
     // Inizializza la view
     init() {
@@ -149,7 +150,8 @@ const SettlementsManager = {
     },
 
     // Calcola i bilanci per ogni partecipante (usa amountEUR)
-    calculateBalances(actual) {
+    // Parametro onlyPaid: se true, considera solo le spese già pagate
+    calculateBalances(actual, onlyPaid = false) {
         // Inizializza contatori per ogni partecipante
         const paid = {}; // Quanto ha pagato
         const owes = {}; // Quanto deve (la sua quota delle spese condivise)
@@ -166,6 +168,11 @@ const SettlementsManager = {
         // Calcola quanto ha pagato ogni partecipante e quanto deve
         if (actual.expenses && Array.isArray(actual.expenses)) {
             actual.expenses.forEach(expense => {
+                // Se onlyPaid è true, salta le spese future (isPaid === false)
+                if (onlyPaid && expense.isPaid === false) {
+                    return;
+                }
+                
                 // Usa amountEUR se disponibile, altrimenti amount
                 const amount = expense.amountEUR !== undefined ? parseFloat(expense.amountEUR) : parseFloat(expense.amount);
                 const paidBy = expense.paidBy;
@@ -250,16 +257,32 @@ const SettlementsManager = {
 
         container.innerHTML = '';
         
-        // Aggiungi pulsante per nuovo pagamento generico
-        const newPaymentBtn = document.createElement('div');
-        newPaymentBtn.style.cssText = 'grid-column: 1 / -1; margin-bottom: 1rem;';
-        newPaymentBtn.innerHTML = `
-            <button class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 0.75rem;"
+        // Aggiungi toggle per visualizzazione spese pagate/totali e pulsante nuovo pagamento
+        const headerControls = document.createElement('div');
+        headerControls.style.cssText = 'grid-column: 1 / -1; margin-bottom: 1rem; display: flex; gap: 1rem; align-items: center;';
+        headerControls.innerHTML = `
+            <div style="flex: 1; display: flex; gap: 0.5rem; align-items: center; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; border: 2px solid #dee2e6;">
+                <span style="font-weight: 600; color: #495057;">Vista:</span>
+                <label class="participant-checkbox-compact" style="margin: 0; padding: 0.5rem; background: white; border-radius: 6px; cursor: pointer;">
+                    <input type="checkbox" id="togglePaidOnly" ${this.showOnlyPaid ? 'checked' : ''}>
+                    <span style="font-weight: 600;">${this.showOnlyPaid ? '✅ Solo Spese Pagate' : '📊 Tutte le Spese'}</span>
+                </label>
+            </div>
+            <button class="btn btn-primary" style="font-size: 1.1rem; padding: 0.75rem; white-space: nowrap;"
                     onclick="SettlementsManager.showNewPaymentModal()">
                 ➕ Nuovo Pagamento
             </button>
         `;
-        container.appendChild(newPaymentBtn);
+        container.appendChild(headerControls);
+        
+        // Aggiungi listener per il toggle
+        const toggleCheckbox = document.getElementById('togglePaidOnly');
+        if (toggleCheckbox) {
+            toggleCheckbox.addEventListener('change', (e) => {
+                this.showOnlyPaid = e.target.checked;
+                this.calculateBalances(this.currentActual, this.showOnlyPaid);
+            });
+        }
 
         Object.keys(balances).sort().forEach(participant => {
             const balance = balances[participant];
@@ -336,7 +359,19 @@ const SettlementsManager = {
         // per assicurarsi che i pagamenti confermati siano considerati
         if (!this.currentActual) return;
         
-        this.calculateBalances(this.currentActual);
+        // Verifica se ci sono spese future
+        const hasFutureExpenses = this.currentActual.expenses &&
+            this.currentActual.expenses.some(exp => exp.isPaid === false);
+        
+        // Se ci sono spese future, chiedi all'utente quale vista usare
+        if (hasFutureExpenses && !this.optimizeMode) {
+            this.showOptimizeModeModal();
+            return;
+        }
+        
+        // Calcola i bilanci con la modalità selezionata
+        const onlyPaid = this.optimizeMode === 'paid';
+        this.calculateBalances(this.currentActual, onlyPaid);
         
         if (!this.balances) return;
 
@@ -511,6 +546,67 @@ const SettlementsManager = {
         `;
         
         document.body.appendChild(modal);
+    },
+
+    // Mostra modal per scegliere la modalità di ottimizzazione
+    showOptimizeModeModal() {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.id = 'optimizeModeModal';
+        modal.style.cssText = 'display: flex; align-items: center; justify-content: center;';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header" style="padding: 1rem 1.5rem;">
+                    <h3 style="font-size: 1.3rem; margin: 0;">⚡ Ottimizza Trasferimenti</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 1rem 1.5rem;">
+                    <div style="background: #fff3cd; border-left: 3px solid #ffc107; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem; font-size: 0.9rem;">
+                        <strong style="color: #856404;">⚠️ Attenzione</strong>
+                        <p style="margin: 0.5rem 0 0 0; color: #856404;">Sono presenti spese future non ancora pagate. Scegli come calcolare i trasferimenti:</p>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="SettlementsManager.setOptimizeModeAndContinue('paid')"
+                                style="padding: 1rem; text-align: left; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="font-size: 1.1rem; font-weight: 600;">✅ Solo Spese Già Pagate</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Calcola i trasferimenti considerando solo le spese già effettuate</div>
+                        </button>
+                        
+                        <button class="btn btn-success" onclick="SettlementsManager.setOptimizeModeAndContinue('all')"
+                                style="padding: 1rem; text-align: left; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="font-size: 1.1rem; font-weight: 600;">📊 Tutte le Spese (Pagate + Future)</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Calcola i trasferimenti includendo anche le spese future previste</div>
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; gap: 0.5rem; justify-content: flex-end; padding: 1rem 1.5rem;">
+                    <button class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                        Annulla
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    },
+
+    // Imposta la modalità di ottimizzazione e continua
+    setOptimizeModeAndContinue(mode) {
+        this.optimizeMode = mode;
+        
+        // Chiudi il modal
+        const modal = document.getElementById('optimizeModeModal');
+        if (modal) modal.remove();
+        
+        // Continua con l'ottimizzazione
+        this.optimizeTransfers();
+        
+        // Reset della modalità dopo l'uso
+        setTimeout(() => {
+            this.optimizeMode = null;
+        }, 100);
     },
 
     // Esporta i trasferimenti in Excel (formato XLSX)

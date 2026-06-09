@@ -48,6 +48,7 @@ const ActualsManager = {
             paidBy: '',
             sharedBy: [], // Array di partecipanti che dividono la spesa
             splitEqually: true, // Se true, divide equamente tra sharedBy
+            isPaid: true, // true = già pagata, false = spesa futura
             notes: ''
         };
     },
