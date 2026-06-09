@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Nomi Partecipanti</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+        .description {
+            color: #64748b;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .section {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #1e293b;
+        }
+        .participant-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+        .participant-item.mismatch {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        .name-comparison {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .registry-name {
+            color: #10b981;
+            font-weight: 600;
+            padding: 8px 12px;
+            background: #d1fae5;
+            border-radius: 6px;
+        }
+        .scenario-name {
+            color: #ef4444;
+            font-weight: 600;
+            padding: 8px 12px;
+            background: #fee2e2;
+            border-radius: 6px;
+        }
+        .arrow {
+            color: #64748b;
+            font-size: 20px;
+        }
+        .locations {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button.secondary {
+            background: #64748b;
+        }
+        .success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Nomi Partecipanti</h1>
+        <p class="description">
+            Questo tool trova e corregge le discrepanze tra i nomi nell'anagrafica e quelli negli scenari/consuntivi.
+        </p>
+
+        <button onclick="analyze()">🔍 Analizza Discrepanze</button>
+        <button onclick="window.location.href='index.html'" class="secondary">← Torna all'App</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function analyze() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>🔍 Analisi in corso...</p>';
+
+            // Carica dati
+            const participants = JSON.parse(localStorage.getItem('participants_registry') || '[]');
+            const scenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+            const actuals = JSON.parse(localStorage.getItem('actuals') || '[]');
+
+            console.log('Partecipanti in anagrafica:', participants.map(p => p.name));
+
+            // Raccogli tutti i nomi unici negli scenari e consuntivi
+            const namesInData = new Set();
+            scenarios.forEach(s => {
+                if (s.participants) {
+                    s.participants.forEach(name => namesInData.add(name));
+                }
+            });
+            actuals.forEach(a => {
+                if (a.participants) {
+                    a.participants.forEach(name => namesInData.add(name));
+                }
+            });
+
+            console.log('Nomi negli scenari/consuntivi:', Array.from(namesInData));
+
+            // Trova discrepanze
+            const mismatches = [];
+            const registryNames = participants.map(p => p.name);
+
+            namesInData.forEach(dataName => {
+                // Cerca corrispondenza esatta (case-insensitive)
+                const exactMatch = registryNames.find(rName => 
+                    rName.toLowerCase() === dataName.toLowerCase()
+                );
+
+                if (!exactMatch) {
+                    // Cerca corrispondenza parziale (nome simile)
+                    const partialMatch = registryNames.find(rName => {
+                        const rLower = rName.toLowerCase();
+                        const dLower = dataName.toLowerCase();
+                        // Controlla se uno contiene l'altro o se sono molto simili
+                        return rLower.includes(dLower) || dLower.includes(rLower) ||
+                               levenshteinDistance(rLower, dLower) <= 3;
+                    });
+
+                    if (partialMatch) {
+                        // Trova dove appare questo nome
+                        const locations = [];
+                        scenarios.forEach(s => {
+                            if (s.participants && s.participants.includes(dataName)) {
+                                locations.push(`📊 ${s.name}`);
+                            }
+                        });
+                        actuals.forEach(a => {
+                            if (a.participants && a.participants.includes(dataName)) {
+                                locations.push(`💰 ${a.name}`);
+                            }
+                        });
+
+                        mismatches.push({
+                            dataName,
+                            registryName: partialMatch,
+                            locations
+                        });
+                    }
+                }
+            });
+
+            // Mostra risultati
+            let html = '';
+
+            if (mismatches.length === 0) {
+                html = '<div class="success"><strong>✅ Tutto OK!</strong><br>Non ci sono discrepanze tra anagrafica e scenari/consuntivi.</div>';
+            } else {
+                html = `
+                    <div class="warning">
+                        <strong>⚠️ Trovate ${mismatches.length} discrepanze</strong><br>
+                        I seguenti nomi negli scenari/consuntivi non corrispondono esattamente all'anagrafica:
+                    </div>
+                    <div class="section">
+                        <h3>Discrepanze Trovate:</h3>
+                `;
+
+                mismatches.forEach((m, idx) => {
+                    html += `
+                        <div class="participant-item mismatch">
+                            <div class="name-comparison">
+                                <div class="scenario-name">${m.dataName}</div>
+                                <div class="arrow">→</div>
+                                <div class="registry-name">${m.registryName}</div>
+                            </div>
+                            <div class="locations">
+                                Trovato in: ${m.locations.join(', ')}
+                            </div>
+                            <button onclick="fixName('${m.dataName.replace(/'/g, "\\'")}', '${m.registryName.replace(/'/g, "\\'")}')">
+                                ✅ Correggi in "${m.registryName}"
+                            </button>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        <button onclick="fixAll(${JSON.stringify(mismatches).replace(/"/g, '"')})">
+                            ✅ Correggi Tutte le Discrepanze
+                        </button>
+                    </div>
+                `;
+            }
+
+            results.innerHTML = html;
+        }
+
+        function fixName(oldName, newName) {
+            if (!confirm(`Vuoi sostituire "${oldName}" con "${newName}" in tutti gli scenari e consuntivi?`)) {
+                return;
+            }
+
+            const scenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+            const actuals = JSON.parse(localStorage.getItem('actuals') || '[]');
+            let count = 0;
+
+            scenarios.forEach(s => {
+                if (s.participants) {
+                    s.participants = s.participants.map(name => {
+                        if (name === oldName) {
+                            count++;
+                            return newName;
+                        }
+                        return name;
+                    });
+                }
+            });
+
+            actuals.forEach(a => {
+                if (a.participants) {
+                    a.participants = a.participants.map(name => {
+                        if (name === oldName) {
+                            count++;
+                            return newName;
+                        }
+                        return name;
+                    });
+                }
+            });
+
+            localStorage.setItem('scenarios', JSON.stringify(scenarios));
+            localStorage.setItem('actuals', JSON.stringify(actuals));
+
+            alert(`✅ Aggiornate ${count} occorrenze di "${oldName}" in "${newName}"`);
+            analyze(); // Rianalizza
+        }
+
+        function fixAll(mismatches) {
+            if (!confirm(`Vuoi correggere tutte le ${mismatches.length} discrepanze?`)) {
+                return;
+            }
+
+            const scenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+            const actuals = JSON.parse(localStorage.getItem('actuals') || '[]');
+            let totalCount = 0;
+
+            mismatches.forEach(m => {
+                scenarios.forEach(s => {
+                    if (s.participants) {
+                        s.participants = s.participants.map(name => {
+                            if (name === m.dataName) {
+                                totalCount++;
+                                return m.registryName;
+                            }
+                            return name;
+                        });
+                    }
+                });
+
+                actuals.forEach(a => {
+                    if (a.participants) {
+                        a.participants = a.participants.map(name => {
+                            if (name === m.dataName) {
+                                totalCount++;
+                                return m.registryName;
+                            }
+                            return name;
+                        });
+                    }
+                });
+            });
+
+            localStorage.setItem('scenarios', JSON.stringify(scenarios));
+            localStorage.setItem('actuals', JSON.stringify(actuals));
+
+            alert(`✅ Corrette ${totalCount} occorrenze in ${mismatches.length} nomi diversi!`);
+            analyze(); // Rianalizza
+        }
+
+        // Calcola la distanza di Levenshtein tra due stringhe
+        function levenshteinDistance(str1, str2) {
+            const matrix = [];
+
+            for (let i = 0; i <= str2.length; i++) {
+                matrix[i] = [i];
+            }
+
+            for (let j = 0; j <= str1.length; j++) {
+                matrix[0][j] = j;
+            }
+
+            for (let i = 1; i <= str2.length; i++) {
+                for (let j = 1; j <= str1.length; j++) {
+                    if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+
+            return matrix[str2.length][str1.length];
+        }
+    </script>
+</body>
+</html>

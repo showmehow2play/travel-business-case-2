@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Scenari - Business Case Viaggi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            margin: 10px 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .info {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        .success {
+            background: #d1fae5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ef4444;
+        }
+        #status {
+            margin-top: 20px;
+            min-height: 50px;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test Scenari - Business Case Viaggi</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Informazioni:</strong><br>
+            Questa pagina ti permette di testare il sistema degli scenari.<br>
+            Puoi creare scenari di esempio, visualizzarli, o cancellare tutti i dati.
+        </div>
+
+        <div>
+            <button class="btn btn-success" onclick="createTestScenarios()">
+                ✨ Crea Scenari di Test
+            </button>
+            <button class="btn btn-primary" onclick="showScenarios()">
+                📋 Mostra Scenari Salvati
+            </button>
+            <button class="btn btn-primary" onclick="openMainApp()">
+                🚀 Apri App Principale
+            </button>
+            <button class="btn btn-danger" onclick="clearAllData()">
+                🗑️ Cancella Tutti i Dati
+            </button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script src="js/scenarios.js"></script>
+    
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        function createTestScenarios() {
+            try {
+                // Scenario 1: Viaggio a Roma
+                const scenario1 = {
+                    name: "Weekend a Roma",
+                    destination: "Roma, Italia",
+                    startDate: "2026-06-15",
+                    endDate: "2026-06-17",
+                    participants: ["Mario Rossi", "Giulia Bianchi"],
+                    expenses: {
+                        transport: 180,
+                        accommodation: 240,
+                        food: 120,
+                        car: 0,
+                        activities: 80,
+                        other: 50
+                    },
+                    notes: "Weekend romantico nella capitale"
+                };
+
+                // Scenario 2: Viaggio a Parigi
+                const scenario2 = {
+                    name: "Settimana a Parigi",
+                    destination: "Parigi, Francia",
+                    startDate: "2026-07-10",
+                    endDate: "2026-07-17",
+                    participants: ["Anna Verdi", "Luca Neri", "Sofia Blu"],
+                    expenses: {
+                        transport: 450,
+                        accommodation: 840,
+                        food: 420,
+                        car: 200,
+                        activities: 300,
+                        other: 100
+                    },
+                    notes: "Viaggio culturale con amici"
+                };
+
+                // Scenario 3: Viaggio a Barcellona
+                const scenario3 = {
+                    name: "Barcellona Express",
+                    destination: "Barcellona, Spagna",
+                    startDate: "2026-08-20",
+                    endDate: "2026-08-24",
+                    participants: ["Marco Gialli", "Elena Rosa"],
+                    expenses: {
+                        transport: 320,
+                        accommodation: 400,
+                        food: 200,
+                        car: 150,
+                        activities: 180,
+                        other: 80
+                    },
+                    notes: "Viaggio di coppia al mare"
+                };
+
+                // Salva gli scenari
+                const saved1 = StorageManager.addScenario(scenario1);
+                const saved2 = StorageManager.addScenario(scenario2);
+                const saved3 = StorageManager.addScenario(scenario3);
+
+                if (saved1 && saved2 && saved3) {
+                    showStatus(`
+                        <strong>✅ Successo!</strong><br>
+                        Creati 3 scenari di test:<br>
+                        • ${scenario1.name} (${ScenarioManager.formatCurrency(ScenarioManager.calculateTotal(scenario1.expenses))})<br>
+                        • ${scenario2.name} (${ScenarioManager.formatCurrency(ScenarioManager.calculateTotal(scenario2.expenses))})<br>
+                        • ${scenario3.name} (${ScenarioManager.formatCurrency(ScenarioManager.calculateTotal(scenario3.expenses))})<br><br>
+                        Ora puoi aprire l'app principale per visualizzarli e modificarli.
+                    `, 'success');
+                } else {
+                    showStatus('❌ Errore nel salvataggio degli scenari', 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        function showScenarios() {
+            try {
+                const scenarios = StorageManager.getScenarios();
+                
+                if (scenarios.length === 0) {
+                    showStatus('📭 Nessuno scenario trovato. Crea prima alcuni scenari di test.', 'info');
+                    return;
+                }
+
+                let html = `<strong>📋 Scenari Salvati (${scenarios.length}):</strong><br><br>`;
+                
+                scenarios.forEach((scenario, index) => {
+                    const total = ScenarioManager.calculateTotal(scenario.expenses);
+                    const participants = scenario.participants ? scenario.participants.length : 0;
+                    
+                    html += `
+                        <strong>${index + 1}. ${scenario.name}</strong><br>
+                        📍 ${scenario.destination}<br>
+                        👥 ${participants} partecipanti<br>
+                        💰 ${ScenarioManager.formatCurrency(total)}<br>
+                        📅 ${scenario.startDate ? ScenarioManager.formatDate(scenario.startDate) : 'Data non specificata'}<br><br>
+                    `;
+                });
+
+                html += '<pre>' + JSON.stringify(scenarios, null, 2) + '</pre>';
+                
+                showStatus(html, 'success');
+            } catch (error) {
+                showStatus(`❌ Errore nel caricamento: ${error.message}`, 'error');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Sei sicuro di voler cancellare tutti i dati? Questa operazione non può essere annullata.')) {
+                try {
+                    StorageManager.clearAll();
+                    showStatus('🗑️ Tutti i dati sono stati cancellati.', 'success');
+                } catch (error) {
+                    showStatus(`❌ Errore nella cancellazione: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        function openMainApp() {
+            window.open('index.html', '_blank');
+        }
+
+        // Mostra lo stato iniziale
+        document.addEventListener('DOMContentLoaded', () => {
+            const scenarios = StorageManager.getScenarios();
+            showStatus(`
+                <strong>🔍 Stato Attuale:</strong><br>
+                Scenari salvati: ${scenarios.length}<br>
+                Storage funzionante: ${StorageManager.getData() ? '✅' : '❌'}
+            `, 'info');
+        });
+    </script>
+</body>
+</html>

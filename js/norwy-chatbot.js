@@ -823,11 +823,14 @@ const NorwyChatbot = {
             // Prova prima con StorageManager se disponibile
             if (typeof StorageManager !== 'undefined') {
                 const scenarios = await StorageManager.getScenarios();
+                console.log('🔍 Norwy getScenarios - StorageManager data:', scenarios);
                 if (scenarios) {
+                    console.log('🔍 Norwy getScenarios - found:', scenarios.length, 'items');
                     return scenarios;
                 }
             }
             
+            console.log('🔍 Norwy getScenarios - no data found');
             return [];
         } catch (e) {
             console.error('❌ Norwy getScenarios error:', e);
@@ -841,7 +844,9 @@ const NorwyChatbot = {
             // Prova prima con StorageManager se disponibile
             if (typeof StorageManager !== 'undefined') {
                 const actuals = await StorageManager.getActuals();
+                console.log('🔍 Norwy getActuals - StorageManager data:', actuals);
                 if (actuals) {
+                    console.log('🔍 Norwy getActuals - found:', actuals.length, 'items');
                     return actuals;
                 }
             }
@@ -849,9 +854,11 @@ const NorwyChatbot = {
             // Fallback: prova chiave diretta 'actuals'
             const directData = localStorage.getItem('actuals');
             if (directData) {
+                console.log('🔍 Norwy getActuals - direct key found');
                 return JSON.parse(directData);
             }
             
+            console.log('🔍 Norwy getActuals - no data found');
             return [];
         } catch (e) {
             console.error('❌ Norwy getActuals error:', e);

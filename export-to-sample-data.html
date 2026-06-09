@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esporta Dati Locali → sample-data.js</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 3rem;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .info-box p {
+            color: #555;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1.5rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            display: none;
+        }
+
+        .output.show {
+            display: block;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .steps {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .steps h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .steps ol {
+            margin-left: 1.5rem;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .steps code {
+            background: #e9ecef;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Esporta Dati Locali → sample-data.js</h1>
+        <p class="description">
+            Questo strumento esporta i tuoi dati salvati nel localStorage locale in un formato compatibile 
+            con <code>sample-data.js</code>, così potrai includerli nell'app pubblicata su GitHub.
+        </p>
+
+        <div class="info-box">
+            <h3>ℹ️ Come Funziona</h3>
+            <p>
+                I tuoi dati sono salvati nel <strong>localStorage</strong> del browser. Questo tool li legge 
+                e genera il codice JavaScript da copiare nel file <code>js/sample-data.js</code>.
+            </p>
+        </div>
+
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="scenariosCount">0</div>
+                <div class="stat-label">Scenari</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="actualsCount">0</div>
+                <div class="stat-label">Consuntivi</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="participantsCount">0</div>
+                <div class="stat-label">Partecipanti</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="exportData()">
+            📤 Genera Codice per sample-data.js
+        </button>
+
+        <button class="btn btn-secondary" onclick="copyToClipboard()">
+            📋 Copia negli Appunti
+        </button>
+
+        <div class="success" id="successMessage">
+            ✅ Codice copiato negli appunti! Ora incollalo nel file <code>js/sample-data.js</code>
+        </div>
+
+        <div class="output" id="output"></div>
+
+        <div class="steps">
+            <h3>📝 Prossimi Passi</h3>
+            <ol>
+                <li>Clicca su <strong>"Genera Codice"</strong> per creare il codice JavaScript</li>
+                <li>Clicca su <strong>"Copia negli Appunti"</strong> per copiare il codice</li>
+                <li>Apri il file <code>js/sample-data.js</code> nel tuo editor</li>
+                <li>Sostituisci tutto il contenuto con il codice copiato</li>
+                <li>Salva il file</li>
+                <li>Pubblica su GitHub - i tuoi dati saranno inclusi! 🚀</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let generatedCode = '';
+
+        // Carica le statistiche all'avvio
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+        });
+
+        function loadStats() {
+            try {
+                // Leggi i dati dal localStorage
+                const data = JSON.parse(localStorage.getItem('travelBusinessCase') || '{"scenarios":[],"actuals":[]}');
+                const participants = JSON.parse(localStorage.getItem('participants_registry') || '[]');
+
+                // Aggiorna le statistiche
+                document.getElementById('scenariosCount').textContent = data.scenarios?.length || 0;
+                document.getElementById('actualsCount').textContent = data.actuals?.length || 0;
+                document.getElementById('participantsCount').textContent = participants?.length || 0;
+            } catch (error) {
+                console.error('Errore nel caricamento delle statistiche:', error);
+            }
+        }
+
+        function exportData() {
+            try {
+                // Leggi i dati dal localStorage
+                const data = JSON.parse(localStorage.getItem('travelBusinessCase') || '{"scenarios":[],"actuals":[]}');
+                const participants = JSON.parse(localStorage.getItem('participants_registry') || '[]');
+
+                // Genera il codice JavaScript
+                generatedCode = `// ===== Sample Data =====
+// Dati di esempio per la demo dell'applicazione
+// Generato automaticamente da export-to-sample-data.html
+
+const SampleData = ${JSON.stringify({
+    scenarios: data.scenarios || [],
+    actuals: data.actuals || [],
+    participants: participants || []
+}, null, 4)};
+`;
+
+                // Mostra il codice
+                const output = document.getElementById('output');
+                output.textContent = generatedCode;
+                output.classList.add('show');
+
+                // Scroll al codice
+                output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            } catch (error) {
+                alert('Errore nell\'esportazione dei dati: ' + error.message);
+                console.error('Errore:', error);
+            }
+        }
+
+        function copyToClipboard() {
+            if (!generatedCode) {
+                alert('Prima genera il codice cliccando su "Genera Codice"');
+                return;
+            }
+
+            // Copia negli appunti
+            navigator.clipboard.writeText(generatedCode).then(() => {
+                // Mostra messaggio di successo
+                const successMessage = document.getElementById('successMessage');
+                successMessage.classList.add('show');
+
+                // Nascondi dopo 5 secondi
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                }, 5000);
+            }).catch(err => {
+                // Fallback per browser più vecchi
+                const textarea = document.createElement('textarea');
+                textarea.value = generatedCode;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.classList.add('show');
+                    setTimeout(() => {
+                        successMessage.classList.remove('show');
+                    }, 5000);
+                } catch (err) {
+                    alert('Errore nella copia: ' + err.message);
+                }
+                
+                document.body.removeChild(textarea);
+            });
+        }
+    </script>
+</body>
+</html>

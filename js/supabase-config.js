@@ -27,6 +27,7 @@ if (isConfigured) {
         );
         
         isSupabaseEnabled = true;
+        console.log('✅ Supabase inizializzato con successo');
         
         // Test connessione
         supabaseClient
@@ -38,6 +39,7 @@ if (isConfigured) {
                     console.warn('⚠️ Errore connessione Supabase:', error.message);
                     isSupabaseEnabled = false;
                 } else {
+                    console.log('✅ Connesso a Supabase');
                 }
             });
             

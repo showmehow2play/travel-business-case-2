@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnosi Problema Partecipanti</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .test { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; }
+        h2 { color: #333; }
+        .participants-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnosi Problema Visualizzazione Partecipanti</h1>
+    
+    <div class="test">
+        <h2>Test 1: HTML Diretto (senza JavaScript)</h2>
+        <div class="participants-list">
+            <div style="background: linear-gradient(135deg, #0066FF, #6366F1); color: white; padding: 0.5rem 0.75rem; border-radius: 50px; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600;">
+                <span>Test Partecipante</span>
+                <button style="background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.5); color: white; width: 1.5rem; height: 1.5rem; border-radius: 50%; cursor: pointer;">×</button>
+            </div>
+        </div>
+        <p>✅ Se vedi il tag blu sopra, Safari può renderizzare i tag</p>
+    </div>
+    
+    <div class="test">
+        <h2>Test 2: Stesso HTML dell'App</h2>
+        <div id="testList" class="participants-list" style="display: none;"></div>
+        <button onclick="runTest()" style="padding: 10px 20px; background: #0066FF; color: white; border: none; border-radius: 8px; cursor: pointer;">
+            Esegui Test (simula app)
+        </button>
+        <div id="result" style="margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 4px; font-family: monospace; font-size: 0.9rem;"></div>
+    </div>
+    
+    <div class="test">
+        <h2>Test 3: Ispeziona Elemento</h2>
+        <p>Apri gli Strumenti Sviluppatore (Cmd+Option+I) e ispeziona il box grigio vuoto nell'app principale.</p>
+        <p>Cerca l'elemento con id="participantsList" e verifica:</p>
+        <ul>
+            <li>Ha dei children (div.participant-tag)?</li>
+            <li>Qual è il suo display computed?</li>
+            <li>Ci sono errori nella console?</li>
+            <li>I children hanno dimensioni (width/height > 0)?</li>
+        </ul>
+    </div>
+    
+    <script>
+        function log(msg) {
+            document.getElementById('result').innerHTML += msg + '<br>';
+            console.log(msg);
+        }
+        
+        function runTest() {
+            log('=== INIZIO TEST ===');
+            const list = document.getElementById('testList');
+            const participants = ['Mario Rossi', 'Luigi Verdi'];
+            
+            log('1. Generazione HTML...');
+            list.innerHTML = participants.map(p => `
+                <div style="background: linear-gradient(135deg, #0066FF, #6366F1); color: white; padding: 0.5rem 0.75rem; border-radius: 50px; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; margin: 0.25rem; min-width: 100px; min-height: 35px;">
+                    <span style="color: white;">${p}</span>
+                    <button style="background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.5); color: white; width: 1.5rem; height: 1.5rem; border-radius: 50%; cursor: pointer;">×</button>
+                </div>
+            `).join('');
+            
+            log('2. innerHTML length: ' + list.innerHTML.length);
+            log('3. children count: ' + list.children.length);
+            
+            log('4. Rimozione style attribute...');
+            list.removeAttribute('style');
+            list.style.display = 'grid';
+            
+            log('5. Computed display: ' + window.getComputedStyle(list).display);
+            log('6. Computed visibility: ' + window.getComputedStyle(list).visibility);
+            log('7. Computed opacity: ' + window.getComputedStyle(list).opacity);
+            
+            if (list.children.length > 0) {
+                const firstChild = list.children[0];
+                const rect = firstChild.getBoundingClientRect();
+                log('8. Primo child dimensions: ' + rect.width + 'x' + rect.height);
+                log('9. Primo child display: ' + window.getComputedStyle(firstChild).display);
+            }
+            
+            log('=== TEST COMPLETATO ===');
+            log('Se vedi i tag sopra, il codice funziona!');
+        }
+    </script>
+</body>
+</html>

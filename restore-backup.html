@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ripristina Backup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Ripristina Backup Dati</h1>
+        
+        <div class="info">
+            <strong>Informazioni:</strong><br>
+            Questa pagina ti permette di ripristinare i dati dal backup automatico o visualizzare i dati correnti.
+        </div>
+
+        <div>
+            <button onclick="showCurrentData()">📊 Mostra Dati Correnti</button>
+            <button onclick="showBackupData()">💾 Mostra Backup</button>
+            <button onclick="restoreFromBackup()">🔄 Ripristina dal Backup</button>
+            <button onclick="clearAllData()" class="danger">🗑️ Cancella Tutti i Dati</button>
+        </div>
+
+        <div id="output"></div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script>
+        function showCurrentData() {
+            const data = StorageManager.getData();
+            const output = document.getElementById('output');
+            
+            if (data) {
+                output.innerHTML = `
+                    <div class="success">
+                        <strong>Dati Correnti:</strong><br>
+                        Scenari: ${data.scenarios ? data.scenarios.length : 0}<br>
+                        Consuntivi: ${data.actuals ? data.actuals.length : 0}
+                    </div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } else {
+                output.innerHTML = '<div class="error">Nessun dato trovato!</div>';
+            }
+        }
+
+        function showBackupData() {
+            try {
+                const backup = localStorage.getItem('travelBusinessCase_backup');
+                const output = document.getElementById('output');
+                
+                if (backup) {
+                    const data = JSON.parse(backup);
+                    output.innerHTML = `
+                        <div class="success">
+                            <strong>Backup Disponibile:</strong><br>
+                            Data Backup: ${data.backupDate || 'Non disponibile'}<br>
+                            Scenari: ${data.scenarios ? data.scenarios.length : 0}<br>
+                            Consuntivi: ${data.actuals ? data.actuals.length : 0}
+                        </div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    output.innerHTML = '<div class="error">Nessun backup trovato!</div>';
+                }
+            } catch (error) {
+                document.getElementById('output').innerHTML = 
+                    `<div class="error">Errore nel caricamento del backup: ${error.message}</div>`;
+            }
+        }
+
+        function restoreFromBackup() {
+            if (confirm('Sei sicuro di voler ripristinare i dati dal backup? I dati correnti verranno sovrascritti.')) {
+                const success = StorageManager.restoreBackup();
+                const output = document.getElementById('output');
+                
+                if (success) {
+                    output.innerHTML = '<div class="success">✅ Backup ripristinato con successo!</div>';
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                } else {
+                    output.innerHTML = '<div class="error">❌ Errore nel ripristino del backup!</div>';
+                }
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('ATTENZIONE: Questa operazione cancellerà TUTTI i dati incluso il backup. Sei sicuro?')) {
+                if (confirm('Sei VERAMENTE sicuro? Questa operazione è irreversibile!')) {
+                    StorageManager.clearAll();
+                    document.getElementById('output').innerHTML = 
+                        '<div class="success">✅ Tutti i dati sono stati cancellati.</div>';
+                }
+            }
+        }
+
+        // Mostra i dati correnti all'avvio
+        window.onload = showCurrentData;
+    </script>
+</body>
+</html>

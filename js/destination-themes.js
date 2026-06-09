@@ -255,6 +255,7 @@ class DestinationThemes {
             return this.dynamicThemes[cacheKey];
         }
 
+        console.log(`🌍 Generazione tema automatico per: ${destination}`);
 
         // Estrai paese e città
         const parts = destination.split(',').map(p => p.trim());
@@ -372,6 +373,7 @@ class DestinationThemes {
                 return url;
             }
         } catch (error) {
+            console.log('⚠️ Impossibile caricare immagine Unsplash:', error);
         }
 
         // Fallback: immagine generica viaggio
@@ -387,6 +389,7 @@ class DestinationThemes {
             saved[key] = theme;
             localStorage.setItem('dynamic_themes', JSON.stringify(saved));
         } catch (error) {
+            console.log('⚠️ Impossibile salvare tema:', error);
         }
     }
 
@@ -397,7 +400,9 @@ class DestinationThemes {
         try {
             const saved = JSON.parse(localStorage.getItem('dynamic_themes') || '{}');
             this.dynamicThemes = saved;
+            console.log(`✅ Caricati ${Object.keys(saved).length} temi dinamici dalla cache`);
         } catch (error) {
+            console.log('⚠️ Impossibile caricare temi salvati:', error);
         }
         return null;
     }

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fix Altre Spese</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .result {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .error {
+            border-left-color: #f44336;
+        }
+        h1 { color: #333; }
+        h2 { color: #666; }
+        code {
+            background: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Fix Calcolo Costo per Partecipante</h1>
+    
+    <div class="test-section">
+        <h2>Problema Risolto</h2>
+        <p>Il calcolo del costo per partecipante nella pagina dei preventivi non era corretto quando si salvavano "altre spese".</p>
+        
+        <h3>Causa del problema:</h3>
+        <ul>
+            <li>La funzione <code>calculateOtherTotal()</code> contava solo le spese con checkbox selezionato</li>
+            <li>Quando l'utente inseriva un prezzo senza selezionare il checkbox, la spesa non veniva inclusa nel totale</li>
+            <li>Questo causava un calcolo errato del costo per partecipante</li>
+        </ul>
+        
+        <h3>Soluzione implementata:</h3>
+        <ul>
+            <li>✅ Auto-selezione del checkbox quando si inserisce un prezzo o un nome</li>
+            <li>✅ Applicato sia alle "Altre spese" che alle opzioni "Auto"</li>
+            <li>✅ Il calcolo del totale ora include automaticamente tutte le spese inserite</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Come testare:</h2>
+        <ol>
+            <li>Apri la pagina principale dell'applicazione</li>
+            <li>Vai alla sezione "Preventivi"</li>
+            <li>Crea un nuovo preventivo o modifica uno esistente</li>
+            <li>Aggiungi alcuni partecipanti</li>
+            <li>Nella sezione "Altre spese", inserisci un prezzo (es. 100€) senza selezionare il checkbox</li>
+            <li>Verifica che:
+                <ul>
+                    <li>Il checkbox si seleziona automaticamente</li>
+                    <li>Il totale in basso si aggiorna correttamente</li>
+                    <li>Il costo per partecipante viene calcolato includendo la spesa</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>File modificati:</h2>
+        <div class="result">
+            <strong>travel-business-case/js/app.js</strong>
+            <ul>
+                <li>Aggiunta logica di auto-selezione checkbox per opzioni "Auto" (linee ~264-290)</li>
+                <li>Aggiunta logica di auto-selezione checkbox per "Altre spese" (linee ~273-304)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Comportamento atteso:</h2>
+        <div class="result">
+            <strong>Prima del fix:</strong>
+            <ul>
+                <li>❌ Inserendo 100€ in "Altre spese" senza selezionare il checkbox → totale non aggiornato</li>
+                <li>❌ Costo per partecipante calcolato senza includere le 100€</li>
+            </ul>
+        </div>
+        <div class="result">
+            <strong>Dopo il fix:</strong>
+            <ul>
+                <li>✅ Inserendo 100€ in "Altre spese" → checkbox selezionato automaticamente</li>
+                <li>✅ Totale aggiornato immediatamente includendo le 100€</li>
+                <li>✅ Costo per partecipante calcolato correttamente</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Esempio di calcolo:</h2>
+        <div class="result">
+            <strong>Scenario:</strong>
+            <ul>
+                <li>Partecipanti: 4 persone</li>
+                <li>Trasporto: 400€</li>
+                <li>Alloggio: 600€</li>
+                <li>Vitto: 200€</li>
+                <li>Altre spese: 100€ (inserita senza selezionare checkbox)</li>
+            </ul>
+            <strong>Risultato atteso:</strong>
+            <ul>
+                <li>Totale: 1.300€</li>
+                <li>Costo per partecipante: 325€</li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; color: #666;">
+        <p>✨ Fix implementato con successo!</p>
+        <p><a href="index.html" style="color: #4CAF50; text-decoration: none; font-weight: bold;">← Torna all'applicazione</a></p>
+    </div>
+</body>
+</html>

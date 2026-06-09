@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Conversione Valute - UI Consuntivi</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .test-info h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto max-w-6xl">
+        <h1 class="text-3xl font-bold mb-6">🧪 Test Conversione Valute - UI Consuntivi</h1>
+        
+        <div class="test-info">
+            <h3>📋 Istruzioni per il Test</h3>
+            <ol class="list-decimal ml-5 space-y-2">
+                <li>Aggiungi un partecipante (es. "Mario Rossi")</li>
+                <li>Clicca su "Aggiungi Spesa"</li>
+                <li>Inserisci una descrizione (es. "Cena a Oslo")</li>
+                <li>Inserisci un importo (es. 500)</li>
+                <li><strong>Cambia la valuta da EUR a NOK</strong></li>
+                <li>Verifica che appaia: <code>≈ €XX.XX EUR (tasso: X.XXXX)</code></li>
+                <li>Verifica che il "Costo per persona" sia in EUR (€)</li>
+            </ol>
+        </div>
+
+        <!-- Sezione Partecipanti -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-2xl font-bold mb-4">👥 Partecipanti</h2>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="newActualParticipant" placeholder="Nome partecipante" 
+                       class="flex-1 px-4 py-2 border rounded-lg">
+                <button id="addActualParticipantBtn" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                    Aggiungi
+                </button>
+            </div>
+            <div id="actualParticipantsList" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- Sezione Spese -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">💰 Spese</h2>
+                <div class="flex gap-2">
+                    <button id="addExpenseBtn" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">
+                        ➕ Aggiungi Spesa
+                    </button>
+                    <button id="updateExchangeRatesActualBtn" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">
+                        🔄 Aggiorna Cambi
+                    </button>
+                </div>
+            </div>
+            <div id="expensesActualList"></div>
+            
+            <!-- Totali -->
+            <div class="mt-6 pt-6 border-t-2 border-gray-200">
+                <div class="flex justify-between items-center text-xl font-bold">
+                    <span>Totale Spese:</span>
+                    <span id="actualTotalAmount" class="text-purple-600">€0.00</span>
+                </div>
+                <div class="flex justify-between items-center text-lg mt-2">
+                    <span>Costo per Partecipante:</span>
+                    <span id="actualCostPerPerson" class="text-blue-600">€0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log di Debug -->
+        <div class="bg-gray-800 text-green-400 rounded-lg p-4 mt-6 font-mono text-sm" style="max-height: 300px; overflow-y: auto;">
+            <div class="font-bold mb-2">🔍 Console Log:</div>
+            <div id="debugLog"></div>
+        </div>
+    </div>
+
+    <!-- Hidden field for destination -->
+    <input type="hidden" id="actualDestination" value="Norvegia">
+
+    <script src="js/currencies.js"></script>
+    <script src="js/actuals.js"></script>
+    <script src="js/actuals-ui.js"></script>
+    <script>
+        // Override console.log per mostrarlo nella pagina
+        const debugLog = document.getElementById('debugLog');
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            debugLog.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+            debugLog.scrollTop = debugLog.scrollHeight;
+        };
+
+        // Inizializza
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Inizializzazione test...');
+            
+            // Inizializza CurrenciesManager
+            CurrenciesManager.init();
+            console.log('✅ CurrenciesManager inizializzato');
+            
+            // Inizializza ActualsUI
+            ActualsUI.init();
+            console.log('✅ ActualsUI inizializzato');
+            
+            // Mostra valute disponibili
+            const currencies = CurrenciesManager.getCurrencies();
+            console.log(`📊 Valute disponibili: ${currencies.length}`);
+            currencies.forEach(c => {
+                console.log(`  - ${c.code}: ${c.name} (tasso: ${c.exchangeRate})`);
+            });
+        });
+
+        // Helper per mostrare toast
+        function showToast(message, type) {
+            console.log(`📢 Toast [${type}]: ${message}`);
+            alert(message);
+        }
+    </script>
+</body>
+</html>

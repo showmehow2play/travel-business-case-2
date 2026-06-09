@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Sincronizzazione Pagamenti</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 2rem;
+            background: #f5f5f5;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background: white;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            font-size: 1rem;
+        }
+        button:hover { background: #0056b3; }
+        .log {
+            background: #f8f9fa;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+        }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+        .info { color: #007bff; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Sincronizzazione Pagamenti</h1>
+    
+    <div class="section">
+        <h2>1️⃣ Verifica Configurazione</h2>
+        <button onclick="checkConfig()">Verifica Config</button>
+        <div id="configLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>2️⃣ Test Connessione Supabase</h2>
+        <button onclick="testConnection()">Test Connessione</button>
+        <div id="connectionLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>3️⃣ Verifica Dati Locali</h2>
+        <button onclick="checkLocalData()">Verifica localStorage</button>
+        <div id="localLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>4️⃣ Verifica Dati su Supabase</h2>
+        <button onclick="checkSupabaseData()">Verifica Supabase</button>
+        <div id="supabaseLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>5️⃣ Test Salvataggio Pagamento</h2>
+        <button onclick="testSavePayment()">Simula Salvataggio</button>
+        <div id="saveLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>6️⃣ Test Sincronizzazione</h2>
+        <button onclick="testSync()">Test Sync Completo</button>
+        <div id="syncLog" class="log"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-storage.js"></script>
+    <script src="js/storage.js"></script>
+
+    <script>
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            element.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+        }
+
+        function checkConfig() {
+            const logId = 'configLog';
+            document.getElementById(logId).innerHTML = '';
+            
+            log(logId, '🔍 Verifica configurazione...', 'info');
+            log(logId, `Supabase URL: ${window.supabaseClient ? '✅ Configurato' : '❌ Non configurato'}`, 
+                window.supabaseClient ? 'success' : 'error');
+            log(logId, `isSupabaseEnabled: ${window.isSupabaseEnabled}`, 
+                window.isSupabaseEnabled ? 'success' : 'error');
+            log(logId, `SupabaseStorage disponibile: ${typeof SupabaseStorage !== 'undefined'}`, 
+                typeof SupabaseStorage !== 'undefined' ? 'success' : 'error');
+            log(logId, `StorageManager disponibile: ${typeof StorageManager !== 'undefined'}`, 
+                typeof StorageManager !== 'undefined' ? 'success' : 'error');
+        }
+
+        async function testConnection() {
+            const logId = 'connectionLog';
+            document.getElementById(logId).innerHTML = '';
+            
+            log(logId, '🔌 Test connessione a Supabase...', 'info');
+            
+            if (!window.supabaseClient) {
+                log(logId, '❌ Supabase non configurato', 'error');
+                return;
+            }
+
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('actuals')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    log(logId, `❌ Errore: ${error.message}`, 'error');
+                } else {
+                    log(logId, '✅ Connessione riuscita!', 'success');
+                    log(logId, `Risposta: ${JSON.stringify(data)}`, 'info');
+                }
+            } catch (error) {
+                log(logId, `❌ Eccezione: ${error.message}`, 'error');
+            }
+        }
+
+        function checkLocalData() {
+            const logId = 'localLog';
+            document.getElementById(logId).innerHTML = '';
+            
+            log(logId, '💾 Verifica dati localStorage...', 'info');
+            
+            try {
+                const data = localStorage.getItem('travelBusinessCase');
+                if (!data) {
+                    log(logId, '⚠️ Nessun dato in localStorage', 'warning');
+                    return;
+                }
+
+                const parsed = JSON.parse(data);
+                log(logId, `✅ Dati trovati`, 'success');
+                log(logId, `Scenari: ${parsed.scenarios?.length || 0}`, 'info');
+                log(logId, `Consuntivi: ${parsed.actuals?.length || 0}`, 'info');
+                
+                if (parsed.actuals && parsed.actuals.length > 0) {
+                    const actual = parsed.actuals[0];
+                    log(logId, `\nPrimo consuntivo: ${actual.name}`, 'info');
+                    log(logId, `ID: ${actual.id}`, 'info');
+                    log(logId, `Pagamenti: ${actual.payments?.length || 0}`, 'info');
+                    
+                    if (actual.payments && actual.payments.length > 0) {
+                        log(logId, '\nUltimi pagamenti:', 'info');
+                        actual.payments.slice(-3).forEach(p => {
+                            log(logId, `  ${p.from} → ${p.to}: €${p.amount} (${p.confirmed ? '✓' : '⏳'})`, 'info');
+                        });
+                    }
+                }
+            } catch (error) {
+                log(logId, `❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkSupabaseData() {
+            const logId = 'supabaseLog';
+            document.getElementById(logId).innerHTML = '';
+            
+            log(logId, '☁️ Verifica dati su Supabase...', 'info');
+            
+            if (!window.supabaseClient) {
+                log(logId, '❌ Supabase non configurato', 'error');
+                return;
+            }
+
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('actuals')
+                    .select('*');
+
+                if (error) {
+                    log(logId, `❌ Errore: ${error.message}`, 'error');
+                    return;
+                }
+
+                log(logId, `✅ Consuntivi su Supabase: ${data.length}`, 'success');
+                
+                if (data.length > 0) {
+                    const actual = data[0].data;
+                    log(logId, `\nPrimo consuntivo: ${actual.name}`, 'info');
+                    log(logId, `ID: ${actual.id}`, 'info');
+                    log(logId, `Pagamenti: ${actual.payments?.length || 0}`, 'info');
+                    log(logId, `Ultimo aggiornamento: ${data[0].updated_at}`, 'info');
+                    
+                    if (actual.payments && actual.payments.length > 0) {
+                        log(logId, '\nUltimi pagamenti:', 'info');
+                        actual.payments.slice(-3).forEach(p => {
+                            log(logId, `  ${p.from} → ${p.to}: €${p.amount} (${p.confirmed ? '✓' : '⏳'})`, 'info');
+                        });
+                    }
+                }
+            } catch (error) {
+                log(logId, `❌ Eccezione: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSavePayment() {
+            const logId = 'saveLog';
+            document.getElementById(logId).innerHTML = '';
+            
+            log(logId, '💾 Test salvataggio pagamento...', 'info');
+            
+            try {
+                // Recupera il primo consuntivo
+                const data = localStorage.getItem('travelBusinessCase');
+                if (!data) {
+                    log(logId, '❌ Nessun consuntivo disponibile', 'error');
+                    return;
+                }
+
+                const parsed = JSON.parse(data);
+                if (!parsed.actuals || parsed.actuals.length === 0) {
+                    log(logId, '❌ Nessun consuntivo disponibile', 'error');
+                    return;
+                }
+
+                const actual = parsed.actuals[0];
+                log(logId, `Consuntivo: ${actual.name}`, 'info');
+                
+                // Crea un pagamento di test
+                const testPayment = {
+                    id: 'test-' + Date.now(),
+                    from: actual.participants[0],
+                    to: actual.participants[1],
+                    amount: 100,
+                    date: new Date().toISOString().split('T')[0],
+                    notes: 'Test pagamento debug',
+                    confirmed: true,
+                    createdAt: new Date().toISOString(),
+                    confirmedAt: new Date().toISOString()
+                };
+
+                log(logId, `Pagamento test: ${testPayment.from} → ${testPayment.to} €${testPayment.amount}`, 'info');
+                
+                // Aggiungi il pagamento
+                if (!actual.payments) actual.payments = [];
+                actual.payments.push(testPayment);
+                
+                // Salva in localStorage
+                parsed.actuals[0] = actual;
+                localStorage.setItem('travelBusinessCase', JSON.stringify(parsed));
+                log(logId, '✅ Salvato in localStorage', 'success');
+                
+                // Salva su Supabase
+                if (window.SupabaseStorage && window.SupabaseStorage.isAvailable()) {
+                    log(logId, '☁️ Salvataggio su Supabase...', 'info');
+                    await window.SupabaseStorage.saveActual(actual);
+                    log(logId, '✅ Salvato su Supabase', 'success');
+                } else {
+                    log(logId, '⚠️ Supabase non disponibile', 'warning');
+                }
+                
+            } catch (error) {
+                log(logId, `❌ Errore: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function testSync() {
+            const logId = 'syncLog';
+            document.getElementById(logId).innerHTML = '';
+            
+            log(logId, '🔄 Test sincronizzazione completa...', 'info');
+            
+            if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
+                log(logId, '❌ Supabase non disponibile', 'error');
+                return;
+            }
+
+            try {
+                // Test sync FROM Supabase
+                log(logId, '📥 Scaricamento da Supabase...', 'info');
+                const synced = await window.SupabaseStorage.syncFromSupabase();
+                if (synced) {
+                    log(logId, '✅ Dati scaricati da Supabase', 'success');
+                } else {
+                    log(logId, '❌ Errore scaricamento', 'error');
+                }
+
+                // Test sync TO Supabase
+                log(logId, '📤 Caricamento su Supabase...', 'info');
+                const uploaded = await window.SupabaseStorage.syncToSupabase();
+                if (uploaded) {
+                    log(logId, '✅ Dati caricati su Supabase', 'success');
+                } else {
+                    log(logId, '❌ Errore caricamento', 'error');
+                }
+
+                log(logId, '\n✅ Test completato!', 'success');
+                
+            } catch (error) {
+                log(logId, `❌ Errore: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        // Auto-run al caricamento
+        window.addEventListener('load', () => {
+            checkConfig();
+        });
+    </script>
+</body>
+</html>

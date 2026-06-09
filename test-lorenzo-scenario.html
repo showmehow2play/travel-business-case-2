@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Scenario Lorenzo - Travel Business Case</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem;
+            background: #f5f5f5;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .test-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 0.5rem;
+        }
+        .result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #007bff; }
+        .warning { color: #ffc107; font-weight: bold; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0.25rem;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.run-all {
+            background: #28a745;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+        }
+        button.run-all:hover {
+            background: #218838;
+        }
+        .transfer-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+        .transfer-list li {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Scenario Lorenzo → Ilaria</h1>
+        <p><strong>Obiettivo:</strong> Verificare che quando Lorenzo paga €423.01 a Ilaria (invece che a Davide come suggerito), il sistema:</p>
+        <ul>
+            <li>✅ Riduca il debito di Lorenzo da €423.01 a €0</li>
+            <li>✅ Aumenti il credito di Ilaria di €423.01</li>
+            <li>✅ Riduca il credito di Davide di €423.01</li>
+            <li>✅ Proponga che qualcun altro paghi €423.01 a Davide</li>
+        </ul>
+        <button class="run-all" onclick="runCompleteTest()">▶️ Esegui Test Completo</button>
+    </div>
+
+    <div class="test-container">
+        <div class="test-section">
+            <h3>📊 Fase 1: Situazione Iniziale</h3>
+            <p>Simula la situazione prima del pagamento di Lorenzo</p>
+            <button onclick="phase1()">▶️ Esegui Fase 1</button>
+            <div id="phase1Result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>💳 Fase 2: Pagamento Custom (Lorenzo → Ilaria €423.01)</h3>
+            <p>Lorenzo paga a Ilaria invece che a Davide</p>
+            <button onclick="phase2()">▶️ Esegui Fase 2</button>
+            <div id="phase2Result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Fase 3: Verifica Bilanci Aggiornati</h3>
+            <p>Controlla che i bilanci siano corretti dopo il pagamento</p>
+            <button onclick="phase3()">▶️ Esegui Fase 3</button>
+            <div id="phase3Result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>⚡ Fase 4: Ottimizzazione Trasferimenti</h3>
+            <p>Verifica che i trasferimenti ottimizzati siano corretti</p>
+            <button onclick="phase4()">▶️ Esegui Fase 4</button>
+            <div id="phase4Result" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Fase 5: Verifica Finale</h3>
+            <p>Controllo completo della correttezza del sistema</p>
+            <button onclick="phase5()">▶️ Esegui Fase 5</button>
+            <div id="phase5Result" class="result"></div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script>
+        let testActual = null;
+        const PAYMENT_AMOUNT = 423.01;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            element.innerHTML += `[${timestamp}] ${icon} ${message}\n`;
+        }
+
+        function calculateBalances(actual) {
+            const paid = {};
+            const owes = {};
+            const paymentsReceived = {};
+            const paymentsMade = {};
+            
+            actual.participants.forEach(p => {
+                paid[p] = 0;
+                owes[p] = 0;
+                paymentsReceived[p] = 0;
+                paymentsMade[p] = 0;
+            });
+
+            // Calcola spese
+            actual.expenses.forEach(expense => {
+                const amount = expense.amountEUR || expense.amount;
+                paid[expense.paidBy] += amount;
+                
+                const sharedBy = expense.sharedBy.length > 0 ? expense.sharedBy : actual.participants;
+                const sharePerPerson = amount / sharedBy.length;
+                
+                sharedBy.forEach(p => {
+                    owes[p] += sharePerPerson;
+                });
+            });
+
+            // Calcola pagamenti confermati
+            // IMPORTANTE: I pagamenti tra partecipanti sono TRASFERIMENTI che saldano i debiti
+            // - Chi paga: il pagamento RIDUCE il suo debito (quindi si AGGIUNGE al bilancio)
+            // - Chi riceve: il pagamento RIDUCE il suo credito (quindi si SOTTRAE dal bilancio)
+            if (actual.payments) {
+                actual.payments.forEach(payment => {
+                    if (payment.confirmed) {
+                        const amount = parseFloat(payment.amount);
+                        paymentsReceived[payment.to] += amount;
+                        paymentsMade[payment.from] += amount;
+                    }
+                });
+            }
+
+            // Calcola bilanci finali
+            // Formula corretta: paid - owes + paymentsMade - paymentsReceived
+            const balances = {};
+            actual.participants.forEach(p => {
+                balances[p] = paid[p] - owes[p] + paymentsMade[p] - paymentsReceived[p];
+            });
+
+            return { balances, paid, owes, paymentsReceived, paymentsMade };
+        }
+
+        function optimizeTransfers(balances) {
+            const creditors = [];
+            const debtors = [];
+
+            Object.keys(balances).forEach(person => {
+                const balance = balances[person];
+                if (balance > 0.01) {
+                    creditors.push({ name: person, amount: balance });
+                } else if (balance < -0.01) {
+                    debtors.push({ name: person, amount: -balance });
+                }
+            });
+
+            creditors.sort((a, b) => b.amount - a.amount);
+            debtors.sort((a, b) => b.amount - a.amount);
+
+            const transfers = [];
+            let i = 0, j = 0;
+
+            while (i < creditors.length && j < debtors.length) {
+                const creditor = creditors[i];
+                const debtor = debtors[j];
+                const amount = Math.min(creditor.amount, debtor.amount);
+
+                if (amount > 0.01) {
+                    transfers.push({
+                        from: debtor.name,
+                        to: creditor.name,
+                        amount: amount
+                    });
+                }
+
+                creditor.amount -= amount;
+                debtor.amount -= amount;
+
+                if (creditor.amount < 0.01) i++;
+                if (debtor.amount < 0.01) j++;
+            }
+
+            return transfers;
+        }
+
+        function phase1() {
+            const result = document.getElementById('phase1Result');
+            result.innerHTML = '';
+            
+            try {
+                log('phase1Result', '🔧 Creazione scenario di test...\n');
+                
+                // Simula la situazione degli screenshot
+                testActual = {
+                    id: 'test-lorenzo-' + Date.now(),
+                    name: 'Test Lorenzo Scenario',
+                    destination: 'Norway 2027',
+                    participants: ['Chiara Cognos', 'Chiara Porporato', 'Giovanni', 'Lara Zhytnyk', 'Lorenzo Destefanis', 'Luca Ramponi', 'Davide Rosa', 'Ilaria Marangon'],
+                    expenses: [],
+                    payments: []
+                };
+
+                // Simula le spese che portano alla situazione iniziale
+                // Dove Lorenzo deve dare €423.01 a Davide
+                // Per semplicità, creiamo una situazione dove:
+                // - Ilaria e Davide hanno pagato molto
+                // - Lorenzo, Chiara C, Chiara P, Giovanni, Lara, Luca devono dare
+                
+                const totalExpenses = 3384.08; // 8 persone * 423.01
+                testActual.expenses.push({
+                    description: 'Spese varie',
+                    amount: totalExpenses * 0.6,
+                    amountEUR: totalExpenses * 0.6,
+                    paidBy: 'Ilaria Marangon',
+                    sharedBy: testActual.participants,
+                    category: 'varie'
+                });
+                testActual.expenses.push({
+                    description: 'Altre spese',
+                    amount: totalExpenses * 0.4,
+                    amountEUR: totalExpenses * 0.4,
+                    paidBy: 'Davide Rosa',
+                    sharedBy: testActual.participants,
+                    category: 'varie'
+                });
+
+                const { balances } = calculateBalances(testActual);
+                const transfers = optimizeTransfers(balances);
+
+                log('phase1Result', '📊 SITUAZIONE INIZIALE (prima del pagamento):\n', 'success');
+                
+                log('phase1Result', 'Bilanci:');
+                Object.keys(balances).forEach(person => {
+                    const balance = balances[person];
+                    const status = balance > 0.01 ? 'deve ricevere' : balance < -0.01 ? 'deve dare' : 'in pari';
+                    const amount = Math.abs(balance);
+                    const highlight = person === 'Lorenzo Destefanis' || person === 'Davide Rosa' || person === 'Ilaria Marangon';
+                    const prefix = highlight ? '>>> ' : '    ';
+                    log('phase1Result', `${prefix}${person}: ${status} €${amount.toFixed(2)}`);
+                });
+
+                log('phase1Result', '\n⚡ Trasferimenti Ottimizzati Suggeriti:');
+                transfers.forEach((t, i) => {
+                    const highlight = t.from === 'Lorenzo Destefanis' && t.to === 'Davide Rosa';
+                    const prefix = highlight ? '>>> ' : '    ';
+                    log('phase1Result', `${prefix}${i + 1}. ${t.from} → ${t.to}: €${t.amount.toFixed(2)}`);
+                });
+
+                // Trova il trasferimento Lorenzo → Davide
+                const lorenzoToDavide = transfers.find(t => t.from === 'Lorenzo Destefanis' && t.to === 'Davide Rosa');
+                if (lorenzoToDavide) {
+                    log('phase1Result', `\n✅ Trovato: Lorenzo deve dare €${lorenzoToDavide.amount.toFixed(2)} a Davide`, 'success');
+                } else {
+                    log('phase1Result', '\n⚠️ Non trovato trasferimento Lorenzo → Davide', 'warning');
+                }
+                
+            } catch (error) {
+                log('phase1Result', `❌ Errore: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function phase2() {
+            const result = document.getElementById('phase2Result');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('phase2Result', '⚠️ Esegui prima la Fase 1!', 'warning');
+                    return;
+                }
+                
+                log('phase2Result', '💳 PAGAMENTO CUSTOM...\n');
+                log('phase2Result', `Lorenzo paga €${PAYMENT_AMOUNT} a Ilaria (invece che a Davide)`);
+                
+                const payment = {
+                    id: Date.now().toString(),
+                    from: 'Lorenzo Destefanis',
+                    to: 'Ilaria Marangon',
+                    amount: PAYMENT_AMOUNT,
+                    date: new Date().toISOString().split('T')[0],
+                    notes: 'Pagamento custom - Lorenzo paga Ilaria invece di Davide',
+                    confirmed: true,
+                    createdAt: new Date().toISOString(),
+                    confirmedAt: new Date().toISOString()
+                };
+                
+                testActual.payments.push(payment);
+                
+                log('phase2Result', '\n✅ Pagamento registrato e confermato!', 'success');
+                log('phase2Result', `   Da: ${payment.from}`);
+                log('phase2Result', `   A: ${payment.to}`);
+                log('phase2Result', `   Importo: €${payment.amount.toFixed(2)}`);
+                
+            } catch (error) {
+                log('phase2Result', `❌ Errore: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function phase3() {
+            const result = document.getElementById('phase3Result');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual || !testActual.payments || testActual.payments.length === 0) {
+                    log('phase3Result', '⚠️ Esegui prima le Fasi 1 e 2!', 'warning');
+                    return;
+                }
+                
+                log('phase3Result', '📊 RICALCOLO BILANCI...\n');
+                
+                const { balances, paymentsReceived, paymentsMade } = calculateBalances(testActual);
+                
+                log('phase3Result', 'Bilanci Aggiornati:');
+                Object.keys(balances).forEach(person => {
+                    const balance = balances[person];
+                    const status = balance > 0.01 ? 'deve ricevere' : balance < -0.01 ? 'deve dare' : 'in pari';
+                    const amount = Math.abs(balance);
+                    const highlight = person === 'Lorenzo Destefanis' || person === 'Davide Rosa' || person === 'Ilaria Marangon';
+                    const prefix = highlight ? '>>> ' : '    ';
+                    
+                    let extra = '';
+                    if (person === 'Lorenzo Destefanis') {
+                        extra = ` (ha pagato €${paymentsMade[person].toFixed(2)})`;
+                    } else if (person === 'Ilaria Marangon') {
+                        extra = ` (ha ricevuto €${paymentsReceived[person].toFixed(2)})`;
+                    }
+                    
+                    log('phase3Result', `${prefix}${person}: ${status} €${amount.toFixed(2)}${extra}`);
+                });
+
+                // Verifica Lorenzo
+                const lorenzoBalance = balances['Lorenzo Destefanis'];
+                log('phase3Result', '\n🔍 VERIFICA LORENZO:');
+                if (Math.abs(lorenzoBalance) < 0.01) {
+                    log('phase3Result', '   ✅ Lorenzo è in pari (bilancio ≈ €0)', 'success');
+                } else {
+                    log('phase3Result', `   ❌ ERRORE: Lorenzo ha bilancio €${lorenzoBalance.toFixed(2)} invece di €0`, 'error');
+                }
+
+                // Verifica Ilaria
+                const ilariaBalance = balances['Ilaria Marangon'];
+                log('phase3Result', '\n🔍 VERIFICA ILARIA:');
+                log('phase3Result', `   Bilancio: €${ilariaBalance.toFixed(2)}`);
+                log('phase3Result', `   (dovrebbe essere aumentato di €${PAYMENT_AMOUNT})`);
+
+                // Verifica Davide
+                const davideBalance = balances['Davide Rosa'];
+                log('phase3Result', '\n🔍 VERIFICA DAVIDE:');
+                log('phase3Result', `   Bilancio: €${davideBalance.toFixed(2)}`);
+                log('phase3Result', `   (dovrebbe essere diminuito di €${PAYMENT_AMOUNT})`);
+                
+            } catch (error) {
+                log('phase3Result', `❌ Errore: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function phase4() {
+            const result = document.getElementById('phase4Result');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('phase4Result', '⚠️ Esegui prima le fasi precedenti!', 'warning');
+                    return;
+                }
+                
+                log('phase4Result', '⚡ OTTIMIZZAZIONE TRASFERIMENTI...\n');
+                
+                const { balances } = calculateBalances(testActual);
+                const transfers = optimizeTransfers(balances);
+                
+                log('phase4Result', 'Trasferimenti Ottimizzati:');
+                transfers.forEach((t, i) => {
+                    const highlight = t.from === 'Lorenzo Destefanis' || t.to === 'Davide Rosa';
+                    const prefix = highlight ? '>>> ' : '    ';
+                    log('phase4Result', `${prefix}${i + 1}. ${t.from} → ${t.to}: €${t.amount.toFixed(2)}`);
+                });
+
+                // Verifica che Lorenzo NON appaia nei trasferimenti
+                const lorenzoTransfers = transfers.filter(t => t.from === 'Lorenzo Destefanis');
+                log('phase4Result', '\n🔍 VERIFICA LORENZO:');
+                if (lorenzoTransfers.length === 0) {
+                    log('phase4Result', '   ✅ Lorenzo NON deve fare altri pagamenti', 'success');
+                } else {
+                    log('phase4Result', '   ❌ ERRORE: Lorenzo appare ancora nei trasferimenti:', 'error');
+                    lorenzoTransfers.forEach(t => {
+                        log('phase4Result', `      ${t.from} → ${t.to}: €${t.amount.toFixed(2)}`, 'error');
+                    });
+                }
+
+                // Verifica che qualcuno paghi a Davide
+                const toDavideTransfers = transfers.filter(t => t.to === 'Davide Rosa');
+                log('phase4Result', '\n🔍 VERIFICA DAVIDE:');
+                if (toDavideTransfers.length > 0) {
+                    log('phase4Result', '   ✅ Qualcuno deve pagare a Davide:', 'success');
+                    toDavideTransfers.forEach(t => {
+                        log('phase4Result', `      ${t.from} → ${t.to}: €${t.amount.toFixed(2)}`);
+                    });
+                } else {
+                    log('phase4Result', '   ⚠️ Nessuno deve pagare a Davide', 'warning');
+                }
+                
+            } catch (error) {
+                log('phase4Result', `❌ Errore: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function phase5() {
+            const result = document.getElementById('phase5Result');
+            result.innerHTML = '';
+            
+            try {
+                if (!testActual) {
+                    log('phase5Result', '⚠️ Esegui prima le fasi precedenti!', 'warning');
+                    return;
+                }
+                
+                log('phase5Result', '🎯 VERIFICA FINALE COMPLETA...\n');
+                
+                const { balances } = calculateBalances(testActual);
+                const transfers = optimizeTransfers(balances);
+                
+                // Test 1: Somma bilanci = 0
+                const totalBalance = Object.values(balances).reduce((sum, b) => sum + b, 0);
+                log('phase5Result', '1️⃣ Somma bilanci:');
+                if (Math.abs(totalBalance) < 0.01) {
+                    log('phase5Result', '   ✅ Somma = €0.00 (corretto!)', 'success');
+                } else {
+                    log('phase5Result', `   ❌ Somma = €${totalBalance.toFixed(2)} (dovrebbe essere €0.00!)`, 'error');
+                }
+
+                // Test 2: Lorenzo in pari
+                const lorenzoBalance = balances['Lorenzo Destefanis'];
+                log('phase5Result', '\n2️⃣ Bilancio Lorenzo:');
+                if (Math.abs(lorenzoBalance) < 0.01) {
+                    log('phase5Result', '   ✅ Lorenzo è in pari (€0.00)', 'success');
+                } else {
+                    log('phase5Result', `   ❌ Lorenzo ha bilancio €${lorenzoBalance.toFixed(2)}`, 'error');
+                }
+
+                // Test 3: Lorenzo non nei trasferimenti
+                const lorenzoTransfers = transfers.filter(t => t.from === 'Lorenzo Destefanis');
+                log('phase5Result', '\n3️⃣ Trasferimenti Lorenzo:');
+                if (lorenzoTransfers.length === 0) {
+                    log('phase5Result', '   ✅ Lorenzo non deve fare altri pagamenti', 'success');
+                } else {
+                    log('phase5Result', `   ❌ Lorenzo appare in ${lorenzoTransfers.length} trasferimenti`, 'error');
+                }
+
+                // Test 4: Trasferimenti bilanciati
+                const totalTransfers = transfers.reduce((sum, t) => sum + t.amount, 0);
+                const totalToReceive = Object.values(balances).filter(b => b > 0).reduce((sum, b) => sum + b, 0);
+                log('phase5Result', '\n4️⃣ Trasferimenti bilanciati:');
+                if (Math.abs(totalTransfers - totalToReceive) < 0.01) {
+                    log('phase5Result', '   ✅ Trasferimenti coprono tutti i crediti', 'success');
+                } else {
+                    log('phase5Result', `   ❌ Trasferimenti: €${totalTransfers.toFixed(2)}, Crediti: €${totalToReceive.toFixed(2)}`, 'error');
+                }
+
+                // Risultato finale
+                const allTestsPassed = 
+                    Math.abs(totalBalance) < 0.01 &&
+                    Math.abs(lorenzoBalance) < 0.01 &&
+                    lorenzoTransfers.length === 0 &&
+                    Math.abs(totalTransfers - totalToReceive) < 0.01;
+
+                log('phase5Result', '\n' + '='.repeat(50));
+                if (allTestsPassed) {
+                    log('phase5Result', '🎉 TUTTI I TEST SUPERATI!', 'success');
+                    log('phase5Result', 'Il sistema gestisce correttamente i pagamenti custom!');
+                } else {
+                    log('phase5Result', '❌ ALCUNI TEST FALLITI', 'error');
+                    log('phase5Result', 'Il sistema ha problemi con i pagamenti custom');
+                }
+                log('phase5Result', '='.repeat(50));
+                
+            } catch (error) {
+                log('phase5Result', `❌ Errore: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function runCompleteTest() {
+            const phases = ['phase1', 'phase2', 'phase3', 'phase4', 'phase5'];
+            let currentPhase = 0;
+
+            function runNextPhase() {
+                if (currentPhase < phases.length) {
+                    const phaseName = phases[currentPhase];
+                    window[phaseName]();
+                    currentPhase++;
+                    setTimeout(runNextPhase, 800);
+                }
+            }
+
+            // Clear all results
+            phases.forEach(phase => {
+                const result = document.getElementById(phase + 'Result');
+                if (result) result.innerHTML = '';
+            });
+
+            runNextPhase();
+        }
+    </script>
+</body>
+</html>

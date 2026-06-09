@@ -67,6 +67,7 @@ class ParticipantsRegistry {
                 
                 // Salva in localStorage
                 localStorage.setItem('participants_registry', JSON.stringify(this.participants));
+                console.log('✅ Partecipanti sincronizzati da Supabase');
             }
         } catch (error) {
             console.warn('Errore sincronizzazione partecipanti da Supabase:', error);
@@ -219,6 +220,7 @@ class ParticipantsRegistry {
 
         if (updated) {
             localStorage.setItem('scenarios', JSON.stringify(scenarios));
+            console.log(`✅ Nome partecipante aggiornato negli scenari: ${oldName} → ${newName}`);
         }
     }
 
@@ -241,6 +243,7 @@ class ParticipantsRegistry {
 
         if (updated) {
             localStorage.setItem('actuals', JSON.stringify(actuals));
+            console.log(`✅ Nome partecipante aggiornato nei consuntivi: ${oldName} → ${newName}`);
         }
     }
 

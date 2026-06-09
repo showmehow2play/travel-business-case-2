@@ -144,6 +144,7 @@ const SupabaseStorage = {
                     return false;
                 }
                 
+                console.log('✅ Scenario salvato su Supabase:', scenario.id);
                 return true;
             } catch (error) {
                 console.error('❌ Errore salvataggio scenario su Supabase:', error);
@@ -175,6 +176,7 @@ const SupabaseStorage = {
                     return false;
                 }
                 
+                console.log('✅ Scenario eliminato da Supabase:', scenarioId);
                 return true;
             } catch (error) {
                 console.error('❌ Errore eliminazione scenario da Supabase:', error);
@@ -218,6 +220,7 @@ const SupabaseStorage = {
                     return false;
                 }
                 
+                console.log('✅ Consuntivo salvato su Supabase:', actual.id);
                 return true;
             } catch (error) {
                 console.error('❌ Errore salvataggio consuntivo su Supabase:', error);
@@ -249,6 +252,7 @@ const SupabaseStorage = {
                     return false;
                 }
                 
+                console.log('✅ Consuntivo eliminato da Supabase:', actualId);
                 return true;
             } catch (error) {
                 console.error('❌ Errore eliminazione consuntivo da Supabase:', error);
@@ -331,6 +335,7 @@ const SupabaseStorage = {
             localStorage.setItem('travelBusinessCase', JSON.stringify({ scenarios, actuals }));
             localStorage.setItem('participants_registry', JSON.stringify(participants));
 
+            console.log('✅ Dati sincronizzati da Supabase');
             return true;
 
         } catch (error) {
@@ -386,6 +391,7 @@ const SupabaseStorage = {
                 await this.saveParticipants(participants);
             }
 
+            console.log('✅ Dati locali caricati su Supabase');
             return true;
 
         } catch (error) {

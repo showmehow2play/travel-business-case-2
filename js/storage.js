@@ -9,6 +9,7 @@ const StorageManager = {
 
     // Inizializza lo storage
     async init() {
+        console.log('🔄 Inizializzazione StorageManager (SOLO SUPABASE)...');
         
         // Verifica che Supabase sia disponibile
         if (!window.SupabaseStorage || !window.SupabaseStorage.isAvailable()) {
@@ -17,16 +18,19 @@ const StorageManager = {
             return;
         }
 
+        console.log('✅ Supabase disponibile');
         
         // Carica i dati da Supabase
         try {
             await this.loadFromSupabase();
+            console.log('✅ Dati caricati da Supabase');
         } catch (error) {
             console.error('❌ Errore caricamento da Supabase:', error);
             
             // Se non ci sono dati, carica i dati di esempio
             const data = await this.getData();
             if (!data || (data.scenarios.length === 0 && data.actuals.length === 0)) {
+                console.log('📦 Caricamento dati di esempio...');
                 await this.loadSampleData();
             }
         }
@@ -38,12 +42,15 @@ const StorageManager = {
             throw new Error('Supabase non disponibile');
         }
 
+        console.log('📥 Caricamento dati da Supabase...');
         
         // Carica scenari
         const scenarios = await window.SupabaseStorage.getAllScenarios();
+        console.log(`📋 ${scenarios.length} scenari caricati`);
         
         // Carica consuntivi
         const actuals = await window.SupabaseStorage.getAllActuals();
+        console.log(`💰 ${actuals.length} consuntivi caricati`);
         
         // Aggiorna cache in memoria
         this.cacheData = {
@@ -68,12 +75,14 @@ const StorageManager = {
             return;
         }
 
+        console.log('📦 Caricamento dati di esempio su Supabase...');
         
         // Salva scenari di esempio
         if (SampleData.scenarios && Array.isArray(SampleData.scenarios)) {
             for (const scenario of SampleData.scenarios) {
                 await this.addScenario(scenario);
             }
+            console.log(`✅ ${SampleData.scenarios.length} scenari di esempio caricati`);
         }
         
         // Salva consuntivi di esempio
@@ -81,6 +90,7 @@ const StorageManager = {
             for (const actual of SampleData.actuals) {
                 await this.addActual(actual);
             }
+            console.log(`✅ ${SampleData.actuals.length} consuntivi di esempio caricati`);
         }
         
         // Ricarica i dati
@@ -151,6 +161,7 @@ const StorageManager = {
         if (saved) {
             // Invalida cache per ricaricare
             await this.invalidateCache();
+            console.log('✅ Scenario salvato su Supabase:', newScenario.name);
             return newScenario;
         }
         
@@ -180,6 +191,7 @@ const StorageManager = {
         if (saved) {
             // Invalida cache per ricaricare
             await this.invalidateCache();
+            console.log('✅ Scenario aggiornato su Supabase:', updatedScenario.name);
             return updatedScenario;
         }
         
@@ -197,6 +209,7 @@ const StorageManager = {
         if (deleted) {
             // Invalida cache per ricaricare
             await this.invalidateCache();
+            console.log('✅ Scenario eliminato da Supabase');
             return true;
         }
         
@@ -257,6 +270,7 @@ const StorageManager = {
         if (saved) {
             // Invalida cache per ricaricare
             await this.invalidateCache();
+            console.log('✅ Consuntivo salvato su Supabase:', newActual.name);
             return newActual;
         }
         
@@ -286,6 +300,7 @@ const StorageManager = {
         if (saved) {
             // Invalida cache per ricaricare
             await this.invalidateCache();
+            console.log('✅ Consuntivo aggiornato su Supabase:', updatedActual.name);
             return updatedActual;
         }
         
@@ -303,6 +318,7 @@ const StorageManager = {
         if (deleted) {
             // Invalida cache per ricaricare
             await this.invalidateCache();
+            console.log('✅ Consuntivo eliminato da Supabase');
             return true;
         }
         
@@ -445,6 +461,7 @@ const StorageManager = {
             // Invalida cache
             await this.invalidateCache();
             
+            console.log('✅ Tutti i dati eliminati da Supabase');
             return true;
         } catch (error) {
             console.error('Errore nella cancellazione dei dati:', error);

@@ -7,9 +7,6 @@ const App = {
 
     // Inizializza l'applicazione
     init() {
-        // La sincronizzazione è già stata fatta da StorageManager.init()
-        // Non serve duplicarla qui
-        
         this.setupEventListeners();
         this.loadDashboard();
         this.loadScenariosList();
@@ -81,37 +78,6 @@ const App = {
                 e.target.value = ''; // Reset input
             }
         });
-
-        // Sync to Supabase button
-        const syncToSupabaseBtn = document.getElementById('syncToSupabaseBtn');
-        if (syncToSupabaseBtn) {
-            syncToSupabaseBtn.addEventListener('click', async () => {
-                if (typeof SupabaseStorage === 'undefined' || !window.isSupabaseEnabled) {
-                    ExportManager.showError('Supabase non configurato o non disponibile');
-                    return;
-                }
-
-                const originalText = syncToSupabaseBtn.innerHTML;
-                syncToSupabaseBtn.disabled = true;
-                syncToSupabaseBtn.innerHTML = '⏳ Sync...';
-
-                try {
-                    const success = await SupabaseStorage.syncToSupabase();
-
-                    if (success) {
-                        ExportManager.showSuccess('Scenari e consuntivi locali esportati su Supabase');
-                    } else {
-                        ExportManager.showError('Errore durante la sincronizzazione verso Supabase');
-                    }
-                } catch (error) {
-                    console.error('Errore sync Supabase:', error);
-                    ExportManager.showError('Errore durante la sincronizzazione verso Supabase');
-                } finally {
-                    syncToSupabaseBtn.disabled = false;
-                    syncToSupabaseBtn.innerHTML = originalText;
-                }
-            });
-        }
 
         // Modal close
         document.querySelectorAll('.modal-close').forEach(btn => {
@@ -208,41 +174,6 @@ const App = {
             });
         }
 
-        // Inizializza autocomplete anche sui campi volo della pagina preventivi
-        if (window.destinationAutocomplete) {
-            const destinationInput = document.getElementById('destination');
-            const flightDepartureInput = document.getElementById('flightDeparture');
-            const flightArrivalInput = document.getElementById('flightArrival');
-
-            if (destinationInput) window.destinationAutocomplete.init(destinationInput);
-            if (flightDepartureInput) window.destinationAutocomplete.init(flightDepartureInput);
-            if (flightArrivalInput) window.destinationAutocomplete.init(flightArrivalInput);
-        }
-
-        // Gestione vincoli date scenario
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-
-        if (startDateInput && endDateInput) {
-            startDateInput.addEventListener('change', () => {
-                if (startDateInput.value) {
-                    endDateInput.min = startDateInput.value;
-
-                    if (!endDateInput.value || endDateInput.value < startDateInput.value) {
-                        endDateInput.value = startDateInput.value;
-                    }
-                } else {
-                    endDateInput.min = '';
-                }
-            });
-
-            endDateInput.addEventListener('focus', () => {
-                if (startDateInput.value) {
-                    endDateInput.min = startDateInput.value;
-                }
-            });
-        }
-
         // Update totals when expenses change
         const expenseInputs = ['transport', 'food', 'activities'];
         expenseInputs.forEach(id => {
@@ -262,83 +193,19 @@ const App = {
         });
 
         document.querySelectorAll('#carOptions input').forEach(input => {
-            // Skip checkbox inputs - they have their own handler
-            if (input.type === 'checkbox') {
-                input.addEventListener('change', () => {
-                    this.updateTotals();
-                });
-                return;
-            }
-            
             input.addEventListener('input', () => {
-                // Auto-check the checkbox when user enters data in price or name fields
-                if (input.classList.contains('option-price') || input.classList.contains('option-name')) {
-                    const index = input.dataset.index;
-                    const checkbox = document.querySelector(`input[name="car"][data-index="${index}"]`);
-                    const priceInput = document.querySelector(`#carOptions .option-price[data-index="${index}"]`);
-                    const nameInput = document.querySelector(`#carOptions .option-name[data-index="${index}"]`);
-                    
-                    // Check the checkbox if either name or price has a value (without triggering change event)
-                    if (checkbox && !checkbox.checked && ((priceInput && parseFloat(priceInput.value) > 0) || (nameInput && nameInput.value.trim() !== ''))) {
-                        checkbox.checked = true;
-                    }
-                }
                 this.updateTotals();
             });
             input.addEventListener('change', () => {
-                // Auto-check the checkbox when user enters data in price or name fields
-                if (input.classList.contains('option-price') || input.classList.contains('option-name')) {
-                    const index = input.dataset.index;
-                    const checkbox = document.querySelector(`input[name="car"][data-index="${index}"]`);
-                    const priceInput = document.querySelector(`#carOptions .option-price[data-index="${index}"]`);
-                    const nameInput = document.querySelector(`#carOptions .option-name[data-index="${index}"]`);
-                    
-                    // Check the checkbox if either name or price has a value (without triggering change event)
-                    if (checkbox && !checkbox.checked && ((priceInput && parseFloat(priceInput.value) > 0) || (nameInput && nameInput.value.trim() !== ''))) {
-                        checkbox.checked = true;
-                    }
-                }
                 this.updateTotals();
             });
         });
 
         document.querySelectorAll('#otherOptions input, #otherOptions textarea').forEach(input => {
-            // Skip checkbox inputs - they have their own handler
-            if (input.type === 'checkbox') {
-                input.addEventListener('change', () => {
-                    this.updateTotals();
-                });
-                return;
-            }
-            
             input.addEventListener('input', () => {
-                // Auto-check the checkbox when user enters data in price or name fields
-                if (input.classList.contains('option-price') || input.classList.contains('option-name')) {
-                    const index = input.dataset.index;
-                    const checkbox = document.querySelector(`input[name="other"][data-index="${index}"]`);
-                    const priceInput = document.querySelector(`#otherOptions .option-price[data-index="${index}"]`);
-                    const nameInput = document.querySelector(`#otherOptions .option-name[data-index="${index}"]`);
-                    
-                    // Check the checkbox if either name or price has a value (without triggering change event)
-                    if (checkbox && !checkbox.checked && ((priceInput && parseFloat(priceInput.value) > 0) || (nameInput && nameInput.value.trim() !== ''))) {
-                        checkbox.checked = true;
-                    }
-                }
                 this.updateTotals();
             });
             input.addEventListener('change', () => {
-                // Auto-check the checkbox when user enters data in price or name fields
-                if (input.classList.contains('option-price') || input.classList.contains('option-name')) {
-                    const index = input.dataset.index;
-                    const checkbox = document.querySelector(`input[name="other"][data-index="${index}"]`);
-                    const priceInput = document.querySelector(`#otherOptions .option-price[data-index="${index}"]`);
-                    const nameInput = document.querySelector(`#otherOptions .option-name[data-index="${index}"]`);
-                    
-                    // Check the checkbox if either name or price has a value (without triggering change event)
-                    if (checkbox && !checkbox.checked && ((priceInput && parseFloat(priceInput.value) > 0) || (nameInput && nameInput.value.trim() !== ''))) {
-                        checkbox.checked = true;
-                    }
-                }
                 this.updateTotals();
             });
         });
@@ -387,11 +254,6 @@ const App = {
                         renderParticipantsList();
                     }
                     break;
-                case 'currencies':
-                    if (typeof renderCurrenciesList !== 'undefined') {
-                        renderCurrenciesList();
-                    }
-                    break;
                 case 'compare':
                     this.loadCompareView();
                     break;
@@ -400,9 +262,9 @@ const App = {
     },
 
     // Carica la dashboard
-    async loadDashboard() {
-        const stats = await StorageManager.getStats();
-        const scenarios = await StorageManager.getScenarios() || [];
+    loadDashboard() {
+        const stats = StorageManager.getStats();
+        const scenarios = StorageManager.getScenarios() || [];
 
         // Update stats
         document.getElementById('totalScenarios').textContent = stats.totalScenarios;
@@ -474,12 +336,12 @@ const App = {
     },
 
     // Elimina uno scenario dalla dashboard
-    async deleteScenarioFromDashboard(id) {
-        const scenario = await StorageManager.getScenario(id);
+    deleteScenarioFromDashboard(id) {
+        const scenario = StorageManager.getScenario(id);
         if (!scenario) return;
 
         if (confirm(`Sei sicuro di voler eliminare lo scenario "${scenario.name}"?\n\nQuesta operazione non può essere annullata.`)) {
-            const deleted = await StorageManager.deleteScenario(id);
+            const deleted = StorageManager.deleteScenario(id);
             if (deleted) {
                 ExportManager.showSuccess('Scenario eliminato con successo');
                 this.loadDashboard(); // Ricarica la dashboard
@@ -529,13 +391,6 @@ const App = {
                             <span class="info-label">💰 Per persona:</span>
                             <span class="info-value">${ScenarioManager.formatCurrency(costPerPerson)}</span>
                         </div>
-                        ${scenario.notes ? `
-                            <div class="info-row" style="grid-column: 1 / -1; margin-top: 0.5rem;">
-                                <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.5;">
-                                    ${typeof linkifyText !== 'undefined' ? linkifyText(scenario.notes) : scenario.notes.replace(/\n/g, '<br>')}
-                                </div>
-                            </div>
-                        ` : ''}
                     </div>
                     <div class="scenario-total">
                         <span class="total-label">Totale:</span>
@@ -547,8 +402,8 @@ const App = {
     },
 
     // Carica la lista degli scenari
-    async loadScenariosList() {
-        const scenarios = await StorageManager.getScenarios() || [];
+    loadScenariosList() {
+        const scenarios = StorageManager.getScenarios() || [];
         const list = document.getElementById('scenariosList');
 
         console.log('loadScenariosList - scenari trovati:', scenarios.length, scenarios);
@@ -625,13 +480,6 @@ const App = {
                                 <span class="info-label">💰 Per persona:</span>
                                 <span class="info-value">${ScenarioManager.formatCurrency(costPerPerson)}</span>
                             </div>
-                            ${safeScenario.notes ? `
-                                <div class="info-row" style="grid-column: 1 / -1; margin-top: 0.5rem;">
-                                    <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.5;">
-                                        ${typeof linkifyText !== 'undefined' ? linkifyText(safeScenario.notes) : safeScenario.notes.replace(/\n/g, '<br>')}
-                                    </div>
-                                </div>
-                            ` : ''}
                         </div>
                         <div class="scenario-total">
                             <span class="total-label">Totale:</span>
@@ -703,12 +551,12 @@ const App = {
     },
 
     // Elimina uno scenario dalla lista scenari
-    async deleteScenarioFromList(id) {
-        const scenario = await StorageManager.getScenario(id);
+    deleteScenarioFromList(id) {
+        const scenario = StorageManager.getScenario(id);
         if (!scenario) return;
 
         if (confirm(`Sei sicuro di voler eliminare lo scenario "${scenario.name}"?\n\nQuesta operazione non può essere annullata.`)) {
-            const deleted = await StorageManager.deleteScenario(id);
+            const deleted = StorageManager.deleteScenario(id);
             if (deleted) {
                 ExportManager.showSuccess('Scenario eliminato con successo');
                 this.loadScenariosList(); // Ricarica la lista
@@ -719,8 +567,8 @@ const App = {
     },
 
     // Carica la vista di confronto
-    async loadCompareView() {
-        const scenarios = await StorageManager.getScenarios();
+    loadCompareView() {
+        const scenarios = StorageManager.getScenarios();
         const checkboxes = document.getElementById('compareCheckboxes');
 
         if (scenarios.length === 0) {
@@ -755,134 +603,88 @@ const App = {
     },
 
     // Visualizza il confronto
-    async displayComparison(comparison) {
+    displayComparison(comparison) {
         const results = document.getElementById('compareResults');
         
         let html = '<h3>Risultati del Confronto</h3>';
 
-        // Summary stats
+        // Summary
         html += `
-            <div class="comparison-summary">
-                <div class="comparison-summary-item">
-                    <div class="comparison-summary-label">💰 Costo Minimo</div>
-                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.minCost)}</div>
+            <div class="stats-grid" style="margin: 1.5rem 0;">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-label">Costo Minimo</div>
+                        <div class="stat-value">${ScenarioManager.formatCurrency(comparison.summary.minCost)}</div>
+                    </div>
                 </div>
-                <div class="comparison-summary-item">
-                    <div class="comparison-summary-label">💸 Costo Massimo</div>
-                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.maxCost)}</div>
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-label">Costo Massimo</div>
+                        <div class="stat-value">${ScenarioManager.formatCurrency(comparison.summary.maxCost)}</div>
+                    </div>
                 </div>
-                <div class="comparison-summary-item">
-                    <div class="comparison-summary-label">📊 Costo Medio</div>
-                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.avgCost)}</div>
-                </div>
-                <div class="comparison-summary-item">
-                    <div class="comparison-summary-label">👤 Min per Persona</div>
-                    <div class="comparison-summary-value">${ScenarioManager.formatCurrency(comparison.summary.minCostPerPerson)}</div>
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <div class="stat-label">Costo Medio</div>
+                        <div class="stat-value">${ScenarioManager.formatCurrency(comparison.summary.avgCost)}</div>
+                    </div>
                 </div>
             </div>
         `;
 
-        // Find best value scenario
-        const bestValueIndex = comparison.scenarios.findIndex(s => s.total === comparison.summary.minCost);
+        // Table
+        html += `
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Destinazione</th>
+                        <th>Partecipanti</th>
+                        <th>Durata</th>
+                        <th>Totale</th>
+                        <th>Per Persona</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
 
-        // E-commerce style comparison cards
-        html += '<div class="comparison-cards-container">';
-        
-        comparison.scenarios.forEach((s, index) => {
-            const isBestValue = index === bestValueIndex;
-            const categoryLabels = ScenarioManager.getCategoryLabels();
-            
+        comparison.scenarios.forEach(s => {
             html += `
-                <div class="comparison-card ${isBestValue ? 'best-value' : ''}">
-                    <div class="comparison-card-header">
-                        <div class="comparison-card-title">${s.name}</div>
-                        <div class="comparison-card-destination">
-                            📍 ${s.destination}
-                        </div>
-                    </div>
-                    
-                    <div class="comparison-price-section">
-                        <div class="comparison-total-price">${ScenarioManager.formatCurrency(s.total)}</div>
-                        <div class="comparison-per-person">
-                            <span class="comparison-per-person-price">${ScenarioManager.formatCurrency(s.costPerPerson)}</span>
-                            per persona
-                        </div>
-                    </div>
-                    
-                    <div class="comparison-details">
-                        <div class="comparison-detail-row">
-                            <span class="comparison-detail-label">👥 Partecipanti</span>
-                            <span class="comparison-detail-value">${s.participants}</span>
-                        </div>
-                        <div class="comparison-detail-row">
-                            <span class="comparison-detail-label">📅 Durata</span>
-                            <span class="comparison-detail-value">${s.duration} giorni</span>
-                        </div>
-                        <div class="comparison-detail-row">
-                            <span class="comparison-detail-label">💵 Costo/Giorno</span>
-                            <span class="comparison-detail-value">${ScenarioManager.formatCurrency(s.total / s.duration)}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="comparison-expenses">
-                        <div class="comparison-expenses-title">Dettaglio Spese</div>
-            `;
-            
-            // Add expense breakdown
-            for (const [category, amount] of Object.entries(s.expenses)) {
-                if (amount > 0) {
-                    const perPerson = s.participants > 0 ? amount / s.participants : 0;
-                    html += `
-                        <div class="comparison-expense-item">
-                            <span class="comparison-expense-label">${categoryLabels[category]}</span>
-                            <span class="comparison-expense-value">
-                                ${ScenarioManager.formatCurrency(amount)}
-                                <span class="comparison-expense-per-person">
-                                    (${ScenarioManager.formatCurrency(perPerson)}/p)
-                                </span>
-                            </span>
-                        </div>
-                    `;
-                }
-            }
-            
-            html += `
-                    </div>
-                </div>
+                <tr>
+                    <td><strong>${s.name}</strong></td>
+                    <td>${s.destination}</td>
+                    <td>${s.participants}</td>
+                    <td>${s.duration} giorni</td>
+                    <td><strong>${ScenarioManager.formatCurrency(s.total)}</strong></td>
+                    <td>${ScenarioManager.formatCurrency(s.costPerPerson)}</td>
+                </tr>
             `;
         });
-        
-        html += '</div>';
 
-        // Collapsible charts section
         html += `
-            <div class="comparison-charts-section">
-                <div class="comparison-charts-toggle" onclick="this.classList.toggle('collapsed'); document.getElementById('chartsContent').classList.toggle('hidden');">
-                    <h4>
-                        <span class="comparison-charts-toggle-icon">▼</span>
-                        Grafici di Confronto (clicca per mostrare/nascondere)
-                    </h4>
-                </div>
-                <div id="chartsContent" class="comparison-charts-content hidden">
-                    <div class="chart-container">
-                        <h4>📊 Confronto Costi Totali</h4>
-                        <canvas id="comparisonBarChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h4>🎯 Distribuzione per Categoria</h4>
-                        <canvas id="categoryComparisonChart"></canvas>
-                    </div>
-                </div>
+                </tbody>
+            </table>
+        `;
+
+        // Charts
+        html += `
+            <div class="chart-container">
+                <h4>Confronto Costi</h4>
+                <canvas id="comparisonBarChart" height="300"></canvas>
+            </div>
+            <div class="chart-container">
+                <h4>Distribuzione per Categoria</h4>
+                <canvas id="categoryComparisonChart" height="300"></canvas>
             </div>
         `;
 
         results.innerHTML = html;
 
-        // Create charts (they'll be hidden initially)
-        const scenarios = await Promise.all(comparison.scenarios.map(async s => {
-            const fullScenario = await StorageManager.getScenario(s.id);
+        // Create charts
+        const scenarios = comparison.scenarios.map(s => {
+            const fullScenario = StorageManager.getScenario(s.id);
             return fullScenario;
-        }));
+        });
 
         setTimeout(() => {
             ChartsManager.createComparisonBarChart('comparisonBarChart', scenarios);
@@ -912,9 +714,9 @@ const App = {
     },
 
     // Modifica uno scenario esistente
-    async editScenario(id) {
+    editScenario(id) {
         try {
-            const scenario = await StorageManager.getScenario(id);
+            const scenario = StorageManager.getScenario(id);
 
             if (scenario) {
                 this.currentScenario = scenario;
@@ -955,9 +757,6 @@ const App = {
 
     // Carica il form dello scenario
     loadScenarioForm(scenario) {
-        console.log('=== loadScenarioForm INIZIO ===');
-        console.log('Scenario ricevuto:', scenario);
-        console.log('Partecipanti nello scenario:', scenario.participants);
         try {
             document.getElementById('scenarioName').value = scenario.name || '';
             document.getElementById('destination').value = scenario.destination || '';
@@ -985,24 +784,13 @@ const App = {
             // Carica le opzioni "Altro"
             AccommodationCarManager.loadOtherOptions(scenario.otherOptions || []);
 
-            // IMPORTANTE: Prima pulisci completamente la lista partecipanti
-            const list = document.getElementById('participantsList');
-            if (list) {
-                list.innerHTML = '';
-            }
-            
-            // Poi carica i partecipanti dello scenario
             this.loadParticipants(scenario.participants || []);
-            
-            // Infine carica il selettore dall'anagrafica
-            this.loadParticipantSelector();
+            this.loadParticipantSelector(); // Carica il selettore dall'anagrafica
             
             // Inizializza l'autocomplete per la destinazione
             this.initDestinationAutocomplete();
             
             this.updateTotals();
-            
-            console.log('=== loadScenarioForm FINE ===');
         } catch (error) {
             console.error('Errore nel caricamento del form:', error);
             ExportManager.showError('Errore nel caricamento dello scenario');
@@ -1015,45 +803,21 @@ const App = {
         const emptyState = document.getElementById('participantsEmptyState');
         const clearBtn = document.getElementById('clearParticipantsBtn');
         
-        // SEMPRE pulisci la lista prima di caricare i partecipanti
-        list.innerHTML = '';
-        
         if (participants.length === 0) {
-            list.style.display = 'none';
+            list.innerHTML = '';
             if (emptyState) emptyState.style.display = 'block';
             if (clearBtn) clearBtn.style.display = 'none';
         } else {
-            // Normalizza i nomi usando l'anagrafica con fuzzy matching
-            const normalizedParticipants = participants.map(p => {
-                if (typeof participantsRegistry !== 'undefined') {
-                    // Prima prova match esatto
-                    let registryParticipant = participantsRegistry.getByName(p);
-                    
-                    // Se non trovato, prova fuzzy match
-                    if (!registryParticipant && participantsRegistry.getByNameFuzzy) {
-                        registryParticipant = participantsRegistry.getByNameFuzzy(p);
-                        if (registryParticipant) {
-                            console.log(`Fuzzy match: "${p}" → "${registryParticipant.name}"`);
-                        }
-                    }
-                    
-                    if (registryParticipant) {
-                        return registryParticipant.name; // Usa il nome dall'anagrafica
-                    }
-                }
-                return p; // Fallback al nome originale se non trovato
-            });
-
-            list.innerHTML = normalizedParticipants.map(p => {
+            list.innerHTML = participants.map(p => {
+                // Escape HTML per sicurezza ma mantieni il nome originale nel data attribute
                 const escapedName = p.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
                 return `
                     <div class="participant-tag">
                         <span>${escapedName}</span>
-                        <button type="button" class="remove-participant-btn" data-participant="${p}" title="Rimuovi ${escapedName}">×</button>
+                        <button type="button" class="remove-participant-btn" data-participant="${p}">✕</button>
                     </div>
                 `;
             }).join('');
-            list.style.display = 'grid';
             if (emptyState) emptyState.style.display = 'none';
             if (clearBtn) clearBtn.style.display = 'inline-block';
         }
@@ -1090,8 +854,7 @@ const App = {
         const emptyState = document.getElementById('participantsEmptyState');
         const clearBtn = document.getElementById('clearParticipantsBtn');
         
-        // Nascondi lo stato vuoto e mostra la lista e il pulsante azzera
-        list.style.display = 'grid';
+        // Nascondi lo stato vuoto e mostra il pulsante azzera
         if (emptyState) emptyState.style.display = 'none';
         if (clearBtn) clearBtn.style.display = 'inline-block';
         
@@ -1102,7 +865,7 @@ const App = {
         tag.className = 'participant-tag';
         tag.innerHTML = `
             <span>${escapedName}</span>
-            <button type="button" class="remove-participant-btn" data-participant="${name}" title="Rimuovi ${escapedName}">×</button>
+            <button type="button" class="remove-participant-btn" data-participant="${name}">✕</button>
         `;
         list.appendChild(tag);
         this.updateTotals();
@@ -1185,7 +948,6 @@ const App = {
             const clearBtn = document.getElementById('clearParticipantsBtn');
             
             if (list && list.children.length === 0) {
-                list.style.display = 'none';
                 if (emptyState) emptyState.style.display = 'block';
                 if (clearBtn) clearBtn.style.display = 'none';
             }
@@ -1208,7 +970,6 @@ const App = {
             // Rimuovi tutti i tag
             if (list) {
                 list.innerHTML = '';
-                list.style.display = 'none';
             }
             
             // Mostra lo stato vuoto e nascondi il pulsante azzera
@@ -1247,14 +1008,6 @@ const App = {
     // Salva lo scenario
     saveScenario() {
         const participants = Array.from(document.querySelectorAll('.participant-tag span')).map(span => span.textContent);
-        
-        // Rimuovi duplicati dai partecipanti (protezione aggiuntiva)
-        const uniqueParticipants = [...new Set(participants)];
-        
-        if (participants.length !== uniqueParticipants.length) {
-            console.warn('Trovati partecipanti duplicati, rimossi automaticamente');
-        }
-        
         const selectedAccommodation = AccommodationCarManager.getSelectedAccommodation();
         const carTotal = AccommodationCarManager.calculateCarTotal();
         const otherTotal = AccommodationCarManager.calculateOtherTotal();
@@ -1266,7 +1019,7 @@ const App = {
             endDate: document.getElementById('endDate').value,
             flightDeparture: document.getElementById('flightDeparture').value,
             flightArrival: document.getElementById('flightArrival').value,
-            participants: uniqueParticipants,
+            participants: participants,
             expenses: {
                 transport: parseFloat(document.getElementById('transport').value) || 0,
                 accommodation: selectedAccommodation.price,
@@ -1316,14 +1069,6 @@ const App = {
     // Salva come nuovo scenario
     saveAsNewScenario() {
         const participants = Array.from(document.querySelectorAll('.participant-tag span')).map(span => span.textContent);
-        
-        // Rimuovi duplicati dai partecipanti (protezione aggiuntiva)
-        const uniqueParticipants = [...new Set(participants)];
-        
-        if (participants.length !== uniqueParticipants.length) {
-            console.warn('Trovati partecipanti duplicati, rimossi automaticamente');
-        }
-        
         const selectedAccommodation = AccommodationCarManager.getSelectedAccommodation();
         const carTotal = AccommodationCarManager.calculateCarTotal();
         const otherTotal = AccommodationCarManager.calculateOtherTotal();
@@ -1335,7 +1080,7 @@ const App = {
             endDate: document.getElementById('endDate').value,
             flightDeparture: document.getElementById('flightDeparture').value,
             flightArrival: document.getElementById('flightArrival').value,
-            participants: uniqueParticipants,
+            participants: participants,
             expenses: {
                 transport: parseFloat(document.getElementById('transport').value) || 0,
                 accommodation: selectedAccommodation.price,
@@ -1390,34 +1135,6 @@ const App = {
             view.classList.remove('active');
         });
         document.getElementById(viewId).classList.add('active');
-
-        // Mantieni il tab attivo per le sotto-view
-        if (viewId === 'actualDetailView' || viewId === 'accountsView' || viewId === 'settlementsView') {
-            // Attiva il tab Consuntivi
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.view === 'actuals') {
-                    btn.classList.add('active');
-                }
-            });
-        } else if (viewId === 'scenarioDetailView' || viewId === 'compareView') {
-            // Attiva il tab Preventivi per scenarioDetailView
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.view === 'scenarios') {
-                    btn.classList.add('active');
-                }
-            });
-        } else {
-            // Per le view principali, attiva il tab corrispondente
-            const mainView = viewId.replace('View', ''); // dashboardView -> dashboard
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.view === mainView) {
-                    btn.classList.add('active');
-                }
-            });
-        }
     },
 
     // Mostra il modal di export
@@ -1456,19 +1173,8 @@ const App = {
 };
 
 // Inizializza l'app quando il DOM è pronto
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Inizializzazione app...');
-    
-    // Aspetta che StorageManager abbia completato la sincronizzazione
-    if (typeof StorageManager !== 'undefined' && StorageManager.init) {
-        console.log('⏳ Attendo sincronizzazione StorageManager...');
-        await StorageManager.init();
-        console.log('✅ StorageManager pronto');
-    }
-    
-    // Ora inizializza l'interfaccia
+document.addEventListener('DOMContentLoaded', () => {
     App.init();
-    console.log('✅ App inizializzata');
 });
 
 // Made with Bob

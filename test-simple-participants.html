@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Semplice Partecipanti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .participants-list-test {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin: 20px 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            border: 2px solid #dee2e6;
+            min-height: 50px;
+        }
+        
+        .participant-tag-test {
+            background: linear-gradient(135deg, #0066FF, #6366F1);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+        }
+        
+        .remove-btn-test {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .remove-btn-test:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: #EF4444;
+            border-color: #EF4444;
+            transform: scale(1.15);
+        }
+        
+        .log {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Semplice Visualizzazione Partecipanti</h1>
+        
+        <div class="log" id="log"></div>
+        
+        <h2>Test 1: HTML Statico</h2>
+        <p>Questi partecipanti sono scritti direttamente nell'HTML:</p>
+        <div class="participants-list-test">
+            <div class="participant-tag-test">
+                <span>Mario Rossi</span>
+                <button class="remove-btn-test" onclick="alert('Click su Mario')">×</button>
+            </div>
+            <div class="participant-tag-test">
+                <span>Luigi Verdi</span>
+                <button class="remove-btn-test" onclick="alert('Click su Luigi')">×</button>
+            </div>
+        </div>
+        
+        <h2>Test 2: Caricamento Dinamico</h2>
+        <button onclick="loadDynamic()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            Carica Partecipanti Dinamicamente
+        </button>
+        <div id="dynamicList" class="participants-list-test"></div>
+        
+        <h2>Test 3: Simula Caricamento Scenario</h2>
+        <button onclick="simulateScenarioLoad()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            Simula Apertura Scenario
+        </button>
+        <div id="scenarioList" class="participants-list-test" style="display: none;"></div>
+    </div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${time}] ${message}<br>`;
+            console.log(message);
+        }
+        
+        function loadDynamic() {
+            log('Caricamento dinamico...');
+            const participants = ['Anna Bianchi', 'Carlo Neri', 'Elena Gialli'];
+            const list = document.getElementById('dynamicList');
+            
+            list.innerHTML = participants.map(p => `
+                <div class="participant-tag-test">
+                    <span>${p}</span>
+                    <button class="remove-btn-test" onclick="removeDynamic('${p}')">×</button>
+                </div>
+            `).join('');
+            
+            log(`✓ Caricati ${participants.length} partecipanti`);
+            log(`innerHTML length: ${list.innerHTML.length}`);
+            log(`children count: ${list.children.length}`);
+        }
+        
+        function removeDynamic(name) {
+            log(`Rimozione: ${name}`);
+            const list = document.getElementById('dynamicList');
+            const tags = list.querySelectorAll('.participant-tag-test');
+            tags.forEach(tag => {
+                if (tag.querySelector('span').textContent === name) {
+                    tag.remove();
+                    log(`✓ Rimosso: ${name}`);
+                }
+            });
+        }
+        
+        function simulateScenarioLoad() {
+            log('=== SIMULAZIONE CARICAMENTO SCENARIO ===');
+            const participants = ['Chiara Cognos', 'Davide Rosa', 'Giovanni', 'Lara'];
+            const list = document.getElementById('scenarioList');
+            
+            log('Partecipanti da caricare: ' + JSON.stringify(participants));
+            log('Elemento trovato: ' + (list ? 'SI' : 'NO'));
+            log('Display iniziale: ' + list.style.display);
+            
+            // Simula esattamente quello che fa l'app
+            list.innerHTML = participants.map(p => {
+                const escapedName = p.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+                return `
+                    <div class="participant-tag-test">
+                        <span>${escapedName}</span>
+                        <button class="remove-btn-test" data-participant="${p}" onclick="removeScenario('${p}')">×</button>
+                    </div>
+                `;
+            }).join('');
+            
+            list.removeAttribute('style');
+            list.style.display = 'grid';
+            
+            log('innerHTML length: ' + list.innerHTML.length);
+            log('children count: ' + list.children.length);
+            log('Computed display: ' + window.getComputedStyle(list).display);
+            log('✓ Caricamento completato');
+        }
+        
+        function removeScenario(name) {
+            log(`Rimozione scenario: ${name}`);
+            alert(`Rimosso: ${name}`);
+        }
+        
+        log('Pagina caricata - Test pronti');
+    </script>
+</body>
+</html>

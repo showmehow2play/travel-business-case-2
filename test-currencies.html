@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Valute</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .test-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="margin-bottom: 20px;">🧪 Test Anagrafica Valute</h1>
+
+    <div class="test-section">
+        <h2>Test 1: Inizializzazione CurrenciesManager</h2>
+        <button onclick="test1()" class="btn btn-primary">Esegui Test</button>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Caricamento Valute Predefinite</h2>
+        <button onclick="test2()" class="btn btn-primary">Esegui Test</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Aggiunta Nuova Valuta</h2>
+        <button onclick="test3()" class="btn btn-primary">Esegui Test</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Modifica Valuta</h2>
+        <button onclick="test4()" class="btn btn-primary">Esegui Test</button>
+        <div id="test4-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Eliminazione Valuta</h2>
+        <button onclick="test5()" class="btn btn-primary">Esegui Test</button>
+        <div id="test5-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 6: Conversione Valute</h2>
+        <button onclick="test6()" class="btn btn-primary">Esegui Test</button>
+        <div id="test6-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 7: Protezione EUR</h2>
+        <button onclick="test7()" class="btn btn-primary">Esegui Test</button>
+        <div id="test7-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Visualizzazione Valute</h2>
+        <div id="currenciesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div id="currenciesEmptyState" style="display: none;">Nessuna valuta</div>
+    </div>
+
+    <script src="js/currencies.js"></script>
+    <script>
+        function showResult(testId, success, message) {
+            const resultDiv = document.getElementById(testId + '-result');
+            resultDiv.innerHTML = `
+                <div class="test-result ${success ? 'test-success' : 'test-error'}">
+                    ${success ? '✅' : '❌'} ${message}
+                </div>
+            `;
+        }
+
+        function test1() {
+            try {
+                // Reset storage
+                localStorage.removeItem('currencies_registry');
+                
+                // Inizializza
+                CurrenciesManager.init();
+                
+                const currencies = CurrenciesManager.getCurrencies();
+                if (currencies.length > 0) {
+                    showResult('test1', true, `Manager inizializzato con ${currencies.length} valute predefinite`);
+                } else {
+                    showResult('test1', false, 'Nessuna valuta caricata');
+                }
+            } catch (error) {
+                showResult('test1', false, error.message);
+            }
+        }
+
+        function test2() {
+            try {
+                const currencies = CurrenciesManager.getCurrencies();
+                const eur = CurrenciesManager.getCurrencyByCode('EUR');
+                const usd = CurrenciesManager.getCurrencyByCode('USD');
+                
+                if (eur && usd && currencies.length >= 6) {
+                    showResult('test2', true, `Trovate ${currencies.length} valute. EUR: ${eur.name}, USD: ${usd.name}`);
+                } else {
+                    showResult('test2', false, 'Valute predefinite non trovate correttamente');
+                }
+            } catch (error) {
+                showResult('test2', false, error.message);
+            }
+        }
+
+        function test3() {
+            try {
+                const newCurrency = {
+                    code: 'AUD',
+                    name: 'Dollaro Australiano',
+                    symbol: 'A$',
+                    exchangeRate: 1.65,
+                    country: 'Australia'
+                };
+                
+                CurrenciesManager.saveCurrency(newCurrency);
+                const saved = CurrenciesManager.getCurrencyByCode('AUD');
+                
+                if (saved && saved.name === 'Dollaro Australiano') {
+                    showResult('test3', true, `Valuta AUD aggiunta con successo. ID: ${saved.id}`);
+                    renderCurrenciesList();
+                } else {
+                    showResult('test3', false, 'Valuta non salvata correttamente');
+                }
+            } catch (error) {
+                showResult('test3', false, error.message);
+            }
+        }
+
+        function test4() {
+            try {
+                const aud = CurrenciesManager.getCurrencyByCode('AUD');
+                if (!aud) {
+                    showResult('test4', false, 'AUD non trovato. Esegui prima Test 3');
+                    return;
+                }
+                
+                const updated = {
+                    id: aud.id,
+                    code: 'AUD',
+                    name: 'Dollaro Australiano (Aggiornato)',
+                    symbol: 'A$',
+                    exchangeRate: 1.70,
+                    country: 'Australia'
+                };
+                
+                CurrenciesManager.saveCurrency(updated);
+                const saved = CurrenciesManager.getCurrencyByCode('AUD');
+                
+                if (saved.exchangeRate === 1.70 && saved.name.includes('Aggiornato')) {
+                    showResult('test4', true, `Valuta AUD aggiornata. Nuovo tasso: ${saved.exchangeRate}`);
+                    renderCurrenciesList();
+                } else {
+                    showResult('test4', false, 'Valuta non aggiornata correttamente');
+                }
+            } catch (error) {
+                showResult('test4', false, error.message);
+            }
+        }
+
+        function test5() {
+            try {
+                const aud = CurrenciesManager.getCurrencyByCode('AUD');
+                if (!aud) {
+                    showResult('test5', false, 'AUD non trovato. Esegui prima Test 3');
+                    return;
+                }
+                
+                CurrenciesManager.deleteCurrency(aud.id);
+                const deleted = CurrenciesManager.getCurrencyByCode('AUD');
+                
+                if (!deleted) {
+                    showResult('test5', true, 'Valuta AUD eliminata con successo');
+                    renderCurrenciesList();
+                } else {
+                    showResult('test5', false, 'Valuta non eliminata');
+                }
+            } catch (error) {
+                showResult('test5', false, error.message);
+            }
+        }
+
+        function test6() {
+            try {
+                // Converti 100 EUR in USD
+                const result1 = CurrenciesManager.convert(100, 'EUR', 'USD');
+                
+                // Converti 110 USD in EUR
+                const result2 = CurrenciesManager.convert(110, 'USD', 'EUR');
+                
+                if (result1 > 0 && result2 > 0) {
+                    showResult('test6', true, 
+                        `100 EUR = ${result1.toFixed(2)} USD<br>` +
+                        `110 USD = ${result2.toFixed(2)} EUR`
+                    );
+                } else {
+                    showResult('test6', false, 'Conversione fallita');
+                }
+            } catch (error) {
+                showResult('test6', false, error.message);
+            }
+        }
+
+        function test7() {
+            try {
+                const eur = CurrenciesManager.getCurrencyByCode('EUR');
+                if (!eur) {
+                    showResult('test7', false, 'EUR non trovato');
+                    return;
+                }
+                
+                try {
+                    CurrenciesManager.deleteCurrency(eur.id);
+                    showResult('test7', false, 'EUR eliminato (non dovrebbe essere possibile!)');
+                } catch (error) {
+                    if (error.message.includes('principale')) {
+                        showResult('test7', true, 'EUR protetto correttamente: ' + error.message);
+                    } else {
+                        showResult('test7', false, 'Errore inaspettato: ' + error.message);
+                    }
+                }
+            } catch (error) {
+                showResult('test7', false, error.message);
+            }
+        }
+
+        // Inizializza all'avvio
+        window.addEventListener('DOMContentLoaded', () => {
+            CurrenciesManager.init();
+            renderCurrenciesList();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Console</title>
+</head>
+<body>
+    <h1>Test Console - Apri la Console del Browser (F12)</h1>
+    <button id="testBtn">Test Caricamento Script</button>
+    
+    <script>
+        console.log('=== INIZIO TEST ===');
+        
+        // Test 1: Carica storage.js
+        console.log('Test 1: Caricamento storage.js');
+        const script1 = document.createElement('script');
+        script1.src = 'js/storage.js';
+        script1.onload = () => console.log('✅ storage.js caricato');
+        script1.onerror = () => console.error('❌ Errore caricamento storage.js');
+        document.head.appendChild(script1);
+        
+        // Test 2: Carica scenarios.js
+        setTimeout(() => {
+            console.log('Test 2: Caricamento scenarios.js');
+            const script2 = document.createElement('script');
+            script2.src = 'js/scenarios.js';
+            script2.onload = () => console.log('✅ scenarios.js caricato');
+            script2.onerror = () => console.error('❌ Errore caricamento scenarios.js');
+            document.head.appendChild(script2);
+        }, 100);
+        
+        // Test 3: Carica accommodation-car.js
+        setTimeout(() => {
+            console.log('Test 3: Caricamento accommodation-car.js');
+            const script3 = document.createElement('script');
+            script3.src = 'js/accommodation-car.js';
+            script3.onload = () => {
+                console.log('✅ accommodation-car.js caricato');
+                console.log('AccommodationCarManager disponibile:', typeof AccommodationCarManager !== 'undefined');
+            };
+            script3.onerror = () => console.error('❌ Errore caricamento accommodation-car.js');
+            document.head.appendChild(script3);
+        }, 200);
+        
+        // Test 4: Carica app.js
+        setTimeout(() => {
+            console.log('Test 4: Caricamento app.js');
+            const script4 = document.createElement('script');
+            script4.src = 'js/app.js';
+            script4.onload = () => {
+                console.log('✅ app.js caricato');
+                console.log('App disponibile:', typeof App !== 'undefined');
+            };
+            script4.onerror = () => console.error('❌ Errore caricamento app.js');
+            document.head.appendChild(script4);
+        }, 300);
+        
+        document.getElementById('testBtn').addEventListener('click', () => {
+            console.log('=== VERIFICA OGGETTI ===');
+            console.log('StorageManager:', typeof StorageManager);
+            console.log('ScenarioManager:', typeof ScenarioManager);
+            console.log('AccommodationCarManager:', typeof AccommodationCarManager);
+            console.log('App:', typeof App);
+        });
+    </script>
+</body>
+</html>
