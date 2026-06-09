@@ -441,15 +441,15 @@ const App = {
             grid.querySelectorAll('.scenario-card').forEach(card => {
                 const cardId = card.dataset.id;
                 
-                // Handler per il click sulla card (apre lo scenario)
+                // Handler per il click sulla card (visualizza lo scenario in sola lettura)
                 card.addEventListener('click', (e) => {
                     // Ignora il click se è su un pulsante di azione
                     if (e.target.closest('.scenario-action-btn')) {
                         return;
                     }
                     e.preventDefault();
-                    console.log('Click su scenario:', cardId);
-                    this.editScenario(cardId);
+                    console.log('Click su scenario (visualizzazione):', cardId);
+                    this.viewScenario(cardId);
                 });
 
                 // Handler per i pulsanti di azione
@@ -494,6 +494,11 @@ const App = {
         const total = ScenarioManager.calculateTotal(scenario.expenses);
         const costPerPerson = ScenarioManager.calculateCostPerPerson(scenario.expenses, scenario.participants.length);
         const duration = ScenarioManager.calculateDuration(scenario.startDate, scenario.endDate);
+        
+        // Ottieni la bandiera per la destinazione
+        const flag = typeof destinationThemes !== 'undefined' && scenario.destination
+            ? destinationThemes.getFlag(scenario.destination)
+            : '';
 
         return `
             <div class="scenario-card" data-id="${scenario.id}" data-destination="${scenario.destination || ''}">
@@ -506,7 +511,7 @@ const App = {
                     </button>
                 </div>
                 <div class="scenario-card-header">
-                    <h3 class="scenario-title">${scenario.name}</h3>
+                    <h3 class="scenario-title">${flag}${scenario.name}</h3>
                     <div class="destination scenario-destination">📍 ${scenario.destination}</div>
                 </div>
                 <div class="scenario-card-body">
@@ -590,6 +595,11 @@ const App = {
             const total = ScenarioManager.calculateTotal(safeScenario.expenses);
             const costPerPerson = ScenarioManager.calculateCostPerPerson(safeScenario.expenses, safeScenario.participants.length);
             const duration = ScenarioManager.calculateDuration(safeScenario.startDate, safeScenario.endDate);
+            
+            // Ottieni la bandiera per la destinazione
+            const flag = typeof destinationThemes !== 'undefined' && safeScenario.destination
+                ? destinationThemes.getFlag(safeScenario.destination)
+                : '';
 
             return `
                 <div class="scenario-card" data-id="${safeScenario.id}" data-destination="${safeScenario.destination || ''}" role="button" tabindex="0" aria-label="Apri scenario ${safeScenario.name || 'senza nome'}">
@@ -602,7 +612,7 @@ const App = {
                         </button>
                     </div>
                     <div class="scenario-card-header">
-                        <h3 class="scenario-title">${safeScenario.name || 'Scenario senza nome'}</h3>
+                        <h3 class="scenario-title">${flag}${safeScenario.name || 'Scenario senza nome'}</h3>
                         <div class="destination scenario-destination">📍 ${safeScenario.destination || 'Destinazione non indicata'}</div>
                     </div>
                     <div class="scenario-card-body">
@@ -658,7 +668,7 @@ const App = {
         list.querySelectorAll('.scenario-card').forEach(card => {
             const cardId = card.dataset.id;
             
-            // Handler per il click sulla card (apre lo scenario)
+            // Handler per il click sulla card (visualizza lo scenario in sola lettura)
             const openScenario = (e) => {
                 // Ignora il click se è su un pulsante di azione
                 if (e.target.closest('.scenario-action-btn')) {
@@ -666,8 +676,8 @@ const App = {
                 }
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Apertura scenario con ID:', cardId);
-                this.editScenario(cardId);
+                console.log('Visualizzazione scenario con ID:', cardId);
+                this.viewScenario(cardId);
             };
 
             card.addEventListener('click', openScenario);
@@ -919,13 +929,21 @@ const App = {
             if (scenario) {
                 this.currentScenario = scenario;
                 this.loadScenarioForm(scenario);
-                document.getElementById('scenarioTitle').textContent = `Modifica Scenario: ${scenario.name}`;
+                document.getElementById('scenarioTitle').textContent = `✏️ Modifica Scenario: ${scenario.name}`;
                 document.getElementById('deleteScenarioBtn').style.display = 'inline-flex';
                 document.getElementById('duplicateScenarioBtn').style.display = 'inline-flex';
+
+                // Nascondi il pulsante "Modifica" dell'header (se esiste)
+                const editHeaderBtn = document.getElementById('editHeaderBtn');
+                if (editHeaderBtn) {
+                    editHeaderBtn.style.display = 'none';
+                }
 
                 const saveBtn = document.querySelector('#scenarioForm button[type="submit"]');
                 if (saveBtn) {
                     saveBtn.textContent = '💾 Salva Modifiche';
+                    // Ripristina il comportamento normale del submit
+                    saveBtn.onclick = null;
                 }
 
                 let saveAsNewBtn = document.getElementById('saveAsNewBtn');
@@ -943,6 +961,9 @@ const App = {
                 }
                 saveAsNewBtn.style.display = 'inline-flex';
 
+                // Abilita tutti i campi del form per la modifica
+                this.setFormReadOnly(false);
+
                 this.showView('scenarioDetailView');
             } else {
                 ExportManager.showError('Scenario non trovato');
@@ -951,6 +972,90 @@ const App = {
             console.error('Errore nel caricamento dello scenario:', error);
             ExportManager.showError('Errore nel caricamento dello scenario: ' + error.message);
         }
+    },
+
+    // Visualizza uno scenario in modalità sola lettura
+    async viewScenario(id) {
+        try {
+            const scenario = await StorageManager.getScenario(id);
+
+            if (scenario) {
+                this.currentScenario = scenario;
+                this.loadScenarioForm(scenario);
+                document.getElementById('scenarioTitle').textContent = `📋 ${scenario.name}`;
+                
+                // Nascondi pulsanti di eliminazione e duplicazione
+                document.getElementById('deleteScenarioBtn').style.display = 'none';
+                document.getElementById('duplicateScenarioBtn').style.display = 'none';
+
+                // Aggiungi o mostra il pulsante "Modifica Scenario" a destra del titolo
+                let editHeaderBtn = document.getElementById('editHeaderBtn');
+                if (!editHeaderBtn) {
+                    editHeaderBtn = document.createElement('button');
+                    editHeaderBtn.id = 'editHeaderBtn';
+                    editHeaderBtn.className = 'btn btn-primary';
+                    editHeaderBtn.textContent = '✏️ Modifica Scenario';
+                    editHeaderBtn.addEventListener('click', () => {
+                        this.editScenario(id);
+                    });
+                    // Inserisci il pulsante dopo il titolo (h2)
+                    const scenarioTitle = document.getElementById('scenarioTitle');
+                    scenarioTitle.parentNode.insertBefore(editHeaderBtn, scenarioTitle.nextSibling);
+                }
+                editHeaderBtn.style.display = 'inline-flex';
+
+                // Nascondi il pulsante "Salva come Nuovo"
+                const saveAsNewBtn = document.getElementById('saveAsNewBtn');
+                if (saveAsNewBtn) {
+                    saveAsNewBtn.style.display = 'none';
+                }
+
+                // Cambia il pulsante submit in "Modifica"
+                const saveBtn = document.querySelector('#scenarioForm button[type="submit"]');
+                if (saveBtn) {
+                    saveBtn.textContent = '✏️ Modifica Scenario';
+                    saveBtn.onclick = (e) => {
+                        e.preventDefault();
+                        this.editScenario(id);
+                    };
+                }
+
+                // Disabilita tutti i campi del form
+                this.setFormReadOnly(true);
+
+                this.showView('scenarioDetailView');
+            } else {
+                ExportManager.showError('Scenario non trovato');
+            }
+        } catch (error) {
+            console.error('Errore nel caricamento dello scenario:', error);
+            ExportManager.showError('Errore nel caricamento dello scenario: ' + error.message);
+        }
+    },
+
+    // Imposta il form in modalità sola lettura o modifica
+    setFormReadOnly(readOnly) {
+        // Disabilita/abilita tutti gli input, textarea e select
+        const formElements = document.querySelectorAll('#scenarioForm input, #scenarioForm textarea, #scenarioForm select, #scenarioForm button:not([type="submit"])');
+        formElements.forEach(element => {
+            if (readOnly) {
+                element.setAttribute('readonly', 'readonly');
+                element.setAttribute('disabled', 'disabled');
+                element.style.pointerEvents = 'none';
+                element.style.opacity = '0.7';
+            } else {
+                element.removeAttribute('readonly');
+                element.removeAttribute('disabled');
+                element.style.pointerEvents = '';
+                element.style.opacity = '';
+            }
+        });
+
+        // Gestisci i pulsanti di azione nelle sezioni
+        const actionButtons = document.querySelectorAll('.add-option-btn, .remove-option-btn, .select-option-btn, #addParticipantBtn, .remove-participant-btn');
+        actionButtons.forEach(btn => {
+            btn.style.display = readOnly ? 'none' : '';
+        });
     },
 
     // Carica il form dello scenario
