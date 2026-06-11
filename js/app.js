@@ -1027,13 +1027,18 @@ const App = {
                     editHeaderBtn.id = 'editHeaderBtn';
                     editHeaderBtn.className = 'btn btn-primary';
                     editHeaderBtn.textContent = '✏️ Modifica Scenario';
-                    editHeaderBtn.addEventListener('click', () => {
-                        this.editScenario(id);
-                    });
                     // Inserisci il pulsante dopo il titolo (h2)
                     const scenarioTitle = document.getElementById('scenarioTitle');
                     scenarioTitle.parentNode.insertBefore(editHeaderBtn, scenarioTitle.nextSibling);
                 }
+                
+                // CORREZIONE BUG: Aggiorna sempre il data-id e ricrea l'event listener
+                editHeaderBtn.dataset.scenarioId = id;
+                editHeaderBtn.onclick = () => {
+                    const scenarioId = editHeaderBtn.dataset.scenarioId;
+                    console.log('🖱️ Click su pulsante Modifica Header, ID:', scenarioId);
+                    this.editScenario(scenarioId);
+                };
                 editHeaderBtn.style.display = 'inline-flex';
 
                 // Nascondi il pulsante "Salva come Nuovo"
@@ -1046,9 +1051,12 @@ const App = {
                 const saveBtn = document.querySelector('#scenarioForm button[type="submit"]');
                 if (saveBtn) {
                     saveBtn.textContent = '✏️ Modifica Scenario';
+                    saveBtn.dataset.scenarioId = id;
                     saveBtn.onclick = (e) => {
                         e.preventDefault();
-                        this.editScenario(id);
+                        const scenarioId = saveBtn.dataset.scenarioId;
+                        console.log('🖱️ Click su pulsante Modifica Form, ID:', scenarioId);
+                        this.editScenario(scenarioId);
                     };
                 }
 
