@@ -212,21 +212,37 @@ const AccommodationCarManager = {
         window.open(url, '_blank');
     },
 
-    // Ottieni l'opzione di alloggio selezionata
+    // Ottieni le opzioni di alloggio selezionate (ora supporta selezione multipla)
+    getSelectedAccommodations() {
+        const selectedCheckboxes = document.querySelectorAll('input[name="accommodation"]:checked');
+        const accommodations = [];
+        
+        selectedCheckboxes.forEach(checkbox => {
+            const index = checkbox.dataset.index;
+            const nameInput = document.querySelector(`#accommodationOptions .option-name[data-index="${index}"]`);
+            const priceInput = document.querySelector(`#accommodationOptions .option-price[data-index="${index}"]`);
+            const linkInput = document.querySelector(`#accommodationOptions .option-link[data-index="${index}"]`);
+            
+            accommodations.push({
+                name: nameInput ? nameInput.value : '',
+                price: priceInput ? parseFloat(priceInput.value) || 0 : 0,
+                link: linkInput ? linkInput.value : ''
+            });
+        });
+        
+        return accommodations;
+    },
+
+    // Mantieni compatibilità con codice esistente (restituisce la prima opzione selezionata)
     getSelectedAccommodation() {
-        const selectedRadio = document.querySelector('input[name="accommodation"]:checked');
-        if (!selectedRadio) return { name: '', price: 0, link: '' };
-        
-        const index = selectedRadio.dataset.index;
-        const nameInput = document.querySelector(`#accommodationOptions .option-name[data-index="${index}"]`);
-        const priceInput = document.querySelector(`#accommodationOptions .option-price[data-index="${index}"]`);
-        const linkInput = document.querySelector(`#accommodationOptions .option-link[data-index="${index}"]`);
-        
-        return {
-            name: nameInput ? nameInput.value : '',
-            price: priceInput ? parseFloat(priceInput.value) || 0 : 0,
-            link: linkInput ? linkInput.value : ''
-        };
+        const accommodations = this.getSelectedAccommodations();
+        return accommodations.length > 0 ? accommodations[0] : { name: '', price: 0, link: '' };
+    },
+
+    // Calcola il totale degli alloggi selezionati
+    calculateAccommodationTotal() {
+        const accommodations = this.getSelectedAccommodations();
+        return accommodations.reduce((total, acc) => total + acc.price, 0);
     },
 
     // Ottieni le opzioni auto selezionate
@@ -287,14 +303,16 @@ const AccommodationCarManager = {
     loadAccommodationOptions(accommodationOptions) {
         if (!accommodationOptions || accommodationOptions.length === 0) {
             // Inizializza con opzioni vuote
-            accommodationOptions = Array(5).fill(null).map(() => ({ name: '', price: 0, link: '' }));
+            accommodationOptions = Array(5).fill(null).map(() => ({ name: '', price: 0, link: '', selected: false }));
         }
         
         accommodationOptions.forEach((option, index) => {
+            const checkbox = document.querySelector(`input[name="accommodation"][data-index="${index}"]`);
             const nameInput = document.querySelector(`#accommodationOptions .option-name[data-index="${index}"]`);
             const priceInput = document.querySelector(`#accommodationOptions .option-price[data-index="${index}"]`);
             const linkInput = document.querySelector(`#accommodationOptions .option-link[data-index="${index}"]`);
             
+            if (checkbox) checkbox.checked = option.selected || false;
             if (nameInput) nameInput.value = option.name || '';
             if (priceInput) priceInput.value = option.price || 0;
             if (linkInput) {
@@ -357,6 +375,7 @@ const AccommodationCarManager = {
     saveAccommodationOptions() {
         const options = [];
         for (let i = 0; i < 5; i++) {
+            const checkbox = document.querySelector(`input[name="accommodation"][data-index="${i}"]`);
             const nameInput = document.querySelector(`#accommodationOptions .option-name[data-index="${i}"]`);
             const priceInput = document.querySelector(`#accommodationOptions .option-price[data-index="${i}"]`);
             const linkInput = document.querySelector(`#accommodationOptions .option-link[data-index="${i}"]`);
@@ -364,7 +383,8 @@ const AccommodationCarManager = {
             options.push({
                 name: nameInput ? nameInput.value : '',
                 price: priceInput ? parseFloat(priceInput.value) || 0 : 0,
-                link: linkInput ? linkInput.value : ''
+                link: linkInput ? linkInput.value : '',
+                selected: checkbox ? checkbox.checked : false
             });
         }
         return options;
@@ -408,16 +428,33 @@ const AccommodationCarManager = {
         return options;
     },
 
-    // Ottieni l'indice dell'opzione di alloggio selezionata
-    getSelectedAccommodationIndex() {
-        const selectedRadio = document.querySelector('input[name="accommodation"]:checked');
-        return selectedRadio ? parseInt(selectedRadio.dataset.index) : 0;
+    // Ottieni gli indici delle opzioni di alloggio selezionate
+    getSelectedAccommodationIndices() {
+        const selectedCheckboxes = document.querySelectorAll('input[name="accommodation"]:checked');
+        return Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.index));
     },
 
-    // Imposta l'opzione di alloggio selezionata
+    // Imposta le opzioni di alloggio selezionate
+    setSelectedAccommodationIndices(indices) {
+        // Deseleziona tutti prima
+        document.querySelectorAll('input[name="accommodation"]').forEach(cb => cb.checked = false);
+        // Seleziona gli indici specificati
+        indices.forEach(index => {
+            const checkbox = document.querySelector(`input[name="accommodation"][data-index="${index}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+    },
+
+    // Mantieni compatibilità con codice esistente (restituisce il primo indice selezionato)
+    getSelectedAccommodationIndex() {
+        const indices = this.getSelectedAccommodationIndices();
+        return indices.length > 0 ? indices[0] : 0;
+    },
+
+    // Mantieni compatibilità con codice esistente (seleziona un singolo indice)
     setSelectedAccommodationIndex(index) {
-        const radio = document.querySelector(`input[name="accommodation"][data-index="${index}"]`);
-        if (radio) radio.checked = true;
+        const checkbox = document.querySelector(`input[name="accommodation"][data-index="${index}"]`);
+        if (checkbox) checkbox.checked = true;
     }
 };
 

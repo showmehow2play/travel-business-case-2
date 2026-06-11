@@ -1113,6 +1113,7 @@ const App = {
             // Carica i dati del volo se presenti
             document.getElementById('flightDeparture').value = scenario.flightDeparture || '';
             document.getElementById('flightArrival').value = scenario.flightArrival || '';
+            document.getElementById('flightNotes').value = scenario.flightNotes || '';
             
             document.getElementById('transport').value = scenario.expenses?.transport || 0;
             document.getElementById('food').value = scenario.expenses?.food || 0;
@@ -1369,13 +1370,13 @@ const App = {
 
     // Aggiorna i totali
     updateTotals() {
-        const selectedAccommodation = AccommodationCarManager.getSelectedAccommodation();
+        const accommodationTotal = AccommodationCarManager.calculateAccommodationTotal();
         const carTotal = AccommodationCarManager.calculateCarTotal();
         const otherTotal = AccommodationCarManager.calculateOtherTotal();
 
         const expenses = {
             transport: parseFloat(document.getElementById('transport').value) || 0,
-            accommodation: selectedAccommodation.price,
+            accommodation: accommodationTotal,
             food: parseFloat(document.getElementById('food').value) || 0,
             car: carTotal,
             activities: parseFloat(document.getElementById('activities').value) || 0,
@@ -1401,7 +1402,7 @@ const App = {
             console.warn('Trovati partecipanti duplicati, rimossi automaticamente');
         }
         
-        const selectedAccommodation = AccommodationCarManager.getSelectedAccommodation();
+        const accommodationTotal = AccommodationCarManager.calculateAccommodationTotal();
         const carTotal = AccommodationCarManager.calculateCarTotal();
         const otherTotal = AccommodationCarManager.calculateOtherTotal();
 
@@ -1412,10 +1413,11 @@ const App = {
             endDate: document.getElementById('endDate').value,
             flightDeparture: document.getElementById('flightDeparture').value,
             flightArrival: document.getElementById('flightArrival').value,
+            flightNotes: document.getElementById('flightNotes').value,
             participants: uniqueParticipants,
             expenses: {
                 transport: parseFloat(document.getElementById('transport').value) || 0,
-                accommodation: selectedAccommodation.price,
+                accommodation: accommodationTotal,
                 food: parseFloat(document.getElementById('food').value) || 0,
                 car: carTotal,
                 activities: parseFloat(document.getElementById('activities').value) || 0,
@@ -1481,7 +1483,7 @@ const App = {
             console.warn('Trovati partecipanti duplicati, rimossi automaticamente');
         }
         
-        const selectedAccommodation = AccommodationCarManager.getSelectedAccommodation();
+        const accommodationTotal = AccommodationCarManager.calculateAccommodationTotal();
         const carTotal = AccommodationCarManager.calculateCarTotal();
         const otherTotal = AccommodationCarManager.calculateOtherTotal();
 
@@ -1492,10 +1494,11 @@ const App = {
             endDate: document.getElementById('endDate').value,
             flightDeparture: document.getElementById('flightDeparture').value,
             flightArrival: document.getElementById('flightArrival').value,
+            flightNotes: document.getElementById('flightNotes').value,
             participants: uniqueParticipants,
             expenses: {
                 transport: parseFloat(document.getElementById('transport').value) || 0,
-                accommodation: selectedAccommodation.price,
+                accommodation: accommodationTotal,
                 food: parseFloat(document.getElementById('food').value) || 0,
                 car: carTotal,
                 activities: parseFloat(document.getElementById('activities').value) || 0,

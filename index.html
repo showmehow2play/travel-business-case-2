@@ -603,6 +603,7 @@
                                     <span class="currency">€</span>
                                     <input type="number" id="transport" min="0" step="0.01" value="0" placeholder="Costo volo">
                                 </div>
+                                <textarea id="flightNotes" rows="2" placeholder="📝 Note volo (es: Partenza 10:00, Arrivo 14:30, Diretto)" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 0.375rem; font-size: 0.875rem; resize: vertical; margin-top: 0.5rem;"></textarea>
                                 <button type="button" id="flightSearchBtn" class="btn-link">
                                     🔍 Cerca prezzi voli
                                 </button>
@@ -612,7 +613,7 @@
                             <div class="form-group accommodation-section">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                                     <label style="margin: 0;">🏨 Alloggio</label>
-                                    <span class="selection-badge selection-single">⭕ Scelta Singola</span>
+                                    <span class="selection-badge selection-multiple">☑️ Scelta Multipla</span>
                                 </div>
                                 <div class="accommodation-search-links">
                                     <button type="button" id="airbnbSearchBtn" class="btn-link">
@@ -624,7 +625,7 @@
                                 </div>
                                 <div class="options-container" id="accommodationOptions">
                                     <div class="option-item">
-                                        <input type="radio" name="accommodation" id="accommodation1" value="0" data-index="0" checked>
+                                        <input type="checkbox" name="accommodation" id="accommodation1" value="0" data-index="0">
                                         <label for="accommodation1">
                                             <div class="option-fields">
                                                 <input type="text" class="option-name" placeholder="Nome opzione 1" data-index="0">
@@ -640,7 +641,7 @@
                                         </label>
                                     </div>
                                     <div class="option-item">
-                                        <input type="radio" name="accommodation" id="accommodation2" value="1" data-index="1">
+                                        <input type="checkbox" name="accommodation" id="accommodation2" value="1" data-index="1">
                                         <label for="accommodation2">
                                             <div class="option-fields">
                                                 <input type="text" class="option-name" placeholder="Nome opzione 2" data-index="1">
@@ -656,7 +657,7 @@
                                         </label>
                                     </div>
                                     <div class="option-item">
-                                        <input type="radio" name="accommodation" id="accommodation3" value="2" data-index="2">
+                                        <input type="checkbox" name="accommodation" id="accommodation3" value="2" data-index="2">
                                         <label for="accommodation3">
                                             <div class="option-fields">
                                                 <input type="text" class="option-name" placeholder="Nome opzione 3" data-index="2">
@@ -672,7 +673,7 @@
                                         </label>
                                     </div>
                                     <div class="option-item">
-                                        <input type="radio" name="accommodation" id="accommodation4" value="3" data-index="3">
+                                        <input type="checkbox" name="accommodation" id="accommodation4" value="3" data-index="3">
                                         <label for="accommodation4">
                                             <div class="option-fields">
                                                 <input type="text" class="option-name" placeholder="Nome opzione 4" data-index="3">
@@ -688,7 +689,7 @@
                                         </label>
                                     </div>
                                     <div class="option-item">
-                                        <input type="radio" name="accommodation" id="accommodation5" value="4" data-index="4">
+                                        <input type="checkbox" name="accommodation" id="accommodation5" value="4" data-index="4">
                                         <label for="accommodation5">
                                             <div class="option-fields">
                                                 <input type="text" class="option-name" placeholder="Nome opzione 5" data-index="4">
