@@ -12,20 +12,29 @@ Quando si modificava uno scenario di preventivo, le modifiche venivano salvate s
 
 ## 🔍 Causa del Bug
 
-Il problema era causato dall'uso della variabile `this.currentScenario` per identificare quale scenario salvare:
+Il problema aveva **DUE cause**:
+
+### Causa 1: Salvataggio con ID sbagliato
+La funzione `saveScenario()` usava `this.currentScenario.id` per identificare quale scenario salvare, ma questa variabile poteva essere sovrascritta durante la navigazione.
+
+### Causa 2: Ricaricamento automatico con ID sbagliato (CAUSA PRINCIPALE)
+In `participants.js`, quando modificavi un partecipante, il codice ricaricava automaticamente lo scenario usando `App.currentScenario.id`:
 
 ```javascript
-// CODICE PROBLEMATICO (PRIMA)
-if (this.currentScenario) {
-    StorageManager.updateScenario(this.currentScenario.id, scenarioData);
+// CODICE PROBLEMATICO (PRIMA) - participants.js
+if (App.currentScenario && App.currentScenario.id) {
+    const updatedScenario = await StorageManager.getScenario(App.currentScenario.id);
+    App.loadScenarioForm(updatedScenario);  // ❌ Carica lo scenario sbagliato!
 }
 ```
 
-La variabile `this.currentScenario` poteva essere sovrascritta durante la navigazione nell'app:
-1. Apri Scenario A → `this.currentScenario = scenarioA`
-2. Visualizzi Scenario B → `this.currentScenario = scenarioB` (sovrascrive!)
-3. Torni a modificare Scenario A → ma `this.currentScenario` punta ancora a B
-4. Salvi → le modifiche vanno su Scenario B ❌
+**Sequenza del bug:**
+1. Apri Scenario A → `App.currentScenario = scenarioA`
+2. Clicchi su Scenario B per visualizzarlo → `App.currentScenario = scenarioB`
+3. Clicchi "Modifica" su Scenario B → Form caricato correttamente
+4. Modifichi un partecipante → `participants.js` usa `App.currentScenario.id` che è ancora A
+5. Ricarica Scenario A invece di B → Form mostra Scenario A ❌
+6. Salvi → le modifiche vanno su Scenario A invece di B ❌
 
 ## ✅ Soluzione Implementata
 
@@ -162,10 +171,19 @@ Apri il file `test-scenario-save-fix.html` nel browser per eseguire i test unita
 ## 🔧 File Modificati
 
 - `travel-business-case/js/app.js`
-  - Funzione `editScenario()`
-  - Funzione `createNewScenario()`
-  - Funzione `viewScenario()`
-  - Funzione `saveScenario()`
+  - Funzione `editScenario()` - Salva ID nel form
+  - Funzione `createNewScenario()` - Rimuove ID dal form
+  - Funzione `viewScenario()` - Salva ID nel form
+  - Funzione `saveScenario()` - Usa ID dal form invece di this.currentScenario
+  - Aggiunto logging dettagliato per debug
+
+- `travel-business-case/js/participants.js` ⭐ **FIX PRINCIPALE**
+  - Funzione `saveParticipantForm()` - Usa ID dal form invece di App.currentScenario.id
+  - Questo era il bug principale che causava il ricaricamento dello scenario sbagliato
+
+- `travel-business-case/index.html`
+  - Incrementata versione app.js (v18)
+  - Incrementata versione participants.js (v3)
 
 ## 📝 Note Tecniche
 

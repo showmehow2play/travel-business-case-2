@@ -531,10 +531,16 @@ async function saveParticipant(event) {
         
         // Ricarica la vista corrente se siamo in uno scenario o consuntivo
         if (typeof App !== 'undefined' && App.currentView === 'scenarioDetailView') {
-            // Ricarica lo scenario aggiornato dal localStorage
-            if (App.currentScenario && App.currentScenario.id) {
-                const updatedScenario = await StorageManager.getScenario(App.currentScenario.id);
+            // CORREZIONE BUG: Usa l'ID dal form invece di App.currentScenario
+            const form = document.getElementById('scenarioForm');
+            const scenarioId = form ? form.dataset.scenarioId : null;
+            
+            console.log('🔄 Ricaricamento scenario dopo modifica partecipante, ID dal form:', scenarioId);
+            
+            if (scenarioId) {
+                const updatedScenario = await StorageManager.getScenario(scenarioId);
                 if (updatedScenario) {
+                    console.log('✅ Scenario ricaricato:', updatedScenario.name, 'ID:', updatedScenario.id);
                     App.currentScenario = updatedScenario;
                     App.loadScenarioForm(updatedScenario);
                 }
