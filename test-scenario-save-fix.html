@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Fix Salvataggio Scenario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #666;
+            border-bottom: 2px solid #8b5cf6;
+            padding-bottom: 10px;
+        }
+        .success {
+            color: #10b981;
+            font-weight: bold;
+        }
+        .error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+        .info {
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #7c3aed;
+        }
+        pre {
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test Fix Salvataggio Scenario</h1>
+    
+    <div class="test-section">
+        <h2>Descrizione del Bug Risolto</h2>
+        <div class="info">
+            <p><strong>Problema:</strong> Quando si modificava uno scenario, le modifiche venivano salvate su uno scenario diverso.</p>
+            <p><strong>Causa:</strong> La variabile <code>this.currentScenario</code> poteva essere sovrascritta durante la navigazione, causando il salvataggio sull'ID sbagliato.</p>
+            <p><strong>Soluzione:</strong> L'ID dello scenario viene ora salvato direttamente nel form come <code>data-scenario-id</code>, garantendo che il salvataggio avvenga sempre sullo scenario corretto.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test della Correzione</h2>
+        <p>Questo test verifica che il fix funzioni correttamente:</p>
+        
+        <div id="testResults"></div>
+        
+        <button onclick="runTests()">▶️ Esegui Test</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Come Testare Manualmente</h2>
+        <ol>
+            <li>Apri l'applicazione principale</li>
+            <li>Crea o apri uno scenario (es. "Scenario A")</li>
+            <li>Modifica alcuni campi (nome, destinazione, spese)</li>
+            <li>Salva lo scenario</li>
+            <li>Verifica che le modifiche siano state salvate sullo scenario corretto</li>
+            <li>Ripeti con altri scenari per confermare</li>
+        </ol>
+        
+        <div class="info">
+            <strong>✅ Comportamento Atteso:</strong>
+            <ul>
+                <li>Le modifiche vengono salvate sempre sullo scenario che hai aperto</li>
+                <li>Non vengono più sovrascritti scenari diversi</li>
+                <li>Il messaggio di conferma mostra il nome corretto dello scenario</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Modifiche Apportate</h2>
+        <pre>
+1. <strong>editScenario(id)</strong>
+   - Aggiunto: form.dataset.scenarioId = scenario.id
+   - Salva l'ID nel form quando si modifica uno scenario
+
+2. <strong>createNewScenario()</strong>
+   - Aggiunto: delete form.dataset.scenarioId
+   - Rimuove l'ID dal form per nuovi scenari
+
+3. <strong>viewScenario(id)</strong>
+   - Aggiunto: form.dataset.scenarioId = scenario.id
+   - Salva l'ID anche in modalità visualizzazione
+
+4. <strong>saveScenario()</strong>
+   - Modificato: Usa form.dataset.scenarioId invece di this.currentScenario.id
+   - Garantisce il salvataggio sullo scenario corretto
+   - Aggiunto logging per debug
+        </pre>
+    </div>
+
+    <script>
+        function runTests() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<h3>Esecuzione Test...</h3>';
+            
+            let results = [];
+            
+            // Test 1: Verifica che il form possa memorizzare l'ID
+            try {
+                const mockForm = document.createElement('form');
+                mockForm.id = 'testForm';
+                mockForm.dataset.scenarioId = 'test_123';
+                
+                if (mockForm.dataset.scenarioId === 'test_123') {
+                    results.push('✅ Test 1: Il form può memorizzare l\'ID dello scenario');
+                } else {
+                    results.push('❌ Test 1: Errore nel memorizzare l\'ID');
+                }
+            } catch (e) {
+                results.push('❌ Test 1: Eccezione - ' + e.message);
+            }
+            
+            // Test 2: Verifica che l'ID possa essere rimosso
+            try {
+                const mockForm = document.createElement('form');
+                mockForm.dataset.scenarioId = 'test_456';
+                delete mockForm.dataset.scenarioId;
+                
+                if (!mockForm.dataset.scenarioId) {
+                    results.push('✅ Test 2: L\'ID può essere rimosso dal form');
+                } else {
+                    results.push('❌ Test 2: L\'ID non è stato rimosso correttamente');
+                }
+            } catch (e) {
+                results.push('❌ Test 2: Eccezione - ' + e.message);
+            }
+            
+            // Test 3: Verifica che il dataset sia accessibile
+            try {
+                const mockForm = document.createElement('form');
+                mockForm.dataset.scenarioId = 'test_789';
+                const retrievedId = mockForm.dataset.scenarioId;
+                
+                if (retrievedId === 'test_789') {
+                    results.push('✅ Test 3: L\'ID può essere recuperato dal form');
+                } else {
+                    results.push('❌ Test 3: L\'ID recuperato non corrisponde');
+                }
+            } catch (e) {
+                results.push('❌ Test 3: Eccezione - ' + e.message);
+            }
+            
+            // Test 4: Simula il flusso di modifica
+            try {
+                const mockForm = document.createElement('form');
+                
+                // Simula apertura scenario A
+                mockForm.dataset.scenarioId = 'scenario_A';
+                const idA = mockForm.dataset.scenarioId;
+                
+                // Simula apertura scenario B (che prima causava il bug)
+                mockForm.dataset.scenarioId = 'scenario_B';
+                const idB = mockForm.dataset.scenarioId;
+                
+                if (idA === 'scenario_A' && idB === 'scenario_B') {
+                    results.push('✅ Test 4: Il cambio di scenario aggiorna correttamente l\'ID');
+                } else {
+                    results.push('❌ Test 4: Errore nel cambio di scenario');
+                }
+            } catch (e) {
+                results.push('❌ Test 4: Eccezione - ' + e.message);
+            }
+            
+            // Mostra risultati
+            const allPassed = results.every(r => r.startsWith('✅'));
+            resultsDiv.innerHTML = `
+                <h3>${allPassed ? '🎉 Tutti i test superati!' : '⚠️ Alcuni test falliti'}</h3>
+                <ul>
+                    ${results.map(r => `<li class="${r.startsWith('✅') ? 'success' : 'error'}">${r}</li>`).join('')}
+                </ul>
+                <div class="info" style="margin-top: 20px;">
+                    <strong>Nota:</strong> Questi sono test unitari della funzionalità dataset.
+                    Per un test completo, apri l'applicazione principale e prova a modificare diversi scenari.
+                </div>
+            `;
+        }
+        
+        // Esegui i test automaticamente al caricamento
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>

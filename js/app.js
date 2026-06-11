@@ -904,6 +904,13 @@ const App = {
     createNewScenario() {
         this.currentScenario = null;
         this.loadScenarioForm(ScenarioManager.createEmptyScenario());
+        
+        // IMPORTANTE: Rimuovi l'ID dello scenario dal form per indicare che è nuovo
+        const form = document.getElementById('scenarioForm');
+        if (form) {
+            delete form.dataset.scenarioId;
+        }
+        
         document.getElementById('scenarioTitle').textContent = 'Nuovo Scenario';
         document.getElementById('deleteScenarioBtn').style.display = 'none';
         document.getElementById('duplicateScenarioBtn').style.display = 'none';
@@ -929,6 +936,13 @@ const App = {
             if (scenario) {
                 this.currentScenario = scenario;
                 this.loadScenarioForm(scenario);
+                
+                // IMPORTANTE: Salva l'ID dello scenario nel form per evitare confusione
+                const form = document.getElementById('scenarioForm');
+                if (form) {
+                    form.dataset.scenarioId = scenario.id;
+                }
+                
                 document.getElementById('scenarioTitle').textContent = `✏️ Modifica Scenario: ${scenario.name}`;
                 document.getElementById('deleteScenarioBtn').style.display = 'inline-flex';
                 document.getElementById('duplicateScenarioBtn').style.display = 'inline-flex';
@@ -982,6 +996,13 @@ const App = {
             if (scenario) {
                 this.currentScenario = scenario;
                 this.loadScenarioForm(scenario);
+                
+                // IMPORTANTE: Salva l'ID dello scenario nel form
+                const form = document.getElementById('scenarioForm');
+                if (form) {
+                    form.dataset.scenarioId = scenario.id;
+                }
+                
                 document.getElementById('scenarioTitle').textContent = `📋 ${scenario.name}`;
                 
                 // Nascondi pulsanti di eliminazione e duplicazione
@@ -1393,15 +1414,24 @@ const App = {
             return;
         }
 
-        if (this.currentScenario) {
+        // CORREZIONE BUG: Usa l'ID salvato nel form invece di this.currentScenario
+        const form = document.getElementById('scenarioForm');
+        const scenarioId = form ? form.dataset.scenarioId : null;
+        
+        console.log('💾 Salvataggio scenario - ID dal form:', scenarioId);
+        console.log('💾 Salvataggio scenario - this.currentScenario:', this.currentScenario);
+
+        if (scenarioId) {
+            // Scenario esistente - chiedi conferma per sovrascrivere
             const overwriteExisting = confirm(
-                `Vuoi sovrascrivere lo scenario esistente "${this.currentScenario.name}"?\n\n` +
+                `Vuoi sovrascrivere lo scenario esistente "${scenarioData.name}"?\n\n` +
                 `Premi OK per sovrascrivere.\n` +
                 `Premi Annulla per salvare come nuovo scenario.`
             );
 
             if (overwriteExisting) {
-                StorageManager.updateScenario(this.currentScenario.id, scenarioData);
+                console.log('✅ Aggiornamento scenario con ID:', scenarioId);
+                StorageManager.updateScenario(scenarioId, scenarioData);
                 ExportManager.showSuccess('Scenario sovrascritto');
             } else {
                 StorageManager.addScenario({
@@ -1411,6 +1441,8 @@ const App = {
                 ExportManager.showSuccess('Nuovo scenario creato');
             }
         } else {
+            // Nuovo scenario
+            console.log('✅ Creazione nuovo scenario');
             StorageManager.addScenario(scenarioData);
             ExportManager.showSuccess('Scenario creato');
         }
