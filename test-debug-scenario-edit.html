@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Test Modifica Scenario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #666;
+            border-bottom: 2px solid #8b5cf6;
+            padding-bottom: 10px;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #666;
+            padding-left: 10px;
+        }
+        .log-info { border-left-color: #3b82f6; }
+        .log-success { border-left-color: #10b981; }
+        .log-warning { border-left-color: #f59e0b; }
+        .log-error { border-left-color: #ef4444; }
+        button {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #7c3aed;
+        }
+        .info-box {
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .warning-box {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .step {
+            background: #f9fafb;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #8b5cf6;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug - Test Modifica Scenario</h1>
+    
+    <div class="debug-section">
+        <h2>Istruzioni per il Debug</h2>
+        <div class="info-box">
+            <p><strong>Questa pagina ti aiuta a debuggare il problema della modifica degli scenari.</strong></p>
+            <p>Segui questi passaggi per identificare dove si verifica il problema:</p>
+        </div>
+        
+        <div class="step">
+            <strong>Passo 1:</strong> Apri la console del browser (F12 o Cmd+Option+I su Mac)
+        </div>
+        
+        <div class="step">
+            <strong>Passo 2:</strong> Apri l'applicazione principale in un'altra scheda
+        </div>
+        
+        <div class="step">
+            <strong>Passo 3:</strong> Nella lista degli scenari, clicca sul pulsante "✏️ Modifica" di uno scenario
+        </div>
+        
+        <div class="step">
+            <strong>Passo 4:</strong> Osserva i log nella console. Dovresti vedere:
+            <ul>
+                <li>🖱️ Click su pulsante azione: edit ID: [ID_SCENARIO]</li>
+                <li>✏️ Chiamata editScenario con ID: [ID_SCENARIO]</li>
+                <li>🔧 editScenario chiamato con ID: [ID_SCENARIO]</li>
+                <li>📋 Scenario caricato: [NOME_SCENARIO] ID: [ID_SCENARIO]</li>
+                <li>✅ this.currentScenario impostato: [NOME_SCENARIO] ID: [ID_SCENARIO]</li>
+                <li>✅ ID salvato nel form: [ID_SCENARIO]</li>
+                <li>📝 Scenario ricevuto: [NOME_SCENARIO] ID: [ID_SCENARIO]</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <strong>Passo 5:</strong> Verifica che tutti gli ID nei log corrispondano allo scenario che hai cliccato
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Se gli ID non corrispondono:</strong>
+            <ul>
+                <li>Nota quale ID è diverso e in quale punto</li>
+                <li>Questo ti dirà esattamente dove si verifica il problema</li>
+                <li>Copia i log della console e condividili per ulteriore analisi</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>Cosa Cercare nei Log</h2>
+        
+        <h3>✅ Comportamento Corretto</h3>
+        <div class="console-output">
+            <div class="log-entry log-info">🖱️ Click su pulsante azione (Lista Scenari): edit ID: scenario_123</div>
+            <div class="log-entry log-info">✏️ Chiamata editScenario con ID: scenario_123</div>
+            <div class="log-entry log-info">🔧 editScenario chiamato con ID: scenario_123</div>
+            <div class="log-entry log-success">📋 Scenario caricato: Viaggio Roma ID: scenario_123</div>
+            <div class="log-entry log-success">✅ this.currentScenario impostato: Viaggio Roma ID: scenario_123</div>
+            <div class="log-entry log-success">✅ ID salvato nel form: scenario_123</div>
+            <div class="log-entry log-info">📝 Scenario ricevuto: Viaggio Roma ID: scenario_123</div>
+        </div>
+        
+        <h3>❌ Comportamento Errato (Esempio)</h3>
+        <div class="console-output">
+            <div class="log-entry log-info">🖱️ Click su pulsante azione (Lista Scenari): edit ID: scenario_123</div>
+            <div class="log-entry log-info">✏️ Chiamata editScenario con ID: scenario_123</div>
+            <div class="log-entry log-info">🔧 editScenario chiamato con ID: scenario_123</div>
+            <div class="log-entry log-error">📋 Scenario caricato: Viaggio Milano ID: scenario_456</div>
+            <div class="log-entry log-error">✅ this.currentScenario impostato: Viaggio Milano ID: scenario_456</div>
+            <div class="log-entry log-error">✅ ID salvato nel form: scenario_456</div>
+            <div class="log-entry log-error">📝 Scenario ricevuto: Viaggio Milano ID: scenario_456</div>
+        </div>
+        <p style="color: #ef4444;"><strong>⚠️ In questo caso, il problema è in StorageManager.getScenario() che restituisce lo scenario sbagliato!</strong></p>
+    </div>
+
+    <div class="debug-section">
+        <h2>Test Rapido del Form Dataset</h2>
+        <p>Questo test verifica che il meccanismo di salvataggio dell'ID nel form funzioni:</p>
+        <button onclick="testFormDataset()">▶️ Esegui Test</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="debug-section">
+        <h2>Possibili Cause del Problema</h2>
+        
+        <h3>1. Cache di Supabase</h3>
+        <p>Se usi Supabase, la cache potrebbe non essere aggiornata correttamente.</p>
+        <p><strong>Soluzione:</strong> Prova a ricaricare la pagina (Ctrl+F5 o Cmd+Shift+R) per invalidare la cache.</p>
+        
+        <h3>2. ID Duplicati</h3>
+        <p>Se ci sono scenari con ID duplicati nel database, potrebbe caricare quello sbagliato.</p>
+        <p><strong>Verifica:</strong> Controlla nella console di Supabase se ci sono ID duplicati.</p>
+        
+        <h3>3. Race Condition</h3>
+        <p>Se clicchi rapidamente su più scenari, potrebbero sovrapporsi le chiamate asincrone.</p>
+        <p><strong>Test:</strong> Aspetta che ogni scenario sia completamente caricato prima di cliccare su un altro.</p>
+        
+        <h3>4. Event Listener Multipli</h3>
+        <p>Se gli event listener vengono aggiunti più volte, potrebbero esserci conflitti.</p>
+        <p><strong>Verifica:</strong> Controlla nei log se vedi messaggi duplicati per lo stesso click.</p>
+    </div>
+
+    <script>
+        function testFormDataset() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<h3>Esecuzione Test...</h3>';
+            
+            let results = [];
+            
+            // Test 1: Simula il flusso completo
+            try {
+                const mockForm = document.createElement('form');
+                mockForm.id = 'scenarioForm';
+                
+                // Simula apertura Scenario A
+                mockForm.dataset.scenarioId = 'scenario_A';
+                const idA = mockForm.dataset.scenarioId;
+                results.push(`✅ Scenario A aperto, ID nel form: ${idA}`);
+                
+                // Simula apertura Scenario B
+                mockForm.dataset.scenarioId = 'scenario_B';
+                const idB = mockForm.dataset.scenarioId;
+                results.push(`✅ Scenario B aperto, ID nel form: ${idB}`);
+                
+                // Verifica che l'ID sia cambiato correttamente
+                if (idB === 'scenario_B' && idB !== idA) {
+                    results.push('✅ L\'ID nel form si aggiorna correttamente');
+                } else {
+                    results.push('❌ ERRORE: L\'ID nel form non si aggiorna');
+                }
+                
+                // Simula salvataggio
+                const savedId = mockForm.dataset.scenarioId;
+                if (savedId === 'scenario_B') {
+                    results.push(`✅ Salvataggio userebbe l'ID corretto: ${savedId}`);
+                } else {
+                    results.push(`❌ ERRORE: Salvataggio userebbe l'ID sbagliato: ${savedId}`);
+                }
+                
+            } catch (e) {
+                results.push('❌ Eccezione durante il test: ' + e.message);
+            }
+            
+            // Mostra risultati
+            const allPassed = results.every(r => r.startsWith('✅'));
+            resultsDiv.innerHTML = `
+                <h3>${allPassed ? '🎉 Test Superato!' : '⚠️ Test Fallito'}</h3>
+                <div class="console-output">
+                    ${results.map(r => `<div class="log-entry ${r.startsWith('✅') ? 'log-success' : 'log-error'}">${r}</div>`).join('')}
+                </div>
+                <div class="info-box" style="margin-top: 20px;">
+                    ${allPassed 
+                        ? '<strong>Il meccanismo di salvataggio dell\'ID funziona correttamente.</strong><br>Se il problema persiste, è probabilmente in StorageManager.getScenario() o nella cache di Supabase.' 
+                        : '<strong>C\'è un problema con il meccanismo di salvataggio dell\'ID nel form.</strong>'}
+                </div>
+            `;
+        }
+        
+        // Intercetta i log della console per mostrarli nella pagina
+        const originalLog = console.log;
+        const logContainer = document.createElement('div');
+        logContainer.className = 'debug-section';
+        logContainer.innerHTML = '<h2>📊 Log in Tempo Reale</h2><div class="console-output" id="liveConsole"></div>';
+        document.body.appendChild(logContainer);
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const liveConsole = document.getElementById('liveConsole');
+            if (liveConsole) {
+                const message = args.join(' ');
+                const logClass = message.includes('❌') || message.includes('ERRORE') ? 'log-error' :
+                                message.includes('✅') ? 'log-success' :
+                                message.includes('⚠️') ? 'log-warning' : 'log-info';
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${logClass}`;
+                entry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+                liveConsole.appendChild(entry);
+                liveConsole.scrollTop = liveConsole.scrollHeight;
+            }
+        };
+    </script>
+</body>
+</html>

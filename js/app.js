@@ -462,9 +462,12 @@ const App = {
                         const action = btn.dataset.action;
                         const id = btn.dataset.id;
                         
+                        console.log('🖱️ Click su pulsante azione (Dashboard):', action, 'ID:', id);
+                        
                         if (action === 'delete') {
                             this.deleteScenarioFromDashboard(id);
                         } else if (action === 'edit') {
+                            console.log('✏️ Chiamata editScenario con ID:', id);
                             this.editScenario(id);
                         }
                     });
@@ -700,9 +703,12 @@ const App = {
                     const action = btn.dataset.action;
                     const id = btn.dataset.id;
                     
+                    console.log('🖱️ Click su pulsante azione (Lista Scenari):', action, 'ID:', id);
+                    
                     if (action === 'delete') {
                         this.deleteScenarioFromList(id);
                     } else if (action === 'edit') {
+                        console.log('✏️ Chiamata editScenario con ID:', id);
                         this.editScenario(id);
                     }
                 });
@@ -930,17 +936,22 @@ const App = {
 
     // Modifica uno scenario esistente
     async editScenario(id) {
+        console.log('🔧 editScenario chiamato con ID:', id);
         try {
             const scenario = await StorageManager.getScenario(id);
+            console.log('📋 Scenario caricato:', scenario ? scenario.name : 'NON TROVATO', 'ID:', scenario?.id);
 
             if (scenario) {
                 this.currentScenario = scenario;
+                console.log('✅ this.currentScenario impostato:', this.currentScenario.name, 'ID:', this.currentScenario.id);
+                
                 this.loadScenarioForm(scenario);
                 
                 // IMPORTANTE: Salva l'ID dello scenario nel form per evitare confusione
                 const form = document.getElementById('scenarioForm');
                 if (form) {
                     form.dataset.scenarioId = scenario.id;
+                    console.log('✅ ID salvato nel form:', form.dataset.scenarioId);
                 }
                 
                 document.getElementById('scenarioTitle').textContent = `✏️ Modifica Scenario: ${scenario.name}`;
@@ -1082,8 +1093,9 @@ const App = {
     // Carica il form dello scenario
     loadScenarioForm(scenario) {
         console.log('=== loadScenarioForm INIZIO ===');
-        console.log('Scenario ricevuto:', scenario);
-        console.log('Partecipanti nello scenario:', scenario.participants);
+        console.log('📝 Scenario ricevuto:', scenario ? scenario.name : 'NULL', 'ID:', scenario?.id);
+        console.log('👥 Partecipanti nello scenario:', scenario?.participants);
+        console.log('💰 Spese nello scenario:', scenario?.expenses);
         try {
             document.getElementById('scenarioName').value = scenario.name || '';
             document.getElementById('destination').value = scenario.destination || '';
