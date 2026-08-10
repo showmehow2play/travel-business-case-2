@@ -363,11 +363,10 @@ const ActualsUI = {
             });
         }
 
-        // Alloggio - Crea spese separate per ogni opzione selezionata
+        // Alloggio - Crea spese separate per ogni opzione (tutte, non solo la selezionata)
         if (scenario.accommodationOptions && scenario.accommodationOptions.length > 0) {
             scenario.accommodationOptions.forEach((option, index) => {
-                // Aggiungi solo l'opzione selezionata o tutte se non c'è selezione
-                if (option.price > 0 && (scenario.selectedAccommodationIndex === index || scenario.selectedAccommodationIndex === undefined)) {
+                if (option.price > 0) {
                     expenses.push({
                         id: ActualsManager.generateExpenseId(),
                         category: 'hotel',

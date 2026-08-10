@@ -1076,7 +1076,7 @@ const App = {
     // Imposta il form in modalità sola lettura o modifica
     setFormReadOnly(readOnly) {
         // Disabilita/abilita tutti gli input, textarea e select
-        const formElements = document.querySelectorAll('#scenarioForm input, #scenarioForm textarea, #scenarioForm select, #scenarioForm button:not([type="submit"])');
+        const formElements = document.querySelectorAll('#scenarioForm input, #scenarioForm textarea, #scenarioForm select, #scenarioForm button:not([type="submit"]):not(.btn-link-open)');
         formElements.forEach(element => {
             if (readOnly) {
                 element.setAttribute('readonly', 'readonly');
@@ -1089,6 +1089,13 @@ const App = {
                 element.style.pointerEvents = '';
                 element.style.opacity = '';
             }
+        });
+
+        // I pulsanti link rimangono sempre cliccabili (anche in sola lettura)
+        document.querySelectorAll('#scenarioForm .btn-link-open').forEach(btn => {
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+            btn.removeAttribute('disabled');
         });
 
         // Gestisci i pulsanti di azione nelle sezioni
